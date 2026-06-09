@@ -17,10 +17,16 @@
  */
 package com.android.geto.feature.home
 
+import android.app.AppOpsManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Process
+import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
@@ -520,13 +526,38 @@ private fun RecentActivityCard(entry: RecentActivityEntry) {
     }
 }
 
+private enum class PermCheckType { STANDARD, WRITE_SETTINGS, APPOPS_USAGE, DRAW_OVERLAYS, NONE }
+
 private data class AshellCommand(
     val step: Int,
     val title: String,
     val description: String,
     val command: String,
     val isRequired: Boolean,
+    val permissionName: String? = null,
+    val checkType: PermCheckType = PermCheckType.STANDARD,
 )
+
+private fun isPermissionGranted(context: Context, command: AshellCommand): Boolean {
+    return when (command.checkType) {
+        PermCheckType.NONE -> false
+        PermCheckType.WRITE_SETTINGS -> Settings.System.canWrite(context)
+        PermCheckType.DRAW_OVERLAYS -> Settings.canDrawOverlays(context)
+        PermCheckType.APPOPS_USAGE -> {
+            val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+            val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+            } else {
+                @Suppress("DEPRECATION")
+                appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+            }
+            mode == AppOpsManager.MODE_ALLOWED
+        }
+        PermCheckType.STANDARD -> command.permissionName?.let {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        } ?: false
+    }
+}
 
 private val ashellCommands = listOf(
     AshellCommand(
@@ -535,6 +566,8 @@ private val ashellCommands = listOf(
         description = "REQUIRED — Core permission for applying per-app system settings.",
         command = "pm grant com.android.geto android.permission.WRITE_SECURE_SETTINGS",
         isRequired = true,
+        permissionName = "android.permission.WRITE_SECURE_SETTINGS",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 2,
@@ -542,6 +575,8 @@ private val ashellCommands = listOf(
         description = "REQUIRED — Allows Aegis to read system state, app info and running services.",
         command = "pm grant com.android.geto android.permission.DUMP",
         isRequired = true,
+        permissionName = "android.permission.DUMP",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 3,
@@ -549,6 +584,7 @@ private val ashellCommands = listOf(
         description = "REQUIRED — Allows modifying system-level settings (brightness, volume, DPI, etc.).",
         command = "pm grant com.android.geto android.permission.WRITE_SETTINGS",
         isRequired = true,
+        checkType = PermCheckType.WRITE_SETTINGS,
     ),
     AshellCommand(
         step = 4,
@@ -556,6 +592,8 @@ private val ashellCommands = listOf(
         description = "Enables activity monitoring, detection logging, and the Activity Center.",
         command = "pm grant com.android.geto android.permission.READ_LOGS",
         isRequired = false,
+        permissionName = "android.permission.READ_LOGS",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 5,
@@ -563,6 +601,8 @@ private val ashellCommands = listOf(
         description = "Required for DPI scaling, locale override, and display configuration changes.",
         command = "pm grant com.android.geto android.permission.CHANGE_CONFIGURATION",
         isRequired = false,
+        permissionName = "android.permission.CHANGE_CONFIGURATION",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 6,
@@ -570,6 +610,7 @@ private val ashellCommands = listOf(
         description = "Enables app usage tracking and launch-based automation triggers.",
         command = "appops set com.android.geto GET_USAGE_STATS allow",
         isRequired = false,
+        checkType = PermCheckType.APPOPS_USAGE,
     ),
     AshellCommand(
         step = 7,
@@ -577,6 +618,8 @@ private val ashellCommands = listOf(
         description = "Supplements usage stats permission for per-app automation triggers.",
         command = "pm grant com.android.geto android.permission.PACKAGE_USAGE_STATS",
         isRequired = false,
+        permissionName = "android.permission.PACKAGE_USAGE_STATS",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 8,
@@ -584,6 +627,8 @@ private val ashellCommands = listOf(
         description = "Enables battery impact monitoring and battery-based automation triggers.",
         command = "pm grant com.android.geto android.permission.BATTERY_STATS",
         isRequired = false,
+        permissionName = "android.permission.BATTERY_STATS",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 9,
@@ -591,6 +636,8 @@ private val ashellCommands = listOf(
         description = "Enables per-app ops control (clipboard, sensor, mic, camera monitoring).",
         command = "pm grant com.android.geto android.permission.MANAGE_APP_OPS_MODES",
         isRequired = false,
+        permissionName = "android.permission.MANAGE_APP_OPS_MODES",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 10,
@@ -598,6 +645,8 @@ private val ashellCommands = listOf(
         description = "Required for Do Not Disturb and per-app notification volume control.",
         command = "pm grant com.android.geto android.permission.ACCESS_NOTIFICATION_POLICY",
         isRequired = false,
+        permissionName = "android.permission.ACCESS_NOTIFICATION_POLICY",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 11,
@@ -605,6 +654,8 @@ private val ashellCommands = listOf(
         description = "Enables Wi-Fi preference controls and network-based automation triggers.",
         command = "pm grant com.android.geto android.permission.CHANGE_NETWORK_STATE",
         isRequired = false,
+        permissionName = "android.permission.CHANGE_NETWORK_STATE",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 12,
@@ -612,6 +663,8 @@ private val ashellCommands = listOf(
         description = "Required for Quick Settings tiles and status bar interaction.",
         command = "pm grant com.android.geto android.permission.STATUS_BAR",
         isRequired = false,
+        permissionName = "android.permission.STATUS_BAR",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 13,
@@ -619,6 +672,8 @@ private val ashellCommands = listOf(
         description = "Allows reading device configuration flags for advanced system controls.",
         command = "pm grant com.android.geto android.permission.READ_DEVICE_CONFIG",
         isRequired = false,
+        permissionName = "android.permission.READ_DEVICE_CONFIG",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 14,
@@ -626,6 +681,8 @@ private val ashellCommands = listOf(
         description = "Allows Aegis to force-stop other apps when used in automations.",
         command = "pm grant com.android.geto android.permission.FORCE_STOP_PACKAGES",
         isRequired = false,
+        permissionName = "android.permission.FORCE_STOP_PACKAGES",
+        checkType = PermCheckType.STANDARD,
     ),
     AshellCommand(
         step = 15,
@@ -633,6 +690,7 @@ private val ashellCommands = listOf(
         description = "Enables per-app trigger detection via UsageStatsManager.",
         command = "appops set com.android.geto android:get_usage_stats allow",
         isRequired = false,
+        checkType = PermCheckType.APPOPS_USAGE,
     ),
     AshellCommand(
         step = 16,
@@ -640,6 +698,7 @@ private val ashellCommands = listOf(
         description = "Allows Aegis to draw on top of other apps (for on-screen status).",
         command = "appops set com.android.geto SYSTEM_ALERT_WINDOW allow",
         isRequired = false,
+        checkType = PermCheckType.DRAW_OVERLAYS,
     ),
 )
 
@@ -766,7 +825,11 @@ private fun AshellCommandsPanel() {
                     }
 
                     ashellCommands.forEach { cmd ->
-                        CommandItem(command = cmd, context = context)
+                        CommandItem(
+                            command = cmd,
+                            context = context,
+                            isGranted = isPermissionGranted(context, cmd),
+                        )
                     }
                 }
             }
@@ -806,7 +869,10 @@ private fun RequiredLegendChip(label: String, isRequired: Boolean) {
 }
 
 @Composable
-private fun CommandItem(command: AshellCommand, context: Context) {
+private fun CommandItem(command: AshellCommand, context: Context, isGranted: Boolean) {
+    val grantedColor = Color(0xFF2E7D32)
+    val notGrantedColor = MaterialTheme.colorScheme.error
+
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -822,6 +888,7 @@ private fun CommandItem(command: AshellCommand, context: Context) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -842,7 +909,7 @@ private fun CommandItem(command: AshellCommand, context: Context) {
                             else MaterialTheme.colorScheme.secondary,
                         )
                     }
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = command.title,
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
@@ -852,6 +919,30 @@ private fun CommandItem(command: AshellCommand, context: Context) {
                             text = command.description,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(50.dp),
+                    color = if (isGranted) grantedColor.copy(alpha = 0.15f)
+                    else notGrantedColor.copy(alpha = 0.12f),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(if (isGranted) grantedColor else notGrantedColor),
+                        )
+                        Text(
+                            text = if (isGranted) "Granted" else "Not granted",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = if (isGranted) grantedColor else notGrantedColor,
                         )
                     }
                 }

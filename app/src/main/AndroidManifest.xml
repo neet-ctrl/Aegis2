@@ -147,7 +147,7 @@
             </intent-filter>
         </service>
 
-        <!-- Home Screen Widget -->
+        <!-- Home Screen Widget: Status (shows automations + rules + last trigger) -->
         <receiver
             android:name=".widget.AegisWidgetProvider"
             android:exported="true"
@@ -158,6 +158,46 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/aegis_widget_info" />
+        </receiver>
+
+        <!-- Home Screen Widget: Automation Toggle (tap to pause/resume automations) -->
+        <receiver
+            android:name=".widget.AegisAutomationToggleWidgetProvider"
+            android:exported="true"
+            android:label="Aegis Automation Toggle">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.android.geto.ACTION_TOGGLE_AUTOMATIONS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/aegis_widget_automation_toggle_info" />
+        </receiver>
+
+        <!-- Home Screen Widget: Dashboard (shows all key metrics) -->
+        <receiver
+            android:name=".widget.AegisDashboardWidgetProvider"
+            android:exported="true"
+            android:label="Aegis Dashboard Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/aegis_widget_dashboard_info" />
+        </receiver>
+
+        <!-- Home Screen Widget: Activity (shows recent trigger log) -->
+        <receiver
+            android:name=".widget.AegisActivityWidgetProvider"
+            android:exported="true"
+            android:label="Aegis Activity Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/aegis_widget_activity_info" />
         </receiver>
 
         <!-- Boot receiver for automation engine restart -->

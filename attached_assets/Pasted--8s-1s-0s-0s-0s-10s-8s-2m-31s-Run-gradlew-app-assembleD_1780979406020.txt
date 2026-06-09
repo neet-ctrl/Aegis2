@@ -1,0 +1,518 @@
+
+8s
+1s
+0s
+0s
+0s
+10s
+8s
+2m 31s
+Run ./gradlew :app:assembleDebug
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.10/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Configuration on demand is an incubating feature.
+Calculating task graph as no cached configuration is available for tasks: :app:assembleDebug
+Type-safe project accessors is an incubating feature.
+> Task :build-logic:convention:checkKotlinGradlePluginConfigurationErrors
+> Task :build-logic:convention:compileKotlin FROM-CACHE
+> Task :build-logic:convention:compileJava NO-SOURCE
+> Task :build-logic:convention:pluginDescriptors
+> Task :build-logic:convention:processResources
+> Task :build-logic:convention:classes
+> Task :build-logic:convention:jar
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :domain:framework:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:model:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :domain:common:processResources NO-SOURCE
+> Task :domain:model:processResources NO-SOURCE
+> Task :domain:framework:processResources NO-SOURCE
+> Task :domain:repository:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:use-case:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:repository:processResources NO-SOURCE
+> Task :domain:use-case:processResources NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :common:preBuild UP-TO-DATE
+> Task :broadcast-receiver:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :broadcast-receiver:preDebugBuild UP-TO-DATE
+> Task :broadcast-receiver:writeDebugAarMetadata
+> Task :common:writeDebugAarMetadata
+> Task :ui:preBuild UP-TO-DATE
+> Task :ui:preDebugBuild UP-TO-DATE
+> Task :design-system:preBuild UP-TO-DATE
+> Task :design-system:preDebugBuild UP-TO-DATE
+> Task :ui:writeDebugAarMetadata
+> Task :data:datastore:preBuild UP-TO-DATE
+> Task :design-system:writeDebugAarMetadata
+> Task :data:datastore:preDebugBuild UP-TO-DATE
+> Task :data:repository:preBuild UP-TO-DATE
+> Task :data:repository:preDebugBuild UP-TO-DATE
+> Task :data:datastore:writeDebugAarMetadata
+> Task :data:room:preBuild UP-TO-DATE
+> Task :data:repository:writeDebugAarMetadata
+> Task :feature:app-settings:preBuild UP-TO-DATE
+> Task :data:room:preDebugBuild UP-TO-DATE
+> Task :feature:app-settings:preDebugBuild UP-TO-DATE
+> Task :feature:app-settings:writeDebugAarMetadata
+> Task :data:room:writeDebugAarMetadata
+> Task :feature:home:preBuild UP-TO-DATE
+> Task :feature:apps:preBuild UP-TO-DATE
+> Task :feature:apps:preDebugBuild UP-TO-DATE
+> Task :feature:home:preDebugBuild UP-TO-DATE
+> Task :feature:home:writeDebugAarMetadata
+> Task :feature:apps:writeDebugAarMetadata
+> Task :feature:settings:preBuild UP-TO-DATE
+> Task :framework:asset-manager:preBuild UP-TO-DATE
+> Task :feature:settings:preDebugBuild UP-TO-DATE
+> Task :framework:asset-manager:preDebugBuild UP-TO-DATE
+> Task :feature:settings:writeDebugAarMetadata
+> Task :framework:asset-manager:writeDebugAarMetadata
+> Task :framework:launcher-apps:preBuild UP-TO-DATE
+> Task :framework:drawable:preBuild UP-TO-DATE
+> Task :framework:launcher-apps:preDebugBuild UP-TO-DATE
+> Task :framework:drawable:preDebugBuild UP-TO-DATE
+> Task :framework:launcher-apps:writeDebugAarMetadata
+> Task :framework:notification-manager:preBuild UP-TO-DATE
+> Task :framework:notification-manager:preDebugBuild UP-TO-DATE
+> Task :framework:drawable:writeDebugAarMetadata
+> Task :framework:package-manager:preBuild UP-TO-DATE
+> Task :framework:package-manager:preDebugBuild UP-TO-DATE
+> Task :framework:notification-manager:writeDebugAarMetadata
+> Task :framework:secure-settings:preBuild UP-TO-DATE
+> Task :framework:secure-settings:preDebugBuild UP-TO-DATE
+> Task :framework:package-manager:writeDebugAarMetadata
+> Task :framework:shortcut-manager:preBuild UP-TO-DATE
+> Task :framework:secure-settings:writeDebugAarMetadata
+> Task :framework:shortcut-manager:preDebugBuild UP-TO-DATE
+> Task :framework:shortcut-manager:writeDebugAarMetadata
+> Task :app:generateDebugResValues
+> Task :broadcast-receiver:generateDebugResValues FROM-CACHE
+> Task :broadcast-receiver:generateDebugResources
+> Task :broadcast-receiver:packageDebugResources
+> Task :common:generateDebugResValues FROM-CACHE
+> Task :common:generateDebugResources FROM-CACHE
+> Task :common:packageDebugResources
+> Task :design-system:generateDebugResValues FROM-CACHE
+> Task :design-system:generateDebugResources
+> Task :design-system:packageDebugResources
+> Task :ui:generateDebugResValues FROM-CACHE
+> Task :ui:generateDebugResources FROM-CACHE
+> Task :ui:packageDebugResources
+> Task :data:datastore:generateDebugResValues FROM-CACHE
+> Task :data:datastore:generateDebugResources FROM-CACHE
+> Task :data:datastore:packageDebugResources
+> Task :data:repository:generateDebugResValues FROM-CACHE
+> Task :data:repository:generateDebugResources FROM-CACHE
+> Task :data:repository:packageDebugResources
+> Task :data:room:generateDebugResValues FROM-CACHE
+> Task :data:room:generateDebugResources FROM-CACHE
+> Task :data:room:packageDebugResources
+> Task :feature:app-settings:generateDebugResValues FROM-CACHE
+> Task :feature:app-settings:generateDebugResources
+> Task :feature:app-settings:packageDebugResources
+> Task :feature:apps:generateDebugResValues FROM-CACHE
+> Task :feature:apps:generateDebugResources
+> Task :feature:apps:packageDebugResources
+> Task :feature:home:generateDebugResValues FROM-CACHE
+> Task :feature:home:generateDebugResources FROM-CACHE
+> Task :feature:home:packageDebugResources
+> Task :feature:settings:generateDebugResValues FROM-CACHE
+> Task :feature:settings:generateDebugResources
+> Task :feature:settings:packageDebugResources
+> Task :framework:asset-manager:generateDebugResValues FROM-CACHE
+> Task :framework:asset-manager:generateDebugResources FROM-CACHE
+> Task :framework:asset-manager:packageDebugResources
+> Task :framework:drawable:generateDebugResValues FROM-CACHE
+> Task :framework:drawable:generateDebugResources FROM-CACHE
+> Task :framework:drawable:packageDebugResources
+> Task :framework:launcher-apps:generateDebugResValues FROM-CACHE
+> Task :framework:launcher-apps:generateDebugResources FROM-CACHE
+> Task :framework:launcher-apps:packageDebugResources
+> Task :framework:notification-manager:generateDebugResValues FROM-CACHE
+> Task :framework:notification-manager:generateDebugResources
+> Task :framework:notification-manager:packageDebugResources
+> Task :framework:package-manager:generateDebugResValues FROM-CACHE
+> Task :framework:package-manager:generateDebugResources FROM-CACHE
+> Task :framework:package-manager:packageDebugResources
+> Task :framework:secure-settings:generateDebugResValues FROM-CACHE
+> Task :framework:secure-settings:generateDebugResources FROM-CACHE
+> Task :framework:secure-settings:packageDebugResources
+> Task :framework:shortcut-manager:generateDebugResValues FROM-CACHE
+> Task :framework:shortcut-manager:generateDebugResources FROM-CACHE
+> Task :framework:shortcut-manager:packageDebugResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:checkDebugAarMetadata
+> Task :app:packageDebugResources
+> Task :app:parseDebugLocalResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :broadcast-receiver:extractDeepLinksDebug FROM-CACHE
+> Task :app:mergeDebugResources
+> Task :common:extractDeepLinksDebug FROM-CACHE
+> Task :common:processDebugManifest
+> Task :broadcast-receiver:processDebugManifest
+> Task :design-system:extractDeepLinksDebug FROM-CACHE
+> Task :ui:extractDeepLinksDebug FROM-CACHE
+> Task :design-system:processDebugManifest
+> Task :data:datastore:extractDeepLinksDebug FROM-CACHE
+> Task :ui:processDebugManifest
+> Task :data:repository:extractDeepLinksDebug FROM-CACHE
+> Task :data:repository:processDebugManifest
+> Task :data:datastore:processDebugManifest
+> Task :data:room:extractDeepLinksDebug FROM-CACHE
+> Task :feature:app-settings:extractDeepLinksDebug FROM-CACHE
+> Task :data:room:processDebugManifest
+> Task :feature:apps:extractDeepLinksDebug FROM-CACHE
+> Task :feature:app-settings:processDebugManifest
+> Task :feature:home:extractDeepLinksDebug FROM-CACHE
+> Task :feature:apps:processDebugManifest
+> Task :feature:settings:extractDeepLinksDebug FROM-CACHE
+> Task :feature:home:processDebugManifest
+> Task :feature:settings:processDebugManifest
+> Task :framework:asset-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:drawable:extractDeepLinksDebug FROM-CACHE
+> Task :framework:asset-manager:processDebugManifest
+> Task :framework:drawable:processDebugManifest
+> Task :framework:launcher-apps:extractDeepLinksDebug FROM-CACHE
+> Task :framework:notification-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:launcher-apps:processDebugManifest
+> Task :framework:package-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:notification-manager:processDebugManifest
+> Task :framework:secure-settings:extractDeepLinksDebug FROM-CACHE
+> Task :framework:package-manager:processDebugManifest
+> Task :framework:shortcut-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:secure-settings:processDebugManifest
+> Task :framework:shortcut-manager:processDebugManifest
+> Task :broadcast-receiver:compileDebugLibraryResources
+> Task :broadcast-receiver:parseDebugLocalResources
+> Task :broadcast-receiver:generateDebugRFile
+> Task :common:compileDebugLibraryResources FROM-CACHE
+> Task :app:processDebugMainManifest
+> Task :common:parseDebugLocalResources FROM-CACHE
+> Task :common:generateDebugRFile
+> Task :design-system:compileDebugLibraryResources
+> Task :design-system:parseDebugLocalResources
+> Task :design-system:generateDebugRFile
+> Task :ui:compileDebugLibraryResources FROM-CACHE
+> Task :app:processDebugManifest
+> Task :ui:parseDebugLocalResources FROM-CACHE
+> Task :ui:generateDebugRFile
+> Task :app:processDebugManifestForPackage
+> Task :data:datastore:compileDebugLibraryResources FROM-CACHE
+> Task :data:datastore:parseDebugLocalResources FROM-CACHE
+> Task :data:repository:compileDebugLibraryResources FROM-CACHE
+> Task :data:repository:parseDebugLocalResources FROM-CACHE
+> Task :data:datastore:generateDebugRFile
+> Task :data:room:compileDebugLibraryResources FROM-CACHE
+> Task :data:repository:generateDebugRFile
+> Task :data:room:parseDebugLocalResources FROM-CACHE
+> Task :feature:app-settings:compileDebugLibraryResources
+> Task :data:room:generateDebugRFile
+> Task :feature:apps:compileDebugLibraryResources
+> Task :feature:app-settings:parseDebugLocalResources
+> Task :feature:apps:parseDebugLocalResources
+> Task :feature:app-settings:generateDebugRFile
+> Task :feature:home:compileDebugLibraryResources FROM-CACHE
+> Task :feature:apps:generateDebugRFile
+> Task :feature:home:parseDebugLocalResources FROM-CACHE
+> Task :feature:settings:compileDebugLibraryResources
+> Task :feature:settings:parseDebugLocalResources
+> Task :feature:home:generateDebugRFile
+> Task :framework:asset-manager:compileDebugLibraryResources FROM-CACHE
+> Task :framework:asset-manager:parseDebugLocalResources FROM-CACHE
+> Task :feature:settings:generateDebugRFile
+> Task :framework:drawable:compileDebugLibraryResources FROM-CACHE
+> Task :framework:drawable:parseDebugLocalResources FROM-CACHE
+> Task :framework:asset-manager:generateDebugRFile
+> Task :framework:launcher-apps:compileDebugLibraryResources FROM-CACHE
+> Task :framework:launcher-apps:parseDebugLocalResources FROM-CACHE
+> Task :framework:drawable:generateDebugRFile
+> Task :framework:launcher-apps:generateDebugRFile
+> Task :framework:notification-manager:compileDebugLibraryResources
+> Task :framework:package-manager:compileDebugLibraryResources FROM-CACHE
+> Task :framework:package-manager:parseDebugLocalResources FROM-CACHE
+> Task :framework:notification-manager:parseDebugLocalResources
+> Task :framework:package-manager:generateDebugRFile
+> Task :framework:secure-settings:compileDebugLibraryResources FROM-CACHE
+> Task :framework:secure-settings:parseDebugLocalResources FROM-CACHE
+> Task :framework:notification-manager:generateDebugRFile
+> Task :framework:shortcut-manager:compileDebugLibraryResources FROM-CACHE
+> Task :framework:shortcut-manager:parseDebugLocalResources FROM-CACHE
+> Task :framework:secure-settings:generateDebugRFile
+> Task :broadcast-receiver:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:shortcut-manager:generateDebugRFile
+> Task :common:javaPreCompileDebug
+> Task :framework:notification-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:notification-manager:javaPreCompileDebug FROM-CACHE
+> Task :broadcast-receiver:javaPreCompileDebug FROM-CACHE
+> Task :design-system:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :design-system:javaPreCompileDebug
+> Task :ui:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:drawable:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:drawable:javaPreCompileDebug FROM-CACHE
+> Task :framework:launcher-apps:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:launcher-apps:javaPreCompileDebug FROM-CACHE
+> Task :ui:javaPreCompileDebug FROM-CACHE
+> Task :data:datastore-proto:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:datastore-proto:extractIncludeProto
+> Task :data:datastore-proto:extractProto
+> Task :data:datastore-proto:generateProto
+> Task :app:processDebugResources
+> Task :data:datastore-proto:processResources
+> Task :data:datastore:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:datastore:javaPreCompileDebug FROM-CACHE
+> Task :data:repository:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:room:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:room:javaPreCompileDebug
+> Task :data:repository:javaPreCompileDebug FROM-CACHE
+> Task :feature:app-settings:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:app-settings:javaPreCompileDebug FROM-CACHE
+> Task :feature:apps:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:apps:javaPreCompileDebug FROM-CACHE
+> Task :feature:home:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:home:javaPreCompileDebug FROM-CACHE
+> Task :feature:settings:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:settings:javaPreCompileDebug FROM-CACHE
+> Task :framework:asset-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:asset-manager:javaPreCompileDebug FROM-CACHE
+> Task :framework:package-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:package-manager:javaPreCompileDebug FROM-CACHE
+> Task :framework:secure-settings:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:secure-settings:javaPreCompileDebug FROM-CACHE
+> Task :framework:shortcut-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:shortcut-manager:javaPreCompileDebug FROM-CACHE
+> Task :app:javaPreCompileDebug FROM-CACHE
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :broadcast-receiver:mergeDebugShaders
+> Task :broadcast-receiver:compileDebugShaders NO-SOURCE
+> Task :broadcast-receiver:generateDebugAssets UP-TO-DATE
+> Task :broadcast-receiver:packageDebugAssets
+> Task :common:mergeDebugShaders
+> Task :common:compileDebugShaders NO-SOURCE
+> Task :common:generateDebugAssets UP-TO-DATE
+> Task :common:packageDebugAssets
+> Task :design-system:mergeDebugShaders
+> Task :design-system:compileDebugShaders NO-SOURCE
+> Task :design-system:generateDebugAssets UP-TO-DATE
+> Task :design-system:packageDebugAssets
+> Task :ui:mergeDebugShaders
+> Task :ui:compileDebugShaders NO-SOURCE
+> Task :ui:generateDebugAssets UP-TO-DATE
+> Task :ui:packageDebugAssets
+> Task :data:datastore:mergeDebugShaders
+> Task :data:datastore:compileDebugShaders NO-SOURCE
+> Task :data:datastore:generateDebugAssets UP-TO-DATE
+> Task :data:datastore:packageDebugAssets
+> Task :data:repository:mergeDebugShaders
+> Task :data:repository:compileDebugShaders NO-SOURCE
+> Task :data:repository:generateDebugAssets UP-TO-DATE
+> Task :data:repository:packageDebugAssets
+> Task :data:room:mergeDebugShaders
+> Task :data:room:compileDebugShaders NO-SOURCE
+> Task :data:room:generateDebugAssets UP-TO-DATE
+> Task :data:room:packageDebugAssets
+> Task :feature:app-settings:mergeDebugShaders
+> Task :feature:app-settings:compileDebugShaders NO-SOURCE
+> Task :feature:app-settings:generateDebugAssets UP-TO-DATE
+> Task :feature:app-settings:packageDebugAssets
+> Task :feature:apps:mergeDebugShaders
+> Task :feature:apps:compileDebugShaders NO-SOURCE
+> Task :feature:apps:generateDebugAssets UP-TO-DATE
+> Task :feature:apps:packageDebugAssets
+> Task :feature:home:mergeDebugShaders
+> Task :feature:home:compileDebugShaders NO-SOURCE
+> Task :feature:home:generateDebugAssets UP-TO-DATE
+> Task :feature:home:packageDebugAssets
+> Task :feature:settings:mergeDebugShaders
+> Task :feature:settings:compileDebugShaders NO-SOURCE
+> Task :feature:settings:generateDebugAssets UP-TO-DATE
+> Task :feature:settings:packageDebugAssets
+> Task :framework:asset-manager:mergeDebugShaders
+> Task :framework:asset-manager:compileDebugShaders NO-SOURCE
+> Task :framework:asset-manager:generateDebugAssets UP-TO-DATE
+> Task :framework:asset-manager:packageDebugAssets
+> Task :framework:drawable:mergeDebugShaders
+> Task :framework:drawable:compileDebugShaders NO-SOURCE
+> Task :framework:drawable:generateDebugAssets UP-TO-DATE
+> Task :framework:drawable:packageDebugAssets
+> Task :framework:launcher-apps:mergeDebugShaders
+> Task :framework:launcher-apps:compileDebugShaders NO-SOURCE
+> Task :framework:launcher-apps:generateDebugAssets UP-TO-DATE
+> Task :framework:launcher-apps:packageDebugAssets
+> Task :framework:notification-manager:mergeDebugShaders
+> Task :framework:notification-manager:compileDebugShaders NO-SOURCE
+> Task :framework:notification-manager:generateDebugAssets UP-TO-DATE
+> Task :framework:notification-manager:packageDebugAssets
+> Task :framework:package-manager:mergeDebugShaders
+> Task :framework:package-manager:compileDebugShaders NO-SOURCE
+> Task :framework:package-manager:generateDebugAssets UP-TO-DATE
+> Task :framework:package-manager:packageDebugAssets
+> Task :framework:secure-settings:mergeDebugShaders
+> Task :framework:secure-settings:compileDebugShaders NO-SOURCE
+> Task :framework:secure-settings:generateDebugAssets UP-TO-DATE
+> Task :framework:secure-settings:packageDebugAssets
+> Task :framework:shortcut-manager:mergeDebugShaders
+> Task :framework:shortcut-manager:compileDebugShaders NO-SOURCE
+> Task :framework:shortcut-manager:generateDebugAssets UP-TO-DATE
+> Task :framework:shortcut-manager:packageDebugAssets
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :domain:common:compileKotlin
+> Task :domain:common:compileJava NO-SOURCE
+> Task :domain:common:classes UP-TO-DATE
+> Task :data:datastore-proto:compileKotlin
+> Task :domain:common:jar
+> Task :domain:model:compileKotlin
+> Task :domain:model:compileJava NO-SOURCE
+> Task :domain:model:classes UP-TO-DATE
+> Task :domain:model:jar
+> Task :domain:framework:compileKotlin
+> Task :domain:framework:compileJava NO-SOURCE
+> Task :domain:framework:classes UP-TO-DATE
+> Task :domain:framework:jar
+> Task :data:datastore-proto:compileJava
+> Task :domain:repository:compileKotlin
+> Task :domain:repository:compileJava NO-SOURCE
+> Task :domain:repository:classes UP-TO-DATE
+> Task :domain:repository:jar
+> Task :common:kspDebugKotlin
+> Task :domain:use-case:compileKotlin
+> Task :domain:use-case:compileJava NO-SOURCE
+> Task :domain:use-case:classes UP-TO-DATE
+> Task :common:compileDebugKotlin
+> Task :domain:use-case:jar
+
+> Task :design-system:compileDebugKotlin
+w: file:///home/runner/work/Aegis2/Aegis2/design-system/src/main/kotlin/com/android/geto/designsystem/icon/GetoIcons.kt:150:34 '@property:Deprecated(...) val Icons.Filled.VolumeUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.VolumeUp.
+
+> Task :design-system:compileDebugJavaWithJavac NO-SOURCE
+> Task :framework:drawable:kspDebugKotlin
+> Task :design-system:bundleLibCompileToJarDebug
+> Task :data:datastore-proto:classes
+> Task :data:datastore-proto:jar
+> Task :framework:drawable:compileDebugKotlin
+> Task :common:compileDebugJavaWithJavac
+> Task :framework:drawable:compileDebugJavaWithJavac
+> Task :framework:drawable:transformDebugClassesWithAsm
+> Task :common:transformDebugClassesWithAsm
+> Task :framework:drawable:bundleLibCompileToJarDebug
+> Task :common:bundleLibCompileToJarDebug
+> Task :common:bundleLibRuntimeToJarDebug
+> Task :framework:drawable:bundleLibRuntimeToJarDebug
+> Task :framework:launcher-apps:kspDebugKotlin
+> Task :framework:notification-manager:kspDebugKotlin
+> Task :app:l8DexDesugarLibDebug
+> Task :framework:notification-manager:compileDebugKotlin
+> Task :data:room:kspDebugKotlin
+> Task :framework:launcher-apps:compileDebugKotlin
+> Task :framework:notification-manager:compileDebugJavaWithJavac
+> Task :framework:launcher-apps:compileDebugJavaWithJavac
+> Task :framework:launcher-apps:transformDebugClassesWithAsm
+> Task :framework:launcher-apps:bundleLibCompileToJarDebug
+> Task :design-system:bundleLibRuntimeToJarDebug
+> Task :framework:launcher-apps:bundleLibRuntimeToJarDebug
+> Task :framework:notification-manager:transformDebugClassesWithAsm
+> Task :framework:notification-manager:bundleLibCompileToJarDebug
+> Task :data:datastore:kspDebugKotlin
+> Task :framework:notification-manager:bundleLibRuntimeToJarDebug
+> Task :ui:compileDebugKotlin
+> Task :ui:compileDebugJavaWithJavac NO-SOURCE
+> Task :ui:bundleLibCompileToJarDebug
+> Task :broadcast-receiver:kspDebugKotlin
+> Task :framework:asset-manager:kspDebugKotlin
+> Task :ui:bundleLibRuntimeToJarDebug
+> Task :broadcast-receiver:compileDebugKotlin
+> Task :data:room:compileDebugKotlin
+> Task :data:room:compileDebugJavaWithJavac
+> Task :data:room:copyRoomSchemas NO-SOURCE
+> Task :data:datastore:compileDebugKotlin
+> Task :broadcast-receiver:compileDebugJavaWithJavac
+> Task :data:room:transformDebugClassesWithAsm
+> Task :data:room:bundleLibCompileToJarDebug
+> Task :data:room:bundleLibRuntimeToJarDebug
+> Task :broadcast-receiver:transformDebugClassesWithAsm
+> Task :broadcast-receiver:bundleLibCompileToJarDebug
+> Task :broadcast-receiver:bundleLibRuntimeToJarDebug
+> Task :data:datastore:compileDebugJavaWithJavac
+> Task :data:datastore:transformDebugClassesWithAsm
+> Task :data:datastore:bundleLibCompileToJarDebug
+> Task :data:datastore:bundleLibRuntimeToJarDebug
+> Task :data:repository:kspDebugKotlin
+> Task :feature:home:kspDebugKotlin
+> Task :data:repository:compileDebugKotlin
+> Task :data:repository:compileDebugJavaWithJavac
+> Task :data:repository:transformDebugClassesWithAsm
+> Task :data:repository:bundleLibCompileToJarDebug
+> Task :feature:apps:kspDebugKotlin
+> Task :feature:app-settings:kspDebugKotlin
+> Task :feature:settings:kspDebugKotlin
+> Task :feature:apps:compileDebugKotlin
+e: file:///home/runner/work/Aegis2/Aegis2/feature/settings/src/main/kotlin/com/android/geto/feature/settings/dialog/ThemeDialog.kt:55:42 Cannot access 'fun Theme.getTitle(): String': it is private in file.
+
+> Task :feature:settings:compileDebugKotlin FAILED
+e: file:///home/runner/work/Aegis2/Aegis2/feature/settings/src/main/kotlin/com/android/geto/feature/settings/dialog/ThemeDialog.kt:159:38 Cannot access 'fun Theme.getTitle(): String': it is private in file.
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/AppSettingsScreen.kt:841:31 Overload resolution ambiguity between candidates:
+
+constructor(@NonNull() p0: Context, @NonNull() p1: Notification): NotificationCompat.Builder
+> Task :feature:app-settings:compileDebugKotlin
+constructor(@NonNull() p0: Context, @NonNull() p1: String): NotificationCompat.Builder
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/AppSettingsScreen.kt:843:43 Unresolved reference 'CHANNEL_ID'.
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/AppSettingsScreen.kt:845:10 Unresolved reference 'setSmallIcon'.
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/EnvironmentDetectionTab.kt:231:46 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/dialog/AppSettingDialog.kt:61:45 Unresolved reference 'getSettingTypeTitle'.
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/dialog/AppSettingDialog.kt:244:17 Overload resolution ambiguity between candidates:
+@Composable() @ComposableTarget(...) fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+@Composable() @ComposableTarget(...) fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/dialog/AppSettingDialog.kt:245:40 Unresolved reference 'getSettingTypeTitle'.
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/dialog/TemplateDialog.kt:42:45 Unresolved reference 'getSettingTypeTitle'.
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/dialog/TemplateDialog.kt:101:13 Overload resolution ambiguity between candidates:
+@Composable() @ComposableTarget(...) fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+@Composable() @ComposableTarget(...) fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/dialog/TemplateDialog.kt:102:55 Unresolved reference 'getSettingTypeTitle'.
+
+> Task :feature:app-settings:compileDebugKotlin FAILED
+> Task :feature:apps:compileDebugJavaWithJavac
+> Task :feature:home:compileDebugKotlin
+
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1780979154365.json
+FAILURE: Build completed with 2 failures.
+319 actionable tasks: 230 executed, 89 from cache
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:settings:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:app-settings:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+BUILD FAILED in 2m 30s
+Configuration cache entry stored.
+Error: Process completed with exit code
