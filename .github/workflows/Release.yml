@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - master
+      - main
+  workflow_dispatch:
 
 jobs:
   release:
@@ -41,11 +45,18 @@ jobs:
         run: |
           VERSION_NAME=$(sed -n 's/.*versionName *= *"\(.*\)".*/\1/p' app/build.gradle.kts)
           VERSION_CODE=$(sed -n 's/.*versionCode *= *\([0-9]\+\).*/\1/p' app/build.gradle.kts)
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            RELEASE_TAG="${GITHUB_REF_NAME}"
+          else
+            RELEASE_TAG="v${VERSION_NAME}"
+          fi
           echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
           echo "version_code=${VERSION_CODE}" >> $GITHUB_OUTPUT
-          echo "Aegis version: ${VERSION_NAME} (${VERSION_CODE})"
+          echo "release_tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "Aegis version: ${VERSION_NAME} (${VERSION_CODE}), release tag: ${RELEASE_TAG}"
 
       - name: Verify tag matches versionName
+        if: github.ref_type == 'tag'
         run: |
           CLEAN_TAG="${GITHUB_REF_NAME#v}"
           if [ "${CLEAN_TAG}" != "${{ steps.version.outputs.version_name }}" ]; then
@@ -72,37 +83,38 @@ jobs:
       - name: Rename signed APK
         run: |
           mv "${{ steps.sign_release.outputs.signedReleaseFile }}" \
-             app/build/outputs/apk/release/aegis-${{ github.ref_name }}.apk
+             app/build/outputs/apk/release/aegis-${{ steps.version.outputs.release_tag }}.apk
 
       - name: Upload ProGuard Mapping as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mapping-${{ github.ref_name }}
+          name: mapping-${{ steps.version.outputs.release_tag }}
           path: app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: ignore
 
       - name: Upload Signed Release APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Aegis-Release-APK-${{ github.ref_name }}
+          name: Aegis-Release-APK-${{ steps.version.outputs.release_tag }}
           path: app/build/outputs/apk/release/aegis-*.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Aegis ${{ github.ref_name }}"
+          tag_name: ${{ steps.version.outputs.release_tag }}
+          name: "Aegis ${{ steps.version.outputs.release_tag }}"
           prerelease: false
           make_latest: true
           generate_release_notes: true
           body: |
-            ## Aegis ${{ github.ref_name }}
+            ## Aegis ${{ steps.version.outputs.release_tag }}
 
             **Version:** `${{ steps.version.outputs.version_name }}` (code `${{ steps.version.outputs.version_code }}`)
 
             ### Installation
-            1. Download `aegis-${{ github.ref_name }}.apk` below
+            1. Download `aegis-${{ steps.version.outputs.release_tag }}.apk` below
             2. Enable "Install from unknown sources" in Android settings
             3. Open the APK to install
 
             > ✅ This is a **signed release APK** — stable and ready for use.
-          files: app/build/outputs/apk/release/aegis-${{ github.ref_name }}.apk
+          files: app/build/outputs/apk/release/aegis-${{ steps.version.outputs.release_tag }}.apk
