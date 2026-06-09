@@ -48,6 +48,10 @@ class RevertSettingsBroadcastReceiver @Inject constructor() : BroadcastReceiver(
 
         val notificationId = intent.extras?.getInt(NOTIFICATION_EXTRA_NOTIFICATION_ID) ?: return
 
+        val packageName = componentName.substringBefore("/")
+        context?.getSharedPreferences("aegis_pending_revert", android.content.Context.MODE_PRIVATE)
+            ?.edit()?.remove(packageName)?.apply()
+
         appScope.launch {
             revertAppSettingsUseCase(componentName = componentName)
 

@@ -565,6 +565,11 @@ private fun AppSettingsLaunchedEffects(
                         contentText = applySuccess,
                     ),
                 )
+                val packageName = appSettingsRouteData.componentName.substringBefore("/")
+                context.getSharedPreferences("aegis_pending_revert", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(packageName, "${appSettingsRouteData.componentName}|$notificationId")
+                    .apply()
                 androidLauncherAppsWrapper.startMainActivity(componentName = appSettingsRouteData.componentName)
             }
             InvalidValues -> snackbarHostState.showSnackbar(message = invalidValues)
@@ -579,7 +584,14 @@ private fun AppSettingsLaunchedEffects(
             EmptyAppSettings -> snackbarHostState.showSnackbar(message = emptyAppSettingsList)
             Failure -> snackbarHostState.showSnackbar(message = revertFailure)
             NoPermission -> onShowWriteSecureSettingsDialog()
-            Success -> snackbarHostState.showSnackbar(message = revertSuccess)
+            Success -> {
+                snackbarHostState.showSnackbar(message = revertSuccess)
+                val packageName = appSettingsRouteData.componentName.substringBefore("/")
+                context.getSharedPreferences("aegis_pending_revert", Context.MODE_PRIVATE)
+                    .edit()
+                    .remove(packageName)
+                    .apply()
+            }
             InvalidValues -> snackbarHostState.showSnackbar(message = invalidValues)
             null -> Unit
         }

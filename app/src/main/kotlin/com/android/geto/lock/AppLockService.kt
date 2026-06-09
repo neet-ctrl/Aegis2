@@ -1,10 +1,15 @@
 package com.android.geto.lock
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Context
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
+import com.android.geto.broadcastreceiver.RevertSettingsBroadcastReceiver
 import com.android.geto.engine.AegisAutomationEngine
 import com.android.geto.feature.appsettings.security.AppLockManager
+import com.android.geto.framework.notificationmanager.AndroidNotificationManagerWrapper.Companion.ACTION_REVERT_SETTINGS
+import com.android.geto.framework.notificationmanager.AndroidNotificationManagerWrapper.Companion.NOTIFICATION_EXTRA_COMPONENT_NAME
+import com.android.geto.framework.notificationmanager.AndroidNotificationManagerWrapper.Companion.NOTIFICATION_EXTRA_NOTIFICATION_ID
 import java.util.Collections
 
 class AppLockService : AccessibilityService() {
@@ -33,7 +38,35 @@ class AppLockService : AccessibilityService() {
 
             // Fire "App Launch" automation trigger on each new foreground package
             if (packageName != lastLaunchPackage) {
+                val prevPackage = lastLaunchPackage
                 lastLaunchPackage = packageName
+
+                // Auto-revert settings for the app that just left the foreground
+                try {
+                    val prefs = applicationContext.getSharedPreferences(
+                        PENDING_REVERT_PREFS, Context.MODE_PRIVATE
+                    )
+                    val pendingRevert = prefs.getString(prevPackage, null)
+                    if (pendingRevert != null) {
+                        val parts = pendingRevert.split("|")
+                        if (parts.size == 2) {
+                            val componentName = parts[0]
+                            val notificationId = parts[1].toIntOrNull()
+                            if (notificationId != null) {
+                                prefs.edit().remove(prevPackage).apply()
+                                val revertIntent = Intent(ACTION_REVERT_SETTINGS).apply {
+                                    setClass(applicationContext, RevertSettingsBroadcastReceiver::class.java)
+                                    putExtra(NOTIFICATION_EXTRA_COMPONENT_NAME, componentName)
+                                    putExtra(NOTIFICATION_EXTRA_NOTIFICATION_ID, notificationId)
+                                }
+                                sendBroadcast(revertIntent)
+                            }
+                        }
+                    }
+                } catch (_: Exception) {
+                    // Never let auto-revert errors crash the accessibility service
+                }
+
                 try {
                     AegisAutomationEngine.fireTrigger(this, "App Launch", packageName)
                 } catch (_: Exception) {
@@ -71,6 +104,8 @@ class AppLockService : AccessibilityService() {
     override fun onInterrupt() {}
 
     companion object {
+        const val PENDING_REVERT_PREFS = "aegis_pending_revert"
+
         private val unlockedThisSession: MutableSet<String> =
             Collections.synchronizedSet(mutableSetOf())
 
