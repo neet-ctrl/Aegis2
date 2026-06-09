@@ -14,11 +14,16 @@ import android.net.NetworkInfo
 import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import com.android.geto.R
 import com.android.geto.activity.main.MainActivity
 import com.android.geto.engine.AegisAutomationEngine
+import com.android.geto.watchdog.AccessibilityHealthMonitor
+import com.android.geto.watchdog.AccessibilityStatus
 
 class AegisMonitorService : Service() {
 
@@ -80,21 +85,89 @@ class AegisMonitorService : Service() {
         }
     }
 
+    private val watchdogHandler = Handler(Looper.getMainLooper())
+    private val watchdogRunnable = object : Runnable {
+        override fun run() {
+            checkAccessibilityHealth()
+            watchdogHandler.postDelayed(this, WATCHDOG_INTERVAL_MS)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         ensureNotificationChannel()
         startForeground(NOTIFICATION_ID, buildForegroundNotification())
         registerDynamicReceiver()
+        watchdogHandler.postDelayed(watchdogRunnable, WATCHDOG_INTERVAL_MS)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onDestroy() {
         super.onDestroy()
+        watchdogHandler.removeCallbacks(watchdogRunnable)
         runCatching { unregisterReceiver(dynamicReceiver) }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun checkAccessibilityHealth() {
+        try {
+            val health = AccessibilityHealthMonitor.getHealth(this)
+            when (health.status) {
+                AccessibilityStatus.MALFUNCTIONING, AccessibilityStatus.ENABLED_NOT_RUNNING -> {
+                    showAccessibilityMalfunctionNotification(health.issueDescription)
+                }
+                else -> {
+                    dismissAccessibilityMalfunctionNotification()
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun showAccessibilityMalfunctionNotification(reason: String) {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (nm.getNotificationChannel(WATCHDOG_CHANNEL_ID) == null) {
+                val ch = NotificationChannel(
+                    WATCHDOG_CHANNEL_ID,
+                    "App Lock Service Alerts",
+                    NotificationManager.IMPORTANCE_HIGH,
+                ).apply {
+                    description = "Alerts when the Aegis App Lock accessibility service has stopped"
+                    setShowBadge(true)
+                }
+                nm.createNotificationChannel(ch)
+            }
+        }
+
+        val accessIntent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val pi = PendingIntent.getActivity(
+            this, 0, accessIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+
+        val notification = NotificationCompat.Builder(this, WATCHDOG_CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("App Lock Service Not Running")
+            .setContentText(reason)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(reason))
+            .setContentIntent(pi)
+            .setOngoing(false)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        nm.notify(WATCHDOG_NOTIF_ID, notification)
+    }
+
+    private fun dismissAccessibilityMalfunctionNotification() {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(WATCHDOG_NOTIF_ID)
+    }
 
     private fun registerDynamicReceiver() {
         val filter = IntentFilter().apply {
@@ -150,7 +223,10 @@ class AegisMonitorService : Service() {
 
     companion object {
         private const val NOTIFICATION_ID = 7001
+        private const val WATCHDOG_NOTIF_ID = 7002
         private const val MONITOR_CHANNEL_ID = "aegis_monitor_service"
+        private const val WATCHDOG_CHANNEL_ID = "aegis_accessibility_watchdog"
+        private const val WATCHDOG_INTERVAL_MS = 5 * 60 * 1000L
 
         fun start(context: Context) {
             val intent = Intent(context, AegisMonitorService::class.java)

@@ -21,6 +21,7 @@ import android.app.AppOpsManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Process
@@ -47,6 +48,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -64,7 +67,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -77,11 +82,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import android.os.PowerManager
 import com.android.geto.designsystem.icon.GetoIcons
 
 @Composable
@@ -113,12 +122,227 @@ internal fun DashboardScreen(
     ) {
         item { HeroBanner() }
         item { QuickTogglesEntryCard(onNavigateToQuickToggles = onNavigateToQuickToggles) }
+        item { AccessibilityHealthCard() }
         item { StatusGrid() }
         item { AshellCommandsPanel() }
         item { StatisticsSection() }
         item { RecentActivitySection(onNavigateToActivity = onNavigateToActivity) }
         item { QuickActionsSection(onNavigateToAutomations = onNavigateToAutomations) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
+    }
+}
+
+private enum class A11yStatus { OK, DISABLED, NOT_RUNNING, MALFUNCTIONING }
+
+private data class A11yHealth(
+    val enabledInSettings: Boolean,
+    val heartbeatAlive: Boolean,
+    val batteryExempt: Boolean,
+) {
+    val status: A11yStatus
+        get() = when {
+            !enabledInSettings -> A11yStatus.DISABLED
+            enabledInSettings && heartbeatAlive -> A11yStatus.OK
+            enabledInSettings && !heartbeatAlive -> A11yStatus.MALFUNCTIONING
+            else -> A11yStatus.NOT_RUNNING
+        }
+
+    val statusLabel: String
+        get() = when (status) {
+            A11yStatus.OK -> "Running"
+            A11yStatus.DISABLED -> "Disabled"
+            A11yStatus.NOT_RUNNING -> "Not Running"
+            A11yStatus.MALFUNCTIONING -> "Malfunctioning"
+        }
+
+    val issueDescription: String
+        get() = when (status) {
+            A11yStatus.OK -> "Accessibility service is healthy."
+            A11yStatus.DISABLED -> "Enable 'Aegis App Lock' in Accessibility Settings to use App Lock."
+            A11yStatus.NOT_RUNNING ->
+                if (!batteryExempt) "Service not started — battery optimization may be killing it. Tap to fix."
+                else "Service is enabled but not running. Try re-enabling in Accessibility Settings."
+            A11yStatus.MALFUNCTIONING ->
+                if (!batteryExempt) "Service was killed by battery optimization. Tap to fix."
+                else "Service crashed or was killed. Re-enable in Accessibility Settings to fix."
+        }
+}
+
+private fun getA11yHealth(context: Context): A11yHealth {
+    val enabledInSettings = try {
+        val s = Settings.Secure.getString(
+            context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        )
+        s?.contains("com.android.geto", ignoreCase = true) == true
+    } catch (_: Exception) { false }
+
+    val lastHeartbeat = context
+        .getSharedPreferences("aegis_accessibility_watchdog", Context.MODE_PRIVATE)
+        .getLong("heartbeat_ms", 0L)
+    val heartbeatAlive = lastHeartbeat > 0 &&
+        (System.currentTimeMillis() - lastHeartbeat) < 5 * 60 * 1000L
+
+    val batteryExempt = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
+            .isIgnoringBatteryOptimizations(context.packageName)
+    } else true
+
+    return A11yHealth(enabledInSettings, heartbeatAlive, batteryExempt)
+}
+
+@Composable
+private fun AccessibilityHealthCard() {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var refreshTick by remember { mutableIntStateOf(0) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) refreshTick++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val health = remember(refreshTick) { getA11yHealth(context) }
+
+    if (health.status == A11yStatus.OK && health.batteryExempt) return
+
+    val containerColor = when (health.status) {
+        A11yStatus.OK -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+        A11yStatus.MALFUNCTIONING -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.75f)
+        A11yStatus.DISABLED -> MaterialTheme.colorScheme.surfaceContainerHigh
+        A11yStatus.NOT_RUNNING -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f)
+    }
+
+    val titleColor = when (health.status) {
+        A11yStatus.OK -> MaterialTheme.colorScheme.onPrimaryContainer
+        A11yStatus.MALFUNCTIONING -> MaterialTheme.colorScheme.onErrorContainer
+        A11yStatus.DISABLED -> MaterialTheme.colorScheme.onSurface
+        A11yStatus.NOT_RUNNING -> MaterialTheme.colorScheme.onTertiaryContainer
+    }
+
+    val iconColor = when (health.status) {
+        A11yStatus.OK -> MaterialTheme.colorScheme.primary
+        A11yStatus.MALFUNCTIONING -> MaterialTheme.colorScheme.error
+        A11yStatus.DISABLED -> MaterialTheme.colorScheme.onSurfaceVariant
+        A11yStatus.NOT_RUNNING -> MaterialTheme.colorScheme.tertiary
+    }
+
+    val statusIcon = when (health.status) {
+        A11yStatus.OK -> GetoIcons.CheckCircle
+        A11yStatus.MALFUNCTIONING -> GetoIcons.Error
+        A11yStatus.DISABLED -> GetoIcons.AccessibilityNew
+        A11yStatus.NOT_RUNNING -> GetoIcons.Warning
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(iconColor.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = statusIcon,
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "App Lock Service — ${health.statusLabel}",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = titleColor,
+                    )
+                    Text(
+                        text = health.issueDescription,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = titleColor.copy(alpha = 0.8f),
+                    )
+                }
+            }
+
+            listOf(
+                Triple("Enabled in Accessibility Settings", health.enabledInSettings, GetoIcons.AccessibilityNew),
+                Triple("Service heartbeat alive (running)", health.heartbeatAlive, GetoIcons.FlashOn),
+                Triple("Battery optimization excluded", health.batteryExempt, GetoIcons.BatteryFull),
+            ).forEach { (label, ok, _) ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = if (ok) GetoIcons.CheckCircle else GetoIcons.Error,
+                        contentDescription = null,
+                        tint = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = titleColor.copy(alpha = 0.85f),
+                    )
+                }
+            }
+
+            val actionLabel = when {
+                health.status != A11yStatus.OK -> "Open Accessibility Settings"
+                !health.batteryExempt -> "Fix Battery Optimization"
+                else -> null
+            }
+
+            if (actionLabel != null) {
+                Button(
+                    onClick = {
+                        val intent = when {
+                            !health.batteryExempt && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
+                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                    data = android.net.Uri.parse("package:${context.packageName}")
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                            else ->
+                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                        }
+                        try { context.startActivity(intent) } catch (_: Exception) {}
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = iconColor,
+                        contentColor = when (health.status) {
+                            A11yStatus.MALFUNCTIONING -> MaterialTheme.colorScheme.onError
+                            A11yStatus.NOT_RUNNING -> MaterialTheme.colorScheme.onTertiary
+                            else -> MaterialTheme.colorScheme.onPrimary
+                        },
+                    ),
+                ) {
+                    Icon(
+                        imageVector = GetoIcons.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(actionLabel, style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
     }
 }
 

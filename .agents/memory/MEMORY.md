@@ -1,3 +1,4 @@
 - [Aegis project overview](aegis-overview.md) — multi-module Kotlin/Compose Android app (Geto renamed to Aegis), full spec with per-app controls, automations, environment detection, app lock, tiles, widget.
 - [Aegis SharedPreferences keys](aegis-sharedprefs.md) — exact SP file names and keys for automations and activity log, needed for backup/restore from feature/settings.
 - [Aegis broadcast trigger system](aegis-broadcast-triggers.md) — real Android broadcast receiver architecture for automation triggers: static receiver, foreground monitor service, accessibility hook, and engine.
+- [Aegis accessibility watchdog](aegis-accessibility-watchdog.md) — heartbeat + watchdog pattern for detecting service malfunction; SP key, cross-module approach.

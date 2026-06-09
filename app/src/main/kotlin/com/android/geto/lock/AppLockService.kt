@@ -3,6 +3,8 @@ package com.android.geto.lock
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
 import com.android.geto.broadcastreceiver.RevertSettingsBroadcastReceiver
 import com.android.geto.domain.repository.AppSettingsRepository
@@ -12,6 +14,7 @@ import com.android.geto.feature.appsettings.security.AppLockManager
 import com.android.geto.framework.notificationmanager.AndroidNotificationManagerWrapper.Companion.ACTION_REVERT_SETTINGS
 import com.android.geto.framework.notificationmanager.AndroidNotificationManagerWrapper.Companion.NOTIFICATION_EXTRA_COMPONENT_NAME
 import com.android.geto.framework.notificationmanager.AndroidNotificationManagerWrapper.Companion.NOTIFICATION_EXTRA_NOTIFICATION_ID
+import com.android.geto.watchdog.AccessibilityHealthMonitor
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -36,14 +39,29 @@ class AppLockService : AccessibilityService() {
     @Volatile
     private var lastLaunchPackage: String = ""
 
+    @Volatile
+    private var lastHeartbeatWriteMs: Long = 0L
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    // onServiceConnected is intentionally NOT overridden here.
-    // All event types, feedback type, flags and timeout are declared in
-    // res/xml/app_lock_service.xml. Re-setting serviceInfo programmatically
-    // in onServiceConnected() causes an NPE on some OEM ROMs (serviceInfo
-    // getter can return null mid-bind) and may trigger the "malfunctioning"
-    // state by forcing a redundant re-bind.
+    private val heartbeatHandler = Handler(Looper.getMainLooper())
+    private val heartbeatRunnable = object : Runnable {
+        override fun run() {
+            try {
+                AccessibilityHealthMonitor.writeHeartbeat(applicationContext)
+            } catch (_: Exception) {}
+            heartbeatHandler.postDelayed(this, HEARTBEAT_INTERVAL_MS)
+        }
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        try {
+            AccessibilityHealthMonitor.writeHeartbeat(applicationContext)
+            lastHeartbeatWriteMs = System.currentTimeMillis()
+        } catch (_: Exception) {}
+        heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_INTERVAL_MS)
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         try {
@@ -51,6 +69,15 @@ class AppLockService : AccessibilityService() {
             if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
             val packageName = event.packageName?.toString() ?: return
+
+            // Write periodic heartbeat so watchdog knows service is alive
+            val now = System.currentTimeMillis()
+            if (now - lastHeartbeatWriteMs >= HEARTBEAT_INTERVAL_MS) {
+                lastHeartbeatWriteMs = now
+                try {
+                    AccessibilityHealthMonitor.writeHeartbeat(applicationContext)
+                } catch (_: Exception) {}
+            }
 
             // Ignore our own UI and system surfaces
             if (packageName == applicationContext.packageName) return
@@ -112,8 +139,6 @@ class AppLockService : AccessibilityService() {
                             for (componentName in componentNames) {
                                 try {
                                     entryPoint.applyAppSettingsUseCase().invoke(componentName)
-                                    // Save to pending revert so auto-revert fires when app leaves foreground.
-                                    // notificationId = 0 means no notification to cancel (silent auto-apply).
                                     applicationContext.getSharedPreferences(
                                         PENDING_REVERT_PREFS, Context.MODE_PRIVATE
                                     ).edit()
@@ -167,13 +192,20 @@ class AppLockService : AccessibilityService() {
 
     override fun onInterrupt() {}
 
+    override fun onUnbind(intent: Intent?): Boolean {
+        heartbeatHandler.removeCallbacks(heartbeatRunnable)
+        return super.onUnbind(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        heartbeatHandler.removeCallbacks(heartbeatRunnable)
         serviceScope.cancel()
     }
 
     companion object {
         const val PENDING_REVERT_PREFS = "aegis_pending_revert"
+        private const val HEARTBEAT_INTERVAL_MS = 60_000L
 
         private val unlockedThisSession: MutableSet<String> =
             Collections.synchronizedSet(mutableSetOf())

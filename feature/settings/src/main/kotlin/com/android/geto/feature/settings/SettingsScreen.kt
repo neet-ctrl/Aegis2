@@ -28,6 +28,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
 import android.widget.Toast
@@ -234,6 +235,25 @@ private fun buildPermissions(): List<PermEntry> = listOf(
         settingsAction = Settings.ACTION_ACCESSIBILITY_SETTINGS,
         usePackageUri = false,
         checkGranted = ::checkAccessibility,
+    ),
+
+    PermEntry(
+        icon = GetoIcons.BatteryFull,
+        name = "IGNORE_BATTERY_OPTIMIZATIONS",
+        description = "Prevent Android from killing Aegis background services to save power",
+        whyNeeded = "Without this, Android's battery optimizer kills the App Lock accessibility service and automation monitor, causing the 'This service is malfunctioning' error. This is the most common cause of App Lock stopping.",
+        grantType = GrantType.SETTINGS_PAGE,
+        tier = Tier.REQUIRED,
+        settingsAction = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+        else "",
+        usePackageUri = true,
+        checkGranted = { ctx ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                (ctx.getSystemService(Context.POWER_SERVICE) as PowerManager)
+                    .isIgnoringBatteryOptimizations(ctx.packageName)
+            } else true
+        },
     ),
 
     PermEntry(
