@@ -1,20 +1,3 @@
-/*
- *
- *   Copyright 2023 Einstein Blanco
- *
- *   Licensed under the GNU General Public License v3.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       https://www.gnu.org/licenses/gpl-3.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
- */
 package com.android.geto.tile
 
 import android.os.Build
@@ -36,10 +19,16 @@ class AegisAutoRotateTileService : TileService() {
     override fun onStartListening() {
         super.onStartListening()
         qsTile?.apply {
-            val enabled = isAutoRotateEnabled()
-            state = if (enabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-            label = "Auto-rotate"
-            subtitle = if (enabled) "On" else "Off"
+            if (!canWrite()) {
+                state = Tile.STATE_UNAVAILABLE
+                label = "Auto-rotate"
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) subtitle = "Grant Modify Settings"
+            } else {
+                val enabled = isAutoRotateEnabled()
+                state = if (enabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
+                label = "Auto-rotate"
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) subtitle = if (enabled) "On" else "Off"
+            }
             updateTile()
         }
     }
@@ -49,12 +38,18 @@ class AegisAutoRotateTileService : TileService() {
         if (!canWrite()) return
         val current = isAutoRotateEnabled()
         val newVal = if (current) 0 else 1
-        runCatching {
+        val success = try {
             Settings.System.putInt(contentResolver, Settings.System.ACCELEROMETER_ROTATION, newVal)
-        }
+            Settings.System.getInt(contentResolver, Settings.System.ACCELEROMETER_ROTATION, if (current) 1 else 0) == newVal
+        } catch (_: Exception) { false }
+        val actual = if (success) newVal == 1 else current
         qsTile?.apply {
-            state = if (newVal == 1) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-            subtitle = if (newVal == 1) "On" else "Off"
+            state = if (actual) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                subtitle = if (success) {
+                    if (actual) "On" else "Off"
+                } else "Write failed"
+            }
             updateTile()
         }
     }
