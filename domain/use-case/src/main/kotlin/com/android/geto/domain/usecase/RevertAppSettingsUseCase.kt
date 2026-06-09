@@ -44,21 +44,21 @@ class RevertAppSettingsUseCase @Inject constructor(
 
             if (appSettings.isEmpty()) return@withContext EmptyAppSettings
 
-            if (appSettings.all { !it.enabled }) return@withContext DisabledAppSettings
+            val enabledSettings = appSettings.filter { it.enabled }
+
+            if (enabledSettings.isEmpty()) return@withContext DisabledAppSettings
 
             try {
-                if (appSettings.all { appSetting ->
-                        secureSettingsWrapper.canWriteSecureSettings(
-                            settingType = appSetting.settingType,
-                            key = appSetting.key,
-                            value = appSetting.valueOnRevert,
-                        )
-                    }
-                ) {
-                    Success
-                } else {
-                    Failure
+                // Apply every enabled rule individually — do NOT short-circuit.
+                // One failing key must NOT block the others.
+                val results = enabledSettings.map { appSetting ->
+                    secureSettingsWrapper.canWriteSecureSettings(
+                        settingType = appSetting.settingType,
+                        key = appSetting.key,
+                        value = appSetting.valueOnRevert,
+                    )
                 }
+                if (results.all { it }) Success else Failure
             } catch (_: SecurityException) {
                 NoPermission
             } catch (_: IllegalArgumentException) {

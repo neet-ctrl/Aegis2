@@ -76,141 +76,117 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
 
 private data class SettingMeta(
+    val settingType: SettingType,
     val description: String,
     val valueFormat: String,
     val suggestedLabel: String,
 )
 
 private val knownSettingsMeta: Map<String, SettingMeta> = mapOf(
+    // ── SYSTEM keys (require WRITE_SETTINGS) ──────────────────────────────
     "screen_brightness" to SettingMeta(
+        SettingType.SYSTEM,
         "Screen brightness level (used in manual mode only)",
         "0 (darkest) – 255 (max bright)",
         "Set Brightness",
     ),
     "screen_brightness_mode" to SettingMeta(
+        SettingType.SYSTEM,
         "Automatic adaptive brightness toggle",
         "0 = manual, 1 = auto (adaptive)",
         "Auto Brightness",
     ),
     "screen_off_timeout" to SettingMeta(
+        SettingType.SYSTEM,
         "How long the screen stays on before turning off from inactivity",
         "Milliseconds — 15000=15s, 30000=30s, 60000=1min, 0=never",
         "Screen Timeout",
     ),
     "font_scale" to SettingMeta(
+        SettingType.SYSTEM,
         "Font size multiplier applied across all app UIs system-wide",
         "1.0 = normal, 0.85 = small, 1.15 = large, 1.3 = largest",
         "Font Scale",
     ),
     "accelerometer_rotation" to SettingMeta(
+        SettingType.SYSTEM,
         "Whether the screen auto-rotates based on physical device orientation",
         "1 = auto-rotate on, 0 = locked to portrait",
         "Auto Rotate",
     ),
     "haptic_feedback_enabled" to SettingMeta(
+        SettingType.SYSTEM,
         "Vibration feedback for touch interactions, keypresses, and UI actions",
         "1 = on, 0 = off",
         "Haptic Feedback",
     ),
     "sound_effects_enabled" to SettingMeta(
+        SettingType.SYSTEM,
         "Audible sound effects for tapping UI elements like keyboard keys and buttons",
         "1 = on, 0 = off",
         "Touch Sounds",
     ),
+    "pointer_speed" to SettingMeta(
+        SettingType.SYSTEM,
+        "Cursor/pointer movement speed for external mouse or touchpad input devices",
+        "-7 (slowest) to 7 (fastest), 0 = system default",
+        "Pointer Speed",
+    ),
+    // ── GLOBAL keys (require WRITE_SECURE_SETTINGS via ADB) ──────────────
     "zen_mode" to SettingMeta(
+        SettingType.GLOBAL,
         "Do Not Disturb mode — controls which notifications and sounds break through",
         "0 = off, 1 = priority only, 2 = total silence, 3 = alarms only",
         "DND Mode",
     ),
-    "volume_music" to SettingMeta(
-        "Volume level for media playback: music, video, podcasts, games",
-        "0–15 (exact max depends on device model)",
-        "Media Volume",
-    ),
-    "volume_ring" to SettingMeta(
-        "Volume level for incoming call ringtone alerts",
-        "0–7 (exact max depends on device model)",
-        "Ring Volume",
-    ),
-    "volume_notification" to SettingMeta(
-        "Volume level for notification chimes and alert sounds",
-        "0–7 (exact max depends on device model)",
-        "Notif Volume",
-    ),
-    "volume_system" to SettingMeta(
-        "Volume for system UI sounds such as lock screen, screenshot, charging",
-        "0–7 (exact max depends on device model)",
-        "System Volume",
-    ),
-    "volume_alarm" to SettingMeta(
-        "Volume level for alarm clock alerts",
-        "0–7 (exact max depends on device model)",
-        "Alarm Volume",
-    ),
     "low_power" to SettingMeta(
+        SettingType.GLOBAL,
         "Battery Saver mode — restricts background activity and reduces CPU/GPU performance",
         "1 = Battery Saver on, 0 = off",
         "Battery Saver",
     ),
     "development_settings_enabled" to SettingMeta(
+        SettingType.GLOBAL,
         "Whether the Developer Options menu is visible in the Settings app",
         "1 = visible in Settings, 0 = hidden from Settings",
         "Hide Dev Options",
     ),
     "adb_enabled" to SettingMeta(
+        SettingType.GLOBAL,
         "USB debugging (ADB over cable) — allows shell access and sideloading from a computer",
         "1 = enabled, 0 = disabled",
         "Hide USB Debug",
     ),
     "adb_wifi_enabled" to SettingMeta(
+        SettingType.GLOBAL,
         "Wireless ADB debugging over Wi-Fi without a USB cable (Android 11+)",
         "1 = enabled, 0 = disabled",
         "Hide WiFi ADB",
     ),
-    "accessibility_enabled" to SettingMeta(
-        "Master global switch for all accessibility services on this device",
-        "1 = all services active, 0 = all disabled (affects screen readers, Aegis App Lock, etc.)",
-        "Hide Accessibility",
-    ),
-    "mobile_data" to SettingMeta(
-        "Mobile/cellular data connection state",
+    "wifi_scan_always_enabled" to SettingMeta(
+        SettingType.GLOBAL,
+        "Allows apps and system services to scan for Wi-Fi networks for location even when Wi-Fi is off",
         "1 = on, 0 = off",
-        "Mobile Data",
-    ),
-    "wifi_on" to SettingMeta(
-        "Wi-Fi radio power state",
-        "1 = on, 0 = off",
-        "Wi-Fi Toggle",
-    ),
-    "bluetooth_on" to SettingMeta(
-        "Bluetooth radio power state",
-        "1 = on, 0 = off",
-        "Bluetooth Toggle",
-    ),
-    "pointer_speed" to SettingMeta(
-        "Cursor/pointer movement speed for external mouse or touchpad input devices",
-        "-7 (slowest) to 7 (fastest), 0 = system default",
-        "Pointer Speed",
-    ),
-    "location_mode" to SettingMeta(
-        "GPS and location accuracy mode used by location services and apps",
-        "0 = off, 1 = device only (GPS), 2 = battery saving (network), 3 = high accuracy (GPS+network)",
-        "Location Mode",
-    ),
-    "private_dns_mode" to SettingMeta(
-        "Encrypted DNS configuration — Private DNS / DNS-over-TLS setting",
-        "off / opportunistic / hostname (e.g. dns.google or 1dot1dot1dot1.cloudflare-dns.com)",
-        "Private DNS",
+        "Wi-Fi Scanning",
     ),
     "adaptive_battery_management_enabled" to SettingMeta(
+        SettingType.GLOBAL,
         "System learns which apps you rarely use and restricts their background battery usage",
         "1 = on, 0 = off",
         "Adaptive Battery",
     ),
-    "wifi_scan_always_enabled" to SettingMeta(
-        "Allows apps and system services to scan for Wi-Fi networks for location even when Wi-Fi is off",
-        "1 = on, 0 = off",
-        "Wi-Fi Scanning",
+    "private_dns_mode" to SettingMeta(
+        SettingType.GLOBAL,
+        "Encrypted DNS configuration — Private DNS / DNS-over-TLS setting",
+        "off / opportunistic / hostname (e.g. dns.google or 1dot1dot1dot1.cloudflare-dns.com)",
+        "Private DNS",
+    ),
+    // ── SECURE keys (require WRITE_SECURE_SETTINGS via ADB) ──────────────
+    "accessibility_enabled" to SettingMeta(
+        SettingType.SECURE,
+        "Master global switch for all accessibility services on this device",
+        "1 = all services active, 0 = all disabled (affects screen readers, Aegis App Lock, etc.)",
+        "Accessibility",
     ),
 )
 
@@ -359,6 +335,7 @@ internal fun AppSettingDialog(
                 onUpdateSecureSettingsExpanded = { secureSettingsExpanded = it },
                 onUpdateValueOnLaunch = { valueOnLaunch = it },
                 onUpdateValueOnRevert = { valueOnRevert = it },
+                onUpdateSettingTypeIndex = { selectedRadioOptionIndex = it },
             )
 
             AppSettingDialogButtons(
@@ -453,6 +430,7 @@ private fun AppSettingDialogTextFields(
     onUpdateSecureSettingsExpanded: (Boolean) -> Unit,
     onUpdateValueOnLaunch: (String) -> Unit,
     onUpdateValueOnRevert: (String) -> Unit,
+    onUpdateSettingTypeIndex: (Int) -> Unit,
 ) {
     val labelIsBlank = stringResource(id = R.string.setting_label_is_blank)
     val valueOnLaunchIsBlank = stringResource(id = R.string.setting_value_on_launch_is_blank)
@@ -503,6 +481,7 @@ private fun AppSettingDialogTextFields(
         onUpdateLabel = onUpdateLabel,
         onUpdateSecureSettingsExpanded = onUpdateSecureSettingsExpanded,
         onUpdateValueOnRevert = onUpdateValueOnRevert,
+        onUpdateSettingTypeIndex = onUpdateSettingTypeIndex,
     )
 
     OutlinedTextField(
@@ -588,6 +567,7 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
     onUpdateLabel: (String) -> Unit,
     onUpdateSecureSettingsExpanded: (Boolean) -> Unit,
     onUpdateValueOnRevert: (String) -> Unit,
+    onUpdateSettingTypeIndex: (Int) -> Unit,
 ) {
     var infoDialogKey by remember { mutableStateOf<String?>(null) }
     val infoMeta = infoDialogKey?.let { knownSettingsMeta[it] }
@@ -613,6 +593,16 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
                     Text(
                         text = infoMeta.description,
                         style = MaterialTheme.typography.bodyMedium,
+                    )
+                    HorizontalDivider()
+                    Text(
+                        text = "Type to select",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = infoMeta.settingType.getSettingTypeTitle(),
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     HorizontalDivider()
                     Text(
@@ -731,6 +721,9 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
                             if (label.isBlank()) {
                                 val suggested = meta?.suggestedLabel ?: itemKey.toFriendlyLabel()
                                 onUpdateLabel(suggested)
+                            }
+                            meta?.settingType?.let { type ->
+                                onUpdateSettingTypeIndex(SettingType.entries.indexOf(type))
                             }
                             onUpdateSecureSettingsExpanded(false)
                         },
