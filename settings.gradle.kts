@@ -33,7 +33,7 @@ dependencyResolutionManagement {
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-rootProject.name = "Geto"
+rootProject.name = "Aegis"
 include(":app")
 include(":broadcast-receiver")
 include(":common")
