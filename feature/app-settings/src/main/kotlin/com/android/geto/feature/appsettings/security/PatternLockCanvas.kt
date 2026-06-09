@@ -51,11 +51,14 @@ fun PatternLockCanvas(
                 },
                 onDragEnd = {
                     currentDrag = null
-                    if (mutableSelected.size >= 4) {
+                    val completed = mutableSelected.size >= 4
+                    if (completed) {
                         onPatternComplete(mutableSelected.toList())
+                        mutableSelected.clear()
+                    } else {
+                        mutableSelected.clear()
+                        onPatternChanged(emptyList())
                     }
-                    mutableSelected.clear()
-                    onPatternChanged(emptyList())
                 },
                 onDragCancel = {
                     currentDrag = null

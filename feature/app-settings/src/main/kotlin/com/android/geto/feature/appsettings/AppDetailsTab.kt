@@ -1,27 +1,13 @@
-/*
- *
- *   Copyright 2023 Einstein Blanco
- *
- *   Licensed under the GNU General Public License v3.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       https://www.gnu.org/licenses/gpl-3.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
- */
 package com.android.geto.feature.appsettings
 
 import android.app.AppOpsManager
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -41,12 +27,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,6 +54,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.geto.designsystem.icon.GetoIcons
 
+private enum class ComponentType { ACTIVITY, SERVICE, RECEIVER, PROVIDER, PERMISSION }
+
 @Composable
 internal fun AppDetailsTab(
     modifier: Modifier = Modifier,
@@ -73,11 +64,18 @@ internal fun AppDetailsTab(
 ) {
     val context = LocalContext.current
 
-    val permissions = packageInfo?.requestedPermissions?.toList() ?: emptyList()
-    val activities = packageInfo?.activities?.map { it.name.substringAfterLast(".") } ?: emptyList()
-    val services = packageInfo?.services?.map { it.name.substringAfterLast(".") } ?: emptyList()
-    val receivers = packageInfo?.receivers?.map { it.name.substringAfterLast(".") } ?: emptyList()
-    val providers = packageInfo?.providers?.map { it.name.substringAfterLast(".") } ?: emptyList()
+    val uid = packageInfo?.applicationInfo?.uid ?: 0
+
+    val permissionsWithStatus = packageInfo?.requestedPermissions?.mapIndexed { i, perm ->
+        val flags = packageInfo.requestedPermissionsFlags?.getOrNull(i) ?: 0
+        val isGranted = (flags and PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0
+        Triple(perm.substringAfterLast("."), perm, isGranted)
+    } ?: emptyList()
+
+    val activities = packageInfo?.activities?.map { Pair(it.name.substringAfterLast("."), it.name) } ?: emptyList()
+    val services = packageInfo?.services?.map { Pair(it.name.substringAfterLast("."), it.name) } ?: emptyList()
+    val receivers = packageInfo?.receivers?.map { Pair(it.name.substringAfterLast("."), it.name) } ?: emptyList()
+    val providers = packageInfo?.providers?.map { Pair(it.name.substringAfterLast("."), it.name) } ?: emptyList()
 
     val versionCode = if (packageInfo != null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -91,8 +89,6 @@ internal fun AppDetailsTab(
     val minSdk = if (packageInfo != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         packageInfo.applicationInfo?.minSdkVersion?.toString() ?: "—"
     } else "—"
-
-    val uid = packageInfo?.applicationInfo?.uid ?: 0
 
     val appOpsEntries = remember(packageName, uid) {
         buildAppOpsEntries(context, packageName, uid)
@@ -119,58 +115,67 @@ internal fun AppDetailsTab(
 
         if (appOpsEntries.isNotEmpty()) {
             item {
-                AppOpsCard(entries = appOpsEntries)
+                AppOpsCard(entries = appOpsEntries, context = context, packageName = packageName, uid = uid)
             }
         }
 
-        if (permissions.isNotEmpty()) {
+        if (permissionsWithStatus.isNotEmpty()) {
             item {
-                CollapsibleComponentSection(
-                    title = "Permissions",
-                    count = permissions.size,
-                    items = permissions,
-                    itemTextFn = { it.substringAfterLast(".") },
-                    fullNameFn = { it },
+                PermissionsCard(
+                    permissions = permissionsWithStatus,
+                    context = context,
                 )
             }
         }
 
         if (activities.isNotEmpty()) {
             item {
-                CollapsibleComponentSection(
+                ComponentCard(
                     title = "Activities",
                     count = activities.size,
                     items = activities,
+                    componentType = ComponentType.ACTIVITY,
+                    packageName = packageName,
+                    context = context,
                 )
             }
         }
 
         if (services.isNotEmpty()) {
             item {
-                CollapsibleComponentSection(
+                ComponentCard(
                     title = "Services",
                     count = services.size,
                     items = services,
+                    componentType = ComponentType.SERVICE,
+                    packageName = packageName,
+                    context = context,
                 )
             }
         }
 
         if (receivers.isNotEmpty()) {
             item {
-                CollapsibleComponentSection(
+                ComponentCard(
                     title = "Broadcast Receivers",
                     count = receivers.size,
                     items = receivers,
+                    componentType = ComponentType.RECEIVER,
+                    packageName = packageName,
+                    context = context,
                 )
             }
         }
 
         if (providers.isNotEmpty()) {
             item {
-                CollapsibleComponentSection(
+                ComponentCard(
                     title = "Content Providers",
                     count = providers.size,
                     items = providers,
+                    componentType = ComponentType.PROVIDER,
+                    packageName = packageName,
+                    context = context,
                 )
             }
         }
@@ -187,22 +192,29 @@ internal fun AppDetailsTab(
     }
 }
 
-private fun buildAppOpsEntries(context: Context, packageName: String, uid: Int): List<Pair<String, Boolean?>> {
+private data class AppOpsEntry(
+    val label: String,
+    val op: String,
+    val allowed: Boolean?,
+)
+
+private fun buildAppOpsEntries(context: Context, packageName: String, uid: Int): List<AppOpsEntry> {
     if (uid == 0) return emptyList()
     return try {
         val appOpsManager = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         listOf(
-            "Camera" to checkOp(appOpsManager, AppOpsManager.OPSTR_CAMERA, uid, packageName),
-            "Microphone" to checkOp(appOpsManager, AppOpsManager.OPSTR_RECORD_AUDIO, uid, packageName),
-            "Fine Location" to checkOp(appOpsManager, AppOpsManager.OPSTR_FINE_LOCATION, uid, packageName),
-            "Coarse Location" to checkOp(appOpsManager, AppOpsManager.OPSTR_COARSE_LOCATION, uid, packageName),
-            "Read Contacts" to checkOp(appOpsManager, AppOpsManager.OPSTR_READ_CONTACTS, uid, packageName),
-            "Read Call Log" to checkOp(appOpsManager, AppOpsManager.OPSTR_READ_CALL_LOG, uid, packageName),
-            "Read SMS" to checkOp(appOpsManager, AppOpsManager.OPSTR_READ_SMS, uid, packageName),
-            "Write External Storage" to checkOp(appOpsManager, AppOpsManager.OPSTR_WRITE_EXTERNAL_STORAGE, uid, packageName),
-            "Read External Storage" to checkOp(appOpsManager, AppOpsManager.OPSTR_READ_EXTERNAL_STORAGE, uid, packageName),
-            "System Alert Window" to checkOp(appOpsManager, AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW, uid, packageName),
-            "Usage Stats" to checkOp(appOpsManager, AppOpsManager.OPSTR_GET_USAGE_STATS, uid, packageName),
+            AppOpsEntry("Camera", AppOpsManager.OPSTR_CAMERA, checkOp(appOpsManager, AppOpsManager.OPSTR_CAMERA, uid, packageName)),
+            AppOpsEntry("Microphone", AppOpsManager.OPSTR_RECORD_AUDIO, checkOp(appOpsManager, AppOpsManager.OPSTR_RECORD_AUDIO, uid, packageName)),
+            AppOpsEntry("Fine Location", AppOpsManager.OPSTR_FINE_LOCATION, checkOp(appOpsManager, AppOpsManager.OPSTR_FINE_LOCATION, uid, packageName)),
+            AppOpsEntry("Coarse Location", AppOpsManager.OPSTR_COARSE_LOCATION, checkOp(appOpsManager, AppOpsManager.OPSTR_COARSE_LOCATION, uid, packageName)),
+            AppOpsEntry("Read Contacts", AppOpsManager.OPSTR_READ_CONTACTS, checkOp(appOpsManager, AppOpsManager.OPSTR_READ_CONTACTS, uid, packageName)),
+            AppOpsEntry("Read Call Log", AppOpsManager.OPSTR_READ_CALL_LOG, checkOp(appOpsManager, AppOpsManager.OPSTR_READ_CALL_LOG, uid, packageName)),
+            AppOpsEntry("Read SMS", AppOpsManager.OPSTR_READ_SMS, checkOp(appOpsManager, AppOpsManager.OPSTR_READ_SMS, uid, packageName)),
+            AppOpsEntry("Write Storage", AppOpsManager.OPSTR_WRITE_EXTERNAL_STORAGE, checkOp(appOpsManager, AppOpsManager.OPSTR_WRITE_EXTERNAL_STORAGE, uid, packageName)),
+            AppOpsEntry("Read Storage", AppOpsManager.OPSTR_READ_EXTERNAL_STORAGE, checkOp(appOpsManager, AppOpsManager.OPSTR_READ_EXTERNAL_STORAGE, uid, packageName)),
+            AppOpsEntry("System Alert Window", AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW, checkOp(appOpsManager, AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW, uid, packageName)),
+            AppOpsEntry("Usage Stats", AppOpsManager.OPSTR_GET_USAGE_STATS, checkOp(appOpsManager, AppOpsManager.OPSTR_GET_USAGE_STATS, uid, packageName)),
+            AppOpsEntry("Mock Location", AppOpsManager.OPSTR_MOCK_LOCATION, checkOp(appOpsManager, AppOpsManager.OPSTR_MOCK_LOCATION, uid, packageName)),
         )
     } catch (_: Exception) {
         emptyList()
@@ -211,9 +223,31 @@ private fun buildAppOpsEntries(context: Context, packageName: String, uid: Int):
 
 private fun checkOp(appOpsManager: AppOpsManager, op: String, uid: Int, packageName: String): Boolean? {
     return try {
-        appOpsManager.checkOpNoThrow(op, uid, packageName) == AppOpsManager.MODE_ALLOWED
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOpsManager.unsafeCheckOpNoThrow(op, uid, packageName)
+        } else {
+            @Suppress("DEPRECATION")
+            appOpsManager.checkOpNoThrow(op, uid, packageName)
+        }
+        when (mode) {
+            AppOpsManager.MODE_ALLOWED -> true
+            AppOpsManager.MODE_IGNORED, AppOpsManager.MODE_ERRORED -> false
+            AppOpsManager.MODE_DEFAULT -> null
+            else -> null
+        }
     } catch (_: Exception) {
         null
+    }
+}
+
+private fun setOpMode(context: Context, op: String, uid: Int, packageName: String, allow: Boolean): Boolean {
+    return try {
+        val appOpsManager = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = if (allow) AppOpsManager.MODE_ALLOWED else AppOpsManager.MODE_IGNORED
+        appOpsManager.setMode(op, uid, packageName, mode)
+        true
+    } catch (_: Exception) {
+        false
     }
 }
 
@@ -259,7 +293,7 @@ private fun RunningStateCard(packageName: String, context: Context) {
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        text = "On Android 8+, process visibility is restricted to your own app",
+                        text = "Visibility restricted to own processes on Android 8+",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -281,8 +315,14 @@ private fun RunningStateCard(packageName: String, context: Context) {
 }
 
 @Composable
-private fun AppOpsCard(entries: List<Pair<String, Boolean?>>) {
+private fun AppOpsCard(
+    entries: List<AppOpsEntry>,
+    context: Context,
+    packageName: String,
+    uid: Int,
+) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var localEntries by remember { mutableStateOf(entries) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -301,11 +341,24 @@ private fun AppOpsCard(entries: List<Pair<String, Boolean?>>) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text(
-                        text = "App Ops",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface,
+                    Icon(
+                        imageVector = GetoIcons.Security,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
                     )
+                    Column {
+                        Text(
+                            text = "App Ops",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "Real-time operation permission status",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     Surface(
                         shape = RoundedCornerShape(50.dp),
                         color = MaterialTheme.colorScheme.primaryContainer,
@@ -333,7 +386,19 @@ private fun AppOpsCard(entries: List<Pair<String, Boolean?>>) {
                 exit = shrinkVertically(),
             ) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    entries.forEachIndexed { i, (label, allowed) ->
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    ) {
+                        Text(
+                            text = "Requires MANAGE_APP_OPS_MODES (ADB grant) to toggle. Grant via: adb shell pm grant com.android.geto android.permission.MANAGE_APP_OPS_MODES",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(8.dp),
+                        )
+                    }
+                    localEntries.forEachIndexed { i, entry ->
                         if (i > 0) HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                             thickness = 0.5.dp,
@@ -346,25 +411,419 @@ private fun AppOpsCard(entries: List<Pair<String, Boolean?>>) {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = label,
+                                text = entry.label,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
                             )
-                            val (color, text) = when (allowed) {
-                                true -> Pair(MaterialTheme.colorScheme.primary, "ALLOW")
-                                false -> Pair(MaterialTheme.colorScheme.error, "DENY")
-                                null -> Pair(MaterialTheme.colorScheme.onSurfaceVariant, "N/A")
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                val (color, text) = when (entry.allowed) {
+                                    true -> Pair(MaterialTheme.colorScheme.primary, "ALLOW")
+                                    false -> Pair(MaterialTheme.colorScheme.error, "DENY")
+                                    null -> Pair(MaterialTheme.colorScheme.onSurfaceVariant, "DEFAULT")
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(50.dp),
+                                    color = color.copy(alpha = 0.15f),
+                                ) {
+                                    Text(
+                                        text = text,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = color,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    )
+                                }
+                                if (entry.allowed != true) {
+                                    TextButton(
+                                        onClick = {
+                                            val ok = setOpMode(context, entry.op, uid, packageName, true)
+                                            if (ok) {
+                                                localEntries = localEntries.map {
+                                                    if (it.op == entry.op) it.copy(allowed = true) else it
+                                                }
+                                                Toast.makeText(context, "${entry.label} allowed", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(context, "Need MANAGE_APP_OPS_MODES — grant via ADB first", Toast.LENGTH_LONG).show()
+                                            }
+                                        },
+                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                                    ) {
+                                        Text("Allow", style = MaterialTheme.typography.labelSmall)
+                                    }
+                                } else {
+                                    TextButton(
+                                        onClick = {
+                                            val ok = setOpMode(context, entry.op, uid, packageName, false)
+                                            if (ok) {
+                                                localEntries = localEntries.map {
+                                                    if (it.op == entry.op) it.copy(allowed = false) else it
+                                                }
+                                                Toast.makeText(context, "${entry.label} denied", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(context, "Need MANAGE_APP_OPS_MODES — grant via ADB first", Toast.LENGTH_LONG).show()
+                                            }
+                                        },
+                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                                    ) {
+                                        Text("Deny", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionsCard(
+    permissions: List<Triple<String, String, Boolean>>,
+    context: Context,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val granted = permissions.count { it.third }
+    val denied = permissions.size - granted
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(
+                        imageVector = GetoIcons.Policy,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Column {
+                        Text(
+                            text = "Permissions",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Surface(
+                                shape = RoundedCornerShape(50.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                            ) {
+                                Text(
+                                    text = "$granted granted",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                )
                             }
                             Surface(
                                 shape = RoundedCornerShape(50.dp),
-                                color = color.copy(alpha = 0.15f),
+                                color = MaterialTheme.colorScheme.errorContainer,
                             ) {
                                 Text(
-                                    text = text,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = color,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    text = "$denied denied",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 )
+                            }
+                        }
+                    }
+                }
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) GetoIcons.ExpandLess else GetoIcons.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    permissions.forEachIndexed { i, (shortName, fullName, isGranted) ->
+                        if (i > 0) HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            thickness = 0.5.dp,
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = shortName,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = fullName,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(50.dp),
+                                    color = if (isGranted) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    else MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                                ) {
+                                    Text(
+                                        text = if (isGranted) "GRANTED" else "DENIED",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = if (isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("Permission", fullName))
+                                        Toast.makeText(context, "Permission copied", Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.size(28.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = GetoIcons.Copy,
+                                        contentDescription = "Copy",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComponentCard(
+    title: String,
+    count: Int,
+    items: List<Pair<String, String>>,
+    componentType: ComponentType,
+    packageName: String,
+    context: Context,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(
+                        imageVector = when (componentType) {
+                            ComponentType.ACTIVITY -> GetoIcons.PhoneAndroid
+                            ComponentType.SERVICE -> GetoIcons.Tune
+                            ComponentType.RECEIVER -> GetoIcons.Notifications
+                            ComponentType.PROVIDER -> GetoIcons.Dns
+                            else -> GetoIcons.Info
+                        },
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(50.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        Text(
+                            text = "$count",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        )
+                    }
+                }
+
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) GetoIcons.ExpandLess else GetoIcons.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    items.forEachIndexed { i, (shortName, fullName) ->
+                        if (i > 0) HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            thickness = 0.5.dp,
+                        )
+                        Column(modifier = Modifier.padding(vertical = 6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = shortName,
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Medium,
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Text(
+                                        text = fullName,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("Component", fullName))
+                                        Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.size(28.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = GetoIcons.Copy,
+                                        contentDescription = "Copy",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                }
+                            }
+                            if (componentType == ComponentType.ACTIVITY || componentType == ComponentType.SERVICE) {
+                                Spacer(Modifier.height(4.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Button(
+                                        onClick = {
+                                            try {
+                                                val intent = Intent().apply {
+                                                    component = ComponentName(packageName, fullName)
+                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                }
+                                                if (componentType == ComponentType.ACTIVITY) {
+                                                    context.startActivity(intent)
+                                                } else {
+                                                    context.startService(intent)
+                                                }
+                                                Toast.makeText(
+                                                    context,
+                                                    if (componentType == ComponentType.ACTIVITY) "Launching $shortName" else "Starting $shortName",
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                            } catch (e: Exception) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Cannot launch: ${e.message ?: "not exported or permission denied"}",
+                                                    Toast.LENGTH_LONG,
+                                                ).show()
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        ),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(28.dp),
+                                    ) {
+                                        Icon(
+                                            imageVector = GetoIcons.PlayArrow,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(13.dp),
+                                        )
+                                        Spacer(Modifier.size(4.dp))
+                                        Text(
+                                            if (componentType == ComponentType.ACTIVITY) "Launch" else "Start",
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+                                    }
+                                    OutlinedButton(
+                                        onClick = {
+                                            try {
+                                                val pm = context.packageManager
+                                                pm.setComponentEnabledSetting(
+                                                    ComponentName(packageName, fullName),
+                                                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                                    PackageManager.DONT_KILL_APP,
+                                                )
+                                                Toast.makeText(context, "$shortName disabled", Toast.LENGTH_SHORT).show()
+                                            } catch (e: Exception) {
+                                                val adbCmd = "pm disable $packageName/$fullName"
+                                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                clipboard.setPrimaryClip(ClipData.newPlainText("ADB", adbCmd))
+                                                Toast.makeText(
+                                                    context,
+                                                    "Needs system permission. ADB command copied: $adbCmd",
+                                                    Toast.LENGTH_LONG,
+                                                ).show()
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(28.dp),
+                                    ) {
+                                        Icon(
+                                            imageVector = GetoIcons.Block,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(13.dp),
+                                        )
+                                        Spacer(Modifier.size(4.dp))
+                                        Text("Disable", style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
                             }
                         }
                     }
@@ -428,6 +887,14 @@ private fun PackageInfoCard(
                 java.text.SimpleDateFormat("MMM d, yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(it))
             } ?: "—"
 
+            val isDebuggable = packageInfo?.applicationInfo?.let {
+                it.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+            } ?: false
+
+            val isSystemApp = packageInfo?.applicationInfo?.let {
+                it.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0
+            } ?: false
+
             val rows = listOf(
                 "Package" to packageName,
                 "Version Name" to (packageInfo?.versionName ?: "—"),
@@ -438,6 +905,8 @@ private fun PackageInfoCard(
                 "First Installed" to installDate,
                 "Last Updated" to updateDate,
                 "Install Source" to getInstallSource(context, packageName),
+                "Debuggable APK" to if (isDebuggable) "YES ⚠" else "No",
+                "System App" to if (isSystemApp) "Yes" else "No",
             )
 
             rows.forEachIndexed { i, (key, value) ->
@@ -462,7 +931,8 @@ private fun PackageInfoCard(
                             fontFamily = if (key == "Package") FontFamily.Monospace else null,
                             fontWeight = FontWeight.Medium,
                         ),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = if (key == "Debuggable APK" && isDebuggable) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -481,90 +951,6 @@ private fun getInstallSource(context: Context, packageName: String): String {
         }
     } catch (_: Exception) {
         "—"
-    }
-}
-
-@Composable
-private fun CollapsibleComponentSection(
-    title: String,
-    count: Int,
-    items: List<String>,
-    itemTextFn: (String) -> String = { it },
-    fullNameFn: (String) -> String = { it },
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ),
-    ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                    ) {
-                        Text(
-                            text = "$count",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                        )
-                    }
-                }
-
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        imageVector = if (expanded) GetoIcons.ExpandLess else GetoIcons.ExpandMore,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandVertically(),
-                exit = shrinkVertically(),
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    items.forEachIndexed { i, item ->
-                        if (i > 0) HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                            thickness = 0.5.dp,
-                        )
-                        Text(
-                            text = itemTextFn(item),
-                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-        }
     }
 }
 
@@ -596,7 +982,7 @@ private fun ManifestExportCard(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        text = "Full package declaration — tap Copy to export",
+                        text = "Full package declaration",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -616,7 +1002,7 @@ private fun ManifestExportCard(
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(modifier = Modifier.size(4.dp))
-                    Text("Copy")
+                    Text("Copy All")
                 }
             }
 
@@ -652,7 +1038,6 @@ private fun buildFullManifestSummary(packageInfo: PackageInfo?, packageName: Str
     val minSdk = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         packageInfo.applicationInfo?.minSdkVersion ?: 0
     } else 0
-    val installSource = "see Package Info card"
 
     val sb = StringBuilder()
     sb.appendLine("<manifest")
@@ -672,8 +1057,7 @@ private fun buildFullManifestSummary(packageInfo: PackageInfo?, packageName: Str
     sb.appendLine()
     sb.appendLine("    <!-- App Identity -->")
     sb.appendLine("    <application-info")
-    sb.appendLine("        android:uid=\"$uid\"")
-    sb.appendLine("        android:installSource=\"$installSource\" />")
+    sb.appendLine("        android:uid=\"$uid\" />")
     sb.appendLine()
     sb.appendLine("    <!-- Component Counts -->")
     sb.appendLine("    <!-- permissions: $permissions -->")
@@ -685,22 +1069,26 @@ private fun buildFullManifestSummary(packageInfo: PackageInfo?, packageName: Str
 
     if (packageInfo.requestedPermissions != null) {
         sb.appendLine("    <!-- Declared Permissions -->")
-        packageInfo.requestedPermissions?.take(30)?.forEach { perm ->
-            sb.appendLine("    <uses-permission android:name=\"$perm\" />")
-        }
-        if ((packageInfo.requestedPermissions?.size ?: 0) > 30) {
-            sb.appendLine("    <!-- ... and ${(packageInfo.requestedPermissions?.size ?: 0) - 30} more -->")
+        packageInfo.requestedPermissions?.forEachIndexed { i, perm ->
+            val flags = packageInfo.requestedPermissionsFlags?.getOrNull(i) ?: 0
+            val granted = if ((flags and PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0) " <!-- GRANTED -->" else " <!-- DENIED -->"
+            sb.appendLine("    <uses-permission android:name=\"$perm\" />$granted")
         }
         sb.appendLine()
     }
 
     if (packageInfo.activities != null) {
         sb.appendLine("    <!-- Activities -->")
-        packageInfo.activities?.take(10)?.forEach { act ->
+        packageInfo.activities?.forEach { act ->
             sb.appendLine("    <activity android:name=\"${act.name}\" />")
         }
-        if ((packageInfo.activities?.size ?: 0) > 10) {
-            sb.appendLine("    <!-- ... and ${(packageInfo.activities?.size ?: 0) - 10} more -->")
+        sb.appendLine()
+    }
+
+    if (packageInfo.services != null) {
+        sb.appendLine("    <!-- Services -->")
+        packageInfo.services?.forEach { svc ->
+            sb.appendLine("    <service android:name=\"${svc.name}\" />")
         }
         sb.appendLine()
     }

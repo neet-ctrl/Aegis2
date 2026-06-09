@@ -229,6 +229,17 @@
                 android:resource="@xml/aegis_widget_activity_info" />
         </receiver>
 
+        <!-- FileProvider: serves APK and internal files for sharing -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- Boot receiver for automation engine restart -->
         <receiver
             android:name=".receiver.BootReceiver"

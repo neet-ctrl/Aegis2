@@ -85,4 +85,18 @@ object AppLockManager {
 
     fun isBiometricEnabled(context: Context, packageName: String): Boolean =
         prefs(context).getBoolean("${packageName}_biometric", false)
+
+    fun getAllLockedPackages(context: Context): List<String> {
+        val p = prefs(context)
+        return p.all.entries
+            .filter { (key, value) ->
+                (key.endsWith("_enabled") || key.endsWith("_blocked")) && value == true
+            }
+            .map { (key, _) ->
+                key.removeSuffix("_enabled").removeSuffix("_blocked")
+            }
+            .distinct()
+    }
+
+    fun getLockedCount(context: Context): Int = getAllLockedPackages(context).size
 }

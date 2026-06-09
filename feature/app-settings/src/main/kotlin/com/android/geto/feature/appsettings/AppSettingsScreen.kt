@@ -256,6 +256,28 @@ internal fun AppSettingsScreen(
         }
     }
 
+    val saveApkLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/vnd.android.package-archive"),
+    ) { uri ->
+        if (uri != null) {
+            val apkPath = packageInfo?.applicationInfo?.let { it.publicSourceDir ?: it.sourceDir }
+            if (apkPath != null) {
+                try {
+                    java.io.File(apkPath).inputStream().use { input ->
+                        context.contentResolver.openOutputStream(uri)?.use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    Toast.makeText(context, "APK saved successfully", Toast.LENGTH_SHORT).show()
+                } catch (_: Exception) {
+                    Toast.makeText(context, "Failed to save APK", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "APK path unavailable", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     AppSettingsLaunchedEffects(
         appSettingsRouteData = appSettingsRouteData,
         snackbarHostState = snackbarHostState,
@@ -299,17 +321,33 @@ internal fun AppSettingsScreen(
                         "${appSettingsRouteData.activityLabel.replace(" ", "_")}_icon.png",
                     )
                 },
+                onSaveApkClick = {
+                    saveApkLauncher.launch(
+                        "${appSettingsRouteData.activityLabel.replace(" ", "_")}.apk",
+                    )
+                },
                 onShareClick = {
-                    val versionName = packageInfo?.versionName ?: "?"
-                    val uid = packageInfo?.applicationInfo?.uid ?: 0
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(
-                            Intent.EXTRA_TEXT,
-                            "App: ${appSettingsRouteData.activityLabel}\nPackage: $packageName\nVersion: $versionName\nUID: $uid",
-                        )
+                    val apkPath = packageInfo?.applicationInfo?.let { it.publicSourceDir ?: it.sourceDir }
+                    if (apkPath != null) {
+                        try {
+                            val apkFile = java.io.File(apkPath)
+                            val apkUri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                apkFile,
+                            )
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "application/vnd.android.package-archive"
+                                putExtra(Intent.EXTRA_STREAM, apkUri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "Share APK — ${appSettingsRouteData.activityLabel}"))
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Cannot share APK: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "APK path unavailable", Toast.LENGTH_SHORT).show()
                     }
-                    context.startActivity(Intent.createChooser(shareIntent, "Share App Info"))
                 },
             )
         },
@@ -356,15 +394,24 @@ internal fun AppSettingsScreen(
                     )
                 },
                 onShareApp = {
+                    val versionName = packageInfo?.versionName ?: "?"
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, "Package: $packageName · ${appSettingsRouteData.activityLabel}")
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "${appSettingsRouteData.activityLabel}\nPackage: $packageName\nVersion: $versionName",
+                        )
                     }
                     context.startActivity(Intent.createChooser(shareIntent, "Share App Info"))
                 },
                 onSaveIcon = {
                     saveIconLauncher.launch(
                         "${appSettingsRouteData.activityLabel.replace(" ", "_")}_icon.png",
+                    )
+                },
+                onSaveApk = {
+                    saveApkLauncher.launch(
+                        "${appSettingsRouteData.activityLabel.replace(" ", "_")}.apk",
                     )
                 },
             )
@@ -588,6 +635,7 @@ private fun AppSettingsTopAppBar(
     title: String,
     onNavigationIconClick: () -> Unit,
     onSaveIconClick: () -> Unit,
+    onSaveApkClick: () -> Unit,
     onShareClick: () -> Unit,
 ) {
     TopAppBar(
@@ -613,7 +661,7 @@ private fun AppSettingsTopAppBar(
             IconButton(onClick = onShareClick) {
                 Icon(
                     imageVector = GetoIcons.ArrowForward,
-                    contentDescription = "Share app info",
+                    contentDescription = "Share APK file",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -621,6 +669,13 @@ private fun AppSettingsTopAppBar(
                 Icon(
                     imageVector = GetoIcons.SaveAlt,
                     contentDescription = "Save app icon",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onSaveApkClick) {
+                Icon(
+                    imageVector = GetoIcons.FileDownload,
+                    contentDescription = "Save APK file",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

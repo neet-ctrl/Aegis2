@@ -48,6 +48,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -231,6 +232,7 @@ private fun StatusGrid() {
 
     val activeRules = AegisAutomationStore.getEnabledCount(context)
     val totalAutomations = AegisAutomationStore.getTotalCount(context)
+    val lockedCount = com.android.geto.feature.appsettings.security.AppLockManager.getLockedCount(context)
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -293,7 +295,7 @@ private fun StatusGrid() {
             StatusCard(
                 modifier = Modifier.weight(1f),
                 title = "App Lock",
-                value = "0 Locked",
+                value = if (lockedCount == 0) "None Locked" else "$lockedCount Locked",
                 icon = GetoIcons.Security,
                 isGood = true,
             )
@@ -1044,10 +1046,15 @@ private fun CommandItem(command: AshellCommand, context: Context, isGranted: Boo
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickActionsSection(onNavigateToAutomations: () -> Unit) {
     val context = LocalContext.current
     val activeRules = AegisAutomationStore.getEnabledCount(context)
+    val lockedCount = remember {
+        com.android.geto.feature.appsettings.security.AppLockManager.getLockedCount(context)
+    }
+    var showLockedAppsSheet by remember { androidx.compose.runtime.mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -1072,10 +1079,95 @@ private fun QuickActionsSection(onNavigateToAutomations: () -> Unit) {
                 modifier = Modifier.weight(1f),
                 icon = GetoIcons.Security,
                 label = "App Lock",
-                subtitle = "0 apps locked",
-                isActive = false,
-                onClick = {},
+                subtitle = if (lockedCount == 0) "No apps locked" else "$lockedCount app${if (lockedCount == 1) "" else "s"} locked",
+                isActive = lockedCount > 0,
+                onClick = { showLockedAppsSheet = true },
             )
+        }
+    }
+
+    if (showLockedAppsSheet) {
+        LockedAppsSheet(
+            context = context,
+            onDismiss = { showLockedAppsSheet = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LockedAppsSheet(context: android.content.Context, onDismiss: () -> Unit) {
+    val lockedPackages = remember {
+        com.android.geto.feature.appsettings.security.AppLockManager.getAllLockedPackages(context)
+    }
+    val pm = context.packageManager
+
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        androidx.compose.foundation.layout.Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = "Locked Apps",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+            if (lockedPackages.isEmpty()) {
+                androidx.compose.material3.Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "No apps are currently locked. Open any app in the Apps tab and go to its Security tab to set up a lock.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
+            } else {
+                lockedPackages.forEach { pkg ->
+                    val appName = try { pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString() } catch (_: Exception) { pkg }
+                    val config = com.android.geto.feature.appsettings.security.AppLockManager.getConfig(context, pkg)
+                    androidx.compose.material3.ListItem(
+                        headlineContent = { Text(appName, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)) },
+                        supportingContent = {
+                            Text(
+                                text = if (config.isBlocked) "Blocked" else "${config.lockType.label} lock",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (config.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            )
+                        },
+                        leadingContent = {
+                            Icon(
+                                imageVector = if (config.isBlocked) GetoIcons.Block else GetoIcons.Lock,
+                                contentDescription = null,
+                                tint = if (config.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        },
+                        trailingContent = {
+                            Text(
+                                text = pkg.substringAfterLast("."),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        },
+                        colors = androidx.compose.material3.ListItemDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ),
+                        modifier = Modifier
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                            .padding(vertical = 2.dp),
+                    )
+                }
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
 package com.android.geto.feature.appsettings
 
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +64,82 @@ import com.android.geto.feature.appsettings.security.PinNumericKeypad
 import com.android.geto.feature.appsettings.security.patternToString
 import kotlinx.coroutines.launch
 
+@Composable
+private fun AccessibilityServiceCard(context: Context) {
+    val enabledServices = remember {
+        Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ) ?: ""
+    }
+    val isEnabled = remember(enabledServices) {
+        enabledServices.split(":").any { it.contains("AppLockService", ignoreCase = true) }
+    }
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (isEnabled) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        else MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = GetoIcons.AccessibilityNew,
+                    contentDescription = null,
+                    tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (isEnabled) "Aegis Lock is Active" else "Aegis Lock Not Enabled",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                )
+                Text(
+                    text = if (isEnabled)
+                        "Accessibility service running — app launch interception active"
+                    else
+                        "Enable the Accessibility Service to activate per-app lock enforcement",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                    else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.75f),
+                )
+            }
+            if (!isEnabled) {
+                Button(
+                    onClick = {
+                        context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier.size(width = 80.dp, height = 34.dp),
+                ) {
+                    Text("Enable", style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppSecurityTab(
@@ -86,6 +165,8 @@ fun AppSecurityTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        AccessibilityServiceCard(context = context)
+
         SecurityStatusCard(config = config)
 
         if (config.isEnabled || config.hasCredential) {
