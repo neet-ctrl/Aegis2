@@ -840,7 +840,7 @@ private fun getNotification(
 
     return NotificationCompat.Builder(
         context,
-        AndroidNotificationManagerWrapper.CHANNEL_ID,
+        AndroidNotificationManagerWrapper.NOTIFICATION_CHANNEL_ID,
     )
         .setSmallIcon(
             if (icon != null) {

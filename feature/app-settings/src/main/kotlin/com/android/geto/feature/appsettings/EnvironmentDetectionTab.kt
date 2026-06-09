@@ -78,7 +78,6 @@ private data class DetectionCategory(
     val items: List<DetectionItem>,
 )
 
-@Composable
 private fun buildDetectionCategories(context: Context): List<DetectionCategory> {
     val cr = context.contentResolver
 
