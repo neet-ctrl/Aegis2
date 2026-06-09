@@ -6,14 +6,14 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-internal data class LogEntry(
+data class LogEntry(
     val timestampMs: Long,
     val title: String,
     val subtitle: String,
     val tag: String,
 )
 
-internal object AegisActivityLog {
+object AegisActivityLog {
 
     private const val PREF_NAME = "aegis_activity_log_v1"
     private const val KEY_ENTRIES = "entries"

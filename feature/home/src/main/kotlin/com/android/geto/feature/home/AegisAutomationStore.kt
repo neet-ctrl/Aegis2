@@ -2,7 +2,7 @@ package com.android.geto.feature.home
 
 import android.content.Context
 
-internal data class SavedAutomation(
+data class SavedAutomation(
     val id: Long,
     val name: String,
     val triggerLabel: String,
@@ -14,7 +14,7 @@ internal data class SavedAutomation(
     val createdAt: Long,
 )
 
-internal object AegisAutomationStore {
+object AegisAutomationStore {
 
     private const val PREF_NAME = "aegis_automations_v1"
     private const val KEY_SET = "automations"
@@ -23,18 +23,17 @@ internal object AegisAutomationStore {
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-    private fun encode(a: SavedAutomation): String =
-        listOf(
-            a.id,
-            a.name.replace(SEP, " "),
-            a.triggerLabel.replace(SEP, " "),
-            a.conditionCount,
-            a.actionSummary.replace(SEP, " "),
-            a.delaySeconds,
-            a.isHidden,
-            a.isEnabled,
-            a.createdAt,
-        ).joinToString(SEP)
+    private fun encode(a: SavedAutomation): String = listOf(
+        a.id,
+        a.name.replace(SEP, " "),
+        a.triggerLabel.replace(SEP, " "),
+        a.conditionCount,
+        a.actionSummary.replace(SEP, " "),
+        a.delaySeconds,
+        a.isHidden,
+        a.isEnabled,
+        a.createdAt,
+    ).joinToString(SEP)
 
     private fun decode(raw: String): SavedAutomation? = runCatching {
         val p = raw.split(SEP)
@@ -76,6 +75,7 @@ internal object AegisAutomationStore {
         val toRemove = existing.filter { decode(it)?.id == id }
         toRemove.forEach { existing.remove(it) }
         p.edit().putStringSet(KEY_SET, existing).apply()
+        AegisActionStore.deleteActions(context, id)
     }
 
     fun toggleEnabled(context: Context, id: Long) {

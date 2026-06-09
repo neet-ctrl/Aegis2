@@ -278,6 +278,18 @@ internal fun AutomationBuilderSheet(onDismiss: () -> Unit) {
                                     createdAt = System.currentTimeMillis(),
                                 )
                                 AegisAutomationStore.addAutomation(context, automation)
+                                AegisActionStore.setActions(
+                                    context,
+                                    automation.id,
+                                    selectedActions.map { (action, value) ->
+                                        StoredAction(
+                                            label = action.label,
+                                            settingKey = action.settingKey,
+                                            settingType = action.settingType,
+                                            value = value,
+                                        )
+                                    },
+                                )
                                 AegisActivityLog.addEntry(
                                     context,
                                     "Automation Created",

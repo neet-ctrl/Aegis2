@@ -4,10 +4,13 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
+import com.android.geto.engine.AegisAutomationEngine
 import com.android.geto.feature.appsettings.security.AppLockManager
 import java.util.Collections
 
 class AppLockService : AccessibilityService() {
+
+    private var lastLaunchPackage: String = ""
 
     override fun onServiceConnected() {
         serviceInfo = serviceInfo.apply {
@@ -27,6 +30,11 @@ class AppLockService : AccessibilityService() {
         if (packageName == application.packageName) return
         if (packageName == "com.android.systemui") return
         if (packageName == "android") return
+
+        if (packageName != lastLaunchPackage) {
+            lastLaunchPackage = packageName
+            AegisAutomationEngine.fireTrigger(this, "App Launch", packageName)
+        }
 
         if (packageName in unlockedThisSession) return
 

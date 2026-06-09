@@ -21,6 +21,7 @@ import android.app.Application
 import android.app.NotificationManager
 import android.os.Build
 import com.android.geto.framework.notificationmanager.AndroidNotificationManagerWrapper
+import com.android.geto.service.AegisMonitorService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -39,5 +40,7 @@ class GetoApplication : Application() {
                 importance = NotificationManager.IMPORTANCE_DEFAULT,
             )
         }
+
+        AegisMonitorService.start(this)
     }
 }

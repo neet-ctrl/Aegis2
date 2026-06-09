@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import com.android.geto.service.AegisMonitorService
 
 class BootReceiver : BroadcastReceiver() {
 
@@ -40,5 +41,7 @@ class BootReceiver : BroadcastReceiver() {
             val tilePrefs = context.getSharedPreferences("aegis_tile_prefs", Context.MODE_PRIVATE)
             tilePrefs.edit().putBoolean("automations_enabled", true).apply()
         }
+
+        AegisMonitorService.start(context)
     }
 }
