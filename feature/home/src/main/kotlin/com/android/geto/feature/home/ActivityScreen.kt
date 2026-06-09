@@ -17,6 +17,7 @@
  */
 package com.android.geto.feature.home
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,7 +41,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,7 +53,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,37 +66,243 @@ internal fun ActivityRoute(modifier: Modifier = Modifier) {
     ActivityScreen(modifier = modifier)
 }
 
+private data class ActivityFilter(val label: String, val tag: String)
+
+private val activityFilters = listOf(
+    ActivityFilter("All", "all"),
+    ActivityFilter("Triggers", "trigger"),
+    ActivityFilter("Settings", "settings"),
+    ActivityFilter("Errors", "error"),
+    ActivityFilter("Shizuku", "shizuku"),
+)
+
+private data class ActivityEntry(
+    val title: String,
+    val subtitle: String,
+    val timestamp: String,
+    val icon: ImageVector,
+    val tag: String,
+    val iconTint: Color? = null,
+)
+
 @Composable
 internal fun ActivityScreen(modifier: Modifier = Modifier) {
-    val filters = listOf("All", "Triggers", "Settings", "Errors", "Shizuku")
+    val context = LocalContext.current
     var selectedFilter by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+    val sampleEntries = getSampleEntries()
+
+    val filteredEntries = if (selectedFilter == 0) {
+        sampleEntries
+    } else {
+        sampleEntries.filter { it.tag == activityFilters[selectedFilter].tag }
+    }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            itemsIndexed(filters) { index, label ->
-                FilterChip(
-                    selected = selectedFilter == index,
-                    onClick = { selectedFilter = index },
-                    label = { Text(label) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
+            LazyRow(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                itemsIndexed(activityFilters) { index, filter ->
+                    FilterChip(
+                        selected = selectedFilter == index,
+                        onClick = { selectedFilter = index },
+                        label = { Text(filter.label) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            IconButton(
+                onClick = {
+                    Toast.makeText(context, "Export logs — coming soon", Toast.LENGTH_SHORT).show()
+                },
+            ) {
+                Icon(
+                    imageVector = GetoIcons.SaveAlt,
+                    contentDescription = "Export logs",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
 
-        ActivityEmptyState()
+        if (filteredEntries.isEmpty()) {
+            ActivityEmptyState(filterLabel = activityFilters[selectedFilter].label)
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                itemsIndexed(filteredEntries) { _, entry ->
+                    ActivityEntryCard(entry = entry)
+                }
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+            }
+        }
     }
 }
 
 @Composable
-private fun ActivityEmptyState() {
+private fun getSampleEntries(): List<ActivityEntry> {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val errorColor = MaterialTheme.colorScheme.error
+
+    return listOf(
+        ActivityEntry(
+            title = "Shizuku Connected",
+            subtitle = "Full permissions active — all features available",
+            timestamp = "Just now",
+            icon = GetoIcons.Shield,
+            tag = "shizuku",
+            iconTint = tertiaryColor,
+        ),
+        ActivityEntry(
+            title = "Permission Granted",
+            subtitle = "WRITE_SECURE_SETTINGS granted via AShell U",
+            timestamp = "5 min ago",
+            icon = GetoIcons.CheckCircle,
+            tag = "settings",
+            iconTint = primaryColor,
+        ),
+        ActivityEntry(
+            title = "Automation Triggered",
+            subtitle = "IF App Launch: YouTube → Brightness 80%",
+            timestamp = "12 min ago",
+            icon = GetoIcons.FlashOn,
+            tag = "trigger",
+            iconTint = secondaryColor,
+        ),
+        ActivityEntry(
+            title = "Setting Applied",
+            subtitle = "YouTube: screen_brightness = 204",
+            timestamp = "12 min ago",
+            icon = GetoIcons.Tune,
+            tag = "settings",
+            iconTint = primaryColor,
+        ),
+        ActivityEntry(
+            title = "Setting Reverted",
+            subtitle = "YouTube: screen_brightness restored to default",
+            timestamp = "45 min ago",
+            icon = GetoIcons.Refresh,
+            tag = "settings",
+            iconTint = secondaryColor,
+        ),
+        ActivityEntry(
+            title = "Automation Triggered",
+            subtitle = "IF Battery < 20% → Enable Battery Saver",
+            timestamp = "1 hr ago",
+            icon = GetoIcons.BatteryAlert,
+            tag = "trigger",
+            iconTint = errorColor,
+        ),
+        ActivityEntry(
+            title = "Shizuku Disconnected",
+            subtitle = "Shizuku was stopped — features limited",
+            timestamp = "2 hr ago",
+            icon = GetoIcons.Warning,
+            tag = "shizuku",
+            iconTint = errorColor,
+        ),
+        ActivityEntry(
+            title = "Permission Denied",
+            subtitle = "BATTERY_STATS not granted — battery monitoring disabled",
+            timestamp = "Today, 10:23",
+            icon = GetoIcons.Error,
+            tag = "error",
+            iconTint = errorColor,
+        ),
+    )
+}
+
+@Composable
+private fun ActivityEntryCard(entry: ActivityEntry) {
+    val iconColor = entry.iconTint ?: MaterialTheme.colorScheme.primary
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(iconColor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = entry.icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.title,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = entry.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = entry.timestamp,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Surface(
+                    shape = RoundedCornerShape(50.dp),
+                    color = iconColor.copy(alpha = 0.12f),
+                ) {
+                    Text(
+                        text = entry.tag.replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = iconColor,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivityEmptyState(filterLabel: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -117,7 +328,7 @@ private fun ActivityEmptyState() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "No Activity Yet",
+            text = "No $filterLabel Events",
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -125,7 +336,7 @@ private fun ActivityEmptyState() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Trigger history, rule executions, permission changes, and Shizuku events will appear here.",
+            text = "Trigger history, rule executions, permission changes, and Shizuku events will appear here as Aegis runs.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -139,11 +350,11 @@ private fun ActivityEmptyState() {
 
 @Composable
 private fun ActivityLegend() {
-    val items = listOf(
-        Triple(GetoIcons.FlashOn, MaterialTheme.colorScheme.primary, "Trigger"),
-        Triple(GetoIcons.Tune, MaterialTheme.colorScheme.secondary, "Setting Change"),
-        Triple(GetoIcons.Error, MaterialTheme.colorScheme.error, "Error"),
-        Triple(GetoIcons.Shield, MaterialTheme.colorScheme.tertiary, "Shizuku Event"),
+    val legendItems = listOf(
+        Triple(GetoIcons.FlashOn, MaterialTheme.colorScheme.secondary, "Trigger — automation triggered"),
+        Triple(GetoIcons.Tune, MaterialTheme.colorScheme.primary, "Settings — setting applied/reverted"),
+        Triple(GetoIcons.Error, MaterialTheme.colorScheme.error, "Error — operation failed"),
+        Triple(GetoIcons.Shield, MaterialTheme.colorScheme.tertiary, "Shizuku — connection event"),
     )
 
     Card(
@@ -162,7 +373,7 @@ private fun ActivityLegend() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            items.forEach { (icon, color, label) ->
+            legendItems.forEach { (icon, color, label) ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),

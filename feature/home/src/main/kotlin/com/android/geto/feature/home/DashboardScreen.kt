@@ -139,7 +139,7 @@ private fun HeroBanner() {
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                         Text(
-                            text = "Control Your Android Environment.",
+                            text = "Advanced Android App Environment & Automation Controller",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
                         )
@@ -151,18 +151,9 @@ private fun HeroBanner() {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    StatusChip(
-                        label = "Engine Active",
-                        isActive = true,
-                    )
-                    StatusChip(
-                        label = "Offline First",
-                        isActive = true,
-                    )
-                    StatusChip(
-                        label = "No Telemetry",
-                        isActive = true,
-                    )
+                    StatusChip(label = "Offline First", isActive = true)
+                    StatusChip(label = "No Telemetry", isActive = true)
+                    StatusChip(label = "No Root Required", isActive = true)
                 }
             }
         }
@@ -226,7 +217,7 @@ private fun StatusGrid() {
             StatusCard(
                 modifier = Modifier.weight(1f),
                 title = "Permissions",
-                value = "1 / 7",
+                value = "Setup Needed",
                 icon = GetoIcons.Lock,
                 isGood = false,
             )
@@ -321,50 +312,92 @@ private val ashellCommands = listOf(
     AshellCommand(
         step = 1,
         title = "Write Secure Settings",
-        description = "REQUIRED — Core permission for applying per-app settings.",
+        description = "REQUIRED — Core permission for applying per-app system settings.",
         command = "pm grant com.android.geto android.permission.WRITE_SECURE_SETTINGS",
         isRequired = true,
     ),
     AshellCommand(
         step = 2,
         title = "Dump Permission",
-        description = "Allows Aegis to read system state and app information.",
+        description = "REQUIRED — Allows Aegis to read system state, app info and running services.",
         command = "pm grant com.android.geto android.permission.DUMP",
         isRequired = true,
     ),
     AshellCommand(
         step = 3,
-        title = "Read Logs",
-        description = "Enables activity monitoring and detection logging.",
-        command = "pm grant com.android.geto android.permission.READ_LOGS",
-        isRequired = false,
-    ),
-    AshellCommand(
-        step = 4,
         title = "Write Settings",
-        description = "Allows modifying system-level settings (brightness, volume, etc.).",
+        description = "REQUIRED — Allows modifying system-level settings (brightness, volume, DPI, etc.).",
         command = "pm grant com.android.geto android.permission.WRITE_SETTINGS",
         isRequired = true,
     ),
     AshellCommand(
+        step = 4,
+        title = "Read Logs",
+        description = "Enables activity monitoring, detection logging, and the Activity Center.",
+        command = "pm grant com.android.geto android.permission.READ_LOGS",
+        isRequired = false,
+    ),
+    AshellCommand(
         step = 5,
         title = "Change Configuration",
-        description = "Required for DPI scaling, locale, and display configuration changes.",
+        description = "Required for DPI scaling, locale override, and display configuration changes.",
         command = "pm grant com.android.geto android.permission.CHANGE_CONFIGURATION",
         isRequired = false,
     ),
     AshellCommand(
         step = 6,
-        title = "Usage Stats Access",
-        description = "Enables app usage tracking and automation triggers.",
+        title = "Usage Stats (appops)",
+        description = "Enables app usage tracking and launch-based automation triggers.",
         command = "appops set com.android.geto GET_USAGE_STATS allow",
         isRequired = false,
     ),
     AshellCommand(
         step = 7,
         title = "Package Usage Stats",
-        description = "Supplements usage stats for per-app automation triggers.",
+        description = "Supplements usage stats permission for per-app automation triggers.",
         command = "pm grant com.android.geto android.permission.PACKAGE_USAGE_STATS",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 8,
+        title = "Battery Stats",
+        description = "Enables battery impact monitoring and battery-based automation triggers.",
+        command = "pm grant com.android.geto android.permission.BATTERY_STATS",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 9,
+        title = "App Ops Management",
+        description = "Enables per-app ops control (clipboard, sensor, mic, camera monitoring).",
+        command = "pm grant com.android.geto android.permission.MANAGE_APP_OPS_MODES",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 10,
+        title = "Notification Policy",
+        description = "Required for Do Not Disturb and per-app notification volume control.",
+        command = "pm grant com.android.geto android.permission.ACCESS_NOTIFICATION_POLICY",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 11,
+        title = "Network State",
+        description = "Enables Wi-Fi preference controls and network-based automation triggers.",
+        command = "pm grant com.android.geto android.permission.CHANGE_NETWORK_STATE",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 12,
+        title = "Status Bar",
+        description = "Required for Quick Settings tiles and status bar interaction.",
+        command = "pm grant com.android.geto android.permission.STATUS_BAR",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 13,
+        title = "Read Device Config",
+        description = "Allows reading device configuration flags for advanced system controls.",
+        command = "pm grant com.android.geto android.permission.READ_DEVICE_CONFIG",
         isRequired = false,
     ),
 )
@@ -408,13 +441,29 @@ private fun AshellCommandsPanel() {
                     }
 
                     Column {
-                        Text(
-                            text = "AShell U Setup Commands",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.SemiBold,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = "AShell U — Setup Commands",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(50.dp),
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                            ) {
+                                Text(
+                                    text = "${ashellCommands.size} commands",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                )
+                            }
+                        }
                         Text(
                             text = if (expanded) "Tap to collapse" else "Run these in AShell U before using Aegis",
                             style = MaterialTheme.typography.bodySmall,
@@ -459,11 +508,19 @@ private fun AshellCommandsPanel() {
                                 modifier = Modifier.size(16.dp),
                             )
                             Text(
-                                text = "Install AShell U, open it, and run each command below. Steps marked REQUIRED must be completed for Aegis to function.",
+                                text = "Install AShell U from F-Droid, start Shizuku first, then run each command in AShell U. Steps 1–3 (REQUIRED) must be completed for Aegis to function.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        RequiredLegendChip(label = "REQUIRED", isRequired = true)
+                        RequiredLegendChip(label = "OPTIONAL", isRequired = false)
                     }
 
                     ashellCommands.forEach { cmd ->
@@ -471,6 +528,37 @@ private fun AshellCommandsPanel() {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RequiredLegendChip(label: String, isRequired: Boolean) {
+    Surface(
+        shape = RoundedCornerShape(50.dp),
+        color = if (isRequired) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+        else MaterialTheme.colorScheme.surfaceContainerHighest,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isRequired) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.outline,
+                    ),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = if (isRequired) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -501,7 +589,10 @@ private fun CommandItem(command: AshellCommand) {
                         modifier = Modifier
                             .size(22.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                            .background(
+                                if (command.isRequired) MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
+                                else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -509,7 +600,8 @@ private fun CommandItem(command: AshellCommand) {
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                             ),
-                            color = MaterialTheme.colorScheme.primary,
+                            color = if (command.isRequired) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.primary,
                         )
                     }
 
@@ -565,7 +657,7 @@ private fun CommandItem(command: AshellCommand) {
                         ),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
-                        maxLines = 2,
+                        maxLines = 3,
                         overflow = TextOverflow.Visible,
                     )
 
@@ -607,16 +699,30 @@ private fun QuickActionsSection() {
                 icon = GetoIcons.Apps,
                 label = "Browse Apps",
                 sublabel = "Manage per-app rules",
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             QuickActionCard(
                 modifier = Modifier.weight(1f),
                 icon = GetoIcons.Automations,
                 label = "Automations",
                 sublabel = "Create IF/THEN rules",
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            QuickActionCard(
+                modifier = Modifier.weight(1f),
+                icon = GetoIcons.Activity,
+                label = "Activity Log",
+                sublabel = "View recent events",
+            )
+            QuickActionCard(
+                modifier = Modifier.weight(1f),
+                icon = GetoIcons.Security,
+                label = "Permissions",
+                sublabel = "Check AShell status",
             )
         }
     }
@@ -628,33 +734,47 @@ private fun QuickActionCard(
     icon: ImageVector,
     label: String,
     sublabel: String,
-    containerColor: Color,
-    contentColor: Color,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(28.dp),
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+
             Text(
                 text = label,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = contentColor,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface,
             )
+
             Text(
                 text = sublabel,
                 style = MaterialTheme.typography.bodySmall,
-                color = contentColor.copy(alpha = 0.75f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

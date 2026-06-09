@@ -17,6 +17,9 @@
  */
 package com.android.geto.feature.settings
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -116,10 +120,36 @@ private fun SuccessState(
     onUpdateDynamicTheme: (Boolean) -> Unit,
     onUpdateTheme: (Theme) -> Unit,
 ) {
+    val context = LocalContext.current
+
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
     var selectedTheme by remember {
         mutableIntStateOf(Theme.entries.indexOf(userData.theme))
+    }
+
+    val backupLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("*/*"),
+    ) { uri ->
+        if (uri != null) {
+            Toast.makeText(
+                context,
+                "Backup location selected — encrypted backup coming in next update",
+                Toast.LENGTH_LONG,
+            ).show()
+        }
+    }
+
+    val restoreLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            Toast.makeText(
+                context,
+                "Restore selected — full restore coming in next update",
+                Toast.LENGTH_LONG,
+            ).show()
+        }
     }
 
     Column(
@@ -131,7 +161,7 @@ private fun SuccessState(
         SettingsSection(title = "Appearance") {
             if (supportsDynamicTheming()) {
                 SettingsToggleRow(
-                    icon = GetoIcons.Tune,
+                    icon = GetoIcons.Palette,
                     title = "Material You",
                     subtitle = "Use wallpaper-based dynamic colors (Android 12+)",
                     checked = userData.dynamicTheme,
@@ -147,23 +177,108 @@ private fun SuccessState(
             )
         }
 
-        SettingsSection(title = "About") {
+        SettingsSection(title = "Backup & Restore") {
+            SettingsNavigationRow(
+                icon = GetoIcons.SaveAlt,
+                title = "Backup Aegis",
+                subtitle = "Save all rules, automations & settings to an encrypted .aegis file",
+                onClick = {
+                    backupLauncher.launch(
+                        "aegis_backup_${System.currentTimeMillis()}.aegis",
+                    )
+                },
+            )
+
+            SettingsNavigationRow(
+                icon = GetoIcons.Restore,
+                title = "Restore Aegis",
+                subtitle = "Restore from a previously saved .aegis backup file",
+                onClick = {
+                    restoreLauncher.launch(arrayOf("*/*"))
+                },
+            )
+        }
+
+        SettingsSection(title = "Security & Privacy") {
+            SettingsInfoRow(
+                icon = GetoIcons.Fingerprint,
+                title = "App Lock",
+                subtitle = "Per-app biometric/PIN/pattern lock — set in each app's control page",
+            )
+            SettingsInfoRow(
+                icon = GetoIcons.Lock,
+                title = "Encrypted Storage",
+                subtitle = "All rules and settings stored securely on-device only",
+            )
+            SettingsInfoRow(
+                icon = GetoIcons.Block,
+                title = "Zero Cloud",
+                subtitle = "No cloud sync, no analytics, no telemetry — ever",
+            )
+        }
+
+        SettingsSection(title = "AShell U Permissions") {
+            PermissionStatusRow(
+                title = "WRITE_SECURE_SETTINGS",
+                subtitle = "Core per-app settings control",
+                isGranted = false,
+            )
+            PermissionStatusRow(
+                title = "DUMP",
+                subtitle = "System state and app info reading",
+                isGranted = false,
+            )
+            PermissionStatusRow(
+                title = "WRITE_SETTINGS",
+                subtitle = "System-level settings modification",
+                isGranted = false,
+            )
+            PermissionStatusRow(
+                title = "READ_LOGS",
+                subtitle = "Activity Center and event logging",
+                isGranted = false,
+            )
+            PermissionStatusRow(
+                title = "CHANGE_CONFIGURATION",
+                subtitle = "DPI scaling and display configuration",
+                isGranted = false,
+            )
+            PermissionStatusRow(
+                title = "BATTERY_STATS",
+                subtitle = "Battery monitoring and triggers",
+                isGranted = false,
+            )
+            PermissionStatusRow(
+                title = "GET_USAGE_STATS",
+                subtitle = "App launch detection and usage triggers",
+                isGranted = false,
+            )
+        }
+
+        SettingsSection(title = "About Aegis") {
             SettingsInfoRow(
                 icon = GetoIcons.Shield,
                 title = "Aegis",
-                subtitle = "Control Your Android Environment.",
+                subtitle = "Advanced Android App Environment & Automation Controller",
             )
             SettingsInfoRow(
                 icon = GetoIcons.Security,
-                title = "Privacy",
-                subtitle = "No cloud. No telemetry. No analytics. Offline-first.",
+                title = "Privacy-First",
+                subtitle = "No cloud. No telemetry. No analytics. Fully offline.",
+            )
+            SettingsInfoRow(
+                icon = GetoIcons.Android,
+                title = "Platform",
+                subtitle = "Built for Android 15, 16 and beyond · Powered by Shizuku",
             )
             SettingsInfoRow(
                 icon = GetoIcons.Info,
-                title = "Version",
-                subtitle = "Built for Android 15, 16 and beyond",
+                title = "Package",
+                subtitle = "com.android.geto",
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 
     if (showThemeDialog) {
@@ -187,9 +302,7 @@ private fun SettingsSection(
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = title.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
-            ),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
         )
@@ -360,6 +473,70 @@ private fun SettingsInfoRow(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PermissionStatusRow(
+    title: String,
+    subtitle: String,
+    isGranted: Boolean,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    if (isGranted) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = if (isGranted) GetoIcons.CheckCircle else GetoIcons.Warning,
+                contentDescription = null,
+                tint = if (isGranted) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 14.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Surface(
+            shape = RoundedCornerShape(50.dp),
+            color = if (isGranted) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+        ) {
+            Text(
+                text = if (isGranted) "Granted" else "Not Granted",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = if (isGranted) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             )
         }
     }

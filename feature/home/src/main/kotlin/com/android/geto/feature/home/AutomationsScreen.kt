@@ -47,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,10 +67,7 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
             ExtendedFloatingActionButton(
                 onClick = {},
                 icon = {
-                    Icon(
-                        imageVector = GetoIcons.Add,
-                        contentDescription = null,
-                    )
+                    Icon(imageVector = GetoIcons.Add, contentDescription = null)
                 },
                 text = { Text("New Automation") },
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -82,38 +80,212 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 96.dp),
         ) {
-            item { TriggersQuickRow() }
-            item { AutomationEmptyState() }
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = "Available Triggers",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = "Choose a trigger to start building an IF/THEN automation",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            triggerCategories.forEach { category ->
+                item {
+                    TriggerCategorySection(
+                        category = category,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(8.dp)) }
+
+            item {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "My Automations",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = "No automations created yet",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            item { AutomationEmptyHint() }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "Example Automations",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    exampleAutomations.forEach { example ->
+                        ExampleAutomationCard(example = example)
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
-private data class TriggerItem(val icon: ImageVector, val label: String)
+private data class TriggerItem(
+    val icon: ImageVector,
+    val label: String,
+    val iconTint: Color? = null,
+)
 
-private val triggers = listOf(
-    TriggerItem(GetoIcons.Apps, "App Launch"),
-    TriggerItem(GetoIcons.FlashOn, "Charger"),
-    TriggerItem(GetoIcons.Speed, "Battery %"),
-    TriggerItem(GetoIcons.Notifications, "Screen On"),
-    TriggerItem(GetoIcons.Security, "Unlock"),
-    TriggerItem(GetoIcons.Tune, "Wi-Fi"),
+private data class TriggerCategory(
+    val name: String,
+    val icon: ImageVector,
+    val triggers: List<TriggerItem>,
+)
+
+private val triggerCategories = listOf(
+    TriggerCategory(
+        name = "App Events",
+        icon = GetoIcons.Apps,
+        triggers = listOf(
+            TriggerItem(GetoIcons.Apps, "App Launch"),
+            TriggerItem(GetoIcons.Close, "App Close"),
+            TriggerItem(GetoIcons.Android, "App Install"),
+            TriggerItem(GetoIcons.DeleteSweep, "App Uninstall"),
+        ),
+    ),
+    TriggerCategory(
+        name = "Screen & Device",
+        icon = GetoIcons.PhoneAndroid,
+        triggers = listOf(
+            TriggerItem(GetoIcons.Notifications, "Screen On"),
+            TriggerItem(GetoIcons.Block, "Screen Off"),
+            TriggerItem(GetoIcons.LockOpen, "Device Unlock"),
+            TriggerItem(GetoIcons.Lock, "Device Lock"),
+        ),
+    ),
+    TriggerCategory(
+        name = "Power & Battery",
+        icon = GetoIcons.BatteryCharging,
+        triggers = listOf(
+            TriggerItem(GetoIcons.FlashOn, "Charger Connected"),
+            TriggerItem(GetoIcons.FlashOn, "Charger Disconnected"),
+            TriggerItem(GetoIcons.BatteryAlert, "Battery %"),
+        ),
+    ),
+    TriggerCategory(
+        name = "Connectivity",
+        icon = GetoIcons.Wifi,
+        triggers = listOf(
+            TriggerItem(GetoIcons.Wifi, "Wi-Fi Connected"),
+            TriggerItem(GetoIcons.WifiOff, "Wi-Fi Disconnected"),
+            TriggerItem(GetoIcons.Bluetooth, "Bluetooth Connected"),
+            TriggerItem(GetoIcons.Bluetooth, "Bluetooth Disconnected"),
+            TriggerItem(GetoIcons.Nfc, "NFC Tag Detected"),
+        ),
+    ),
+    TriggerCategory(
+        name = "Audio",
+        icon = GetoIcons.Headphones,
+        triggers = listOf(
+            TriggerItem(GetoIcons.Headphones, "Headphones Connected"),
+            TriggerItem(GetoIcons.HeadphonesOff, "Headphones Disconnected"),
+            TriggerItem(GetoIcons.VolumeUp, "Volume Changed"),
+        ),
+    ),
+    TriggerCategory(
+        name = "Time & Schedule",
+        icon = GetoIcons.Schedule,
+        triggers = listOf(
+            TriggerItem(GetoIcons.Schedule, "Time Schedule"),
+            TriggerItem(GetoIcons.Schedule, "Day Schedule"),
+        ),
+    ),
+)
+
+private data class ExampleAutomation(
+    val icon: ImageVector,
+    val trigger: String,
+    val action: String,
+)
+
+private val exampleAutomations = listOf(
+    ExampleAutomation(GetoIcons.Apps, "App Launch: YouTube", "Brightness → 80%"),
+    ExampleAutomation(GetoIcons.FlashOn, "Charger Connected", "Enable Performance Mode"),
+    ExampleAutomation(GetoIcons.BatteryAlert, "Battery < 20%", "Enable Battery Saver"),
+    ExampleAutomation(GetoIcons.Headphones, "Headphones Connected", "Volume → 60%"),
+    ExampleAutomation(GetoIcons.Wifi, "Wi-Fi Connected (Home)", "Disable Mobile Data"),
+    ExampleAutomation(GetoIcons.LockOpen, "Device Unlocked", "Disable DND"),
 )
 
 @Composable
-private fun TriggersQuickRow() {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
-            text = "Available Triggers",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-        )
+private fun TriggerCategorySection(
+    category: TriggerCategory,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = category.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
 
         LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(triggers) { trigger ->
+            items(category.triggers) { trigger ->
                 TriggerChip(icon = trigger.icon, label = trigger.label)
             }
         }
@@ -149,23 +321,24 @@ private fun TriggerChip(icon: ImageVector, label: String) {
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
             )
         }
     }
 }
 
 @Composable
-private fun AutomationEmptyState() {
+private fun AutomationEmptyHint() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 48.dp),
+            .padding(vertical = 24.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(80.dp)
+                .size(64.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
@@ -174,104 +347,71 @@ private fun AutomationEmptyState() {
                 imageVector = GetoIcons.Automations,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(32.dp),
             )
         }
-
         Text(
-            text = "No Automations Yet",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        Text(
-            text = "Create IF/THEN rules to automate your device.\nExamples:\nIF App = YouTube → Brightness 80%\nIF Headphones Connected → Volume 60%",
+            text = "Tap a trigger above or press \"New Automation\" to build your first IF/THEN rule.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 24.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        AutomationExampleCards()
     }
 }
 
 @Composable
-private fun AutomationExampleCards() {
-    val examples = listOf(
-        Triple(GetoIcons.Apps, "App Launch", "YouTube → Brightness 80%"),
-        Triple(GetoIcons.FlashOn, "Charger Connected", "Enable Performance Mode"),
-        Triple(GetoIcons.Speed, "Battery < 20%", "Enable Battery Saver"),
-    )
-
-    Column(
+private fun ExampleAutomationCard(example: ExampleAutomation) {
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
     ) {
-        Text(
-            text = "Example Automations",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 8.dp),
-        )
-
-        examples.forEach { (icon, trigger, action) ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ),
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.tertiaryContainer),
+                contentAlignment = Alignment.Center,
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.tertiaryContainer),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.size(22.dp),
-                        )
-                    }
+                Icon(
+                    imageVector = example.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "IF $trigger",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "THEN $action",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "IF ${example.trigger}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = "THEN ${example.action}",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
 
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    ) {
-                        Text(
-                            text = "Example",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        )
-                    }
-                }
+            Surface(
+                shape = RoundedCornerShape(50.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            ) {
+                Text(
+                    text = "Example",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                )
             }
         }
     }
