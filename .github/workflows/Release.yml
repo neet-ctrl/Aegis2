@@ -65,24 +65,12 @@ jobs:
           fi
           echo "✅ Tag matches versionName: ${{ steps.version.outputs.version_name }}"
 
-      - name: Build Release APK
+      - name: Build & Sign Release APK
         run: ./gradlew :app:assembleRelease
-
-      - name: Sign Release APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_release
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: MIIKpAIBAzCCCk4GCSqGSIb3DQEHAaCCCj8Eggo7MIIKNzCCBa4GCSqGSIb3DQEHAaCCBZ8EggWbMIIFlzCCBZMGCyqGSIb3DQEMCgECoIIFQDCCBTwwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFC3mXNLcuevSI2V58iuIM7wYkpnzAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQ958xHVTC1sSfUcRd50Eo7QSCBNCW6mFNEKsxVzshCNG1V+K6jEvlD1Ar6XJ7qOlPBkVUhqgqV1dN4M57WKy4JqI2slTSCyM1MYN14mCGRSXpFs6Eqy43uUsAGuUv5Wdlfu+5NV2mZc3Hg0/B9bmb+qUzamwvLDxID8OfqwhKLhfWCDwyMXoVXLVCXyMo/Wnb8g6ZeXTet45kDY2hjR/z+mZDRJkpOjZJD4Q9HmlTS2Uri0vOtFfjGTg5WX1CQtv7j7CovzERbqyeoAeParOgw3z5XOuqsUyYAf2Q8G3UNUJNfK505ErhzyGm7oUZ4Pp2clNmi9ncMj9P6gJO5OzYBBU2K84iVnjp/V5EHeUrLL7MIOWputgvDiFxfCDuKR4JrskT4HcjQCaJrbyj36Kck6eJaGPWSSGEnnVJZiQvT+z0c35gaS/IDx8ZOj8DA7SqhwYfq3cNObykkDZxxejYiqgyqXjRdGyD3GjwWOehvq70A2PttkMZ7ngpu/fj0DS3lDQNW9b196rI6RaoYuDcUVFJwJDQPc+nG8r5YNCribU5PiXNre4XWqb28L2t3No3PQOw4EJUup5YYl9FtZzImvLd7PFex8Zr7zv2qtnOvQ/smgid70F5cs939zZ1BcoOyA//f+qTe3UEeEfB73GTmIZJDnzGMf4pWniniJTt5pEGkIKBOiO+NLTd748uu3WlZX59VNeKbOwYcYA/XI1P0feDuWwoYZNeJKr8VPIWHfgRuK/nMM79Iw3r4xPH8tnLX5nDC2ayOYeWPaBO3bu856VvstD1wZAEs6btI5d1Dinj9kohDnFJQWVYSqWBudGlXrsMhbdS4qWWJvaHPLPw/GCW+mtS9p+xDhwROw5Ecd2kO4z2vNtB5NIgUt3sdFOCKtvLpLJ4hD9b6q89Z0klthoA2GeaF3FO0htI69rF8xCzocMZHvHLNnFHvMkgI8OQ6BldIsTtTi6XvJse7Lj+Xi3y/4i/xafgnwPOFLA6C5gP1eQDZqPLfy583sSd2fiywAtrAk6Xt42qXrbM+jKkUEFrJSge99x4YU5kkvFYCWy3qfSAVL47224myibrLjyIKiENlYKtvbdz/rmicXb1IUs8DtS0BSkHfDazhVgB0LOrc8AS20QSjC5rApVfMIA/pHHhGkRsfXlHaqzjK8HSVSPetrXd/1218q1sNLnMRR2OtTAYS6XQxYnukp7m85POFBf1cQhTSnmHmdjEaG64kBGVPxI/+sH8lKhBqbScDwU55Bvo2T2ZV2jDu56hiEP6S4IT16z6AOXE8iYu68KKjZd0yK4wPrr5snT39v/qLzuVfIevOQhbU2wMTZE8S92UbCnnGEgefFgdF9WV6skkqCGoosRCU2EpnUKxB2y86dqemT1xAFBguZWvjlx3YvNzcNjJ1sEWQURUPwrM7PJ2yCO8dw/A6lue0mY0w1Hnwar8Zx3YRJLp/RY/TIYlB6yTlbCCkXVgRoDI6y7jSMiSWo/3qC6J9+yVzn/tdyiNq1esQYqIhb3YHiwsJUeE9+QH1sSp5jXftv2RRVOvSbcwnLVjI4r4oG2Mky/bO2ZKER42vgOKk2nvom1dSAEwQSPMq/usPfwKp8dKRw7LUz+22BTNytAG84MiCuD+kPXRIpEH9IIdRLEk+cCxFk/SQ3kZBEGJPDFAMBsGCSqGSIb3DQEJFDEOHgwAbQB5AC0AawBlAHkwIQYJKoZIhvcNAQkVMRQEElRpbWUg...
-          alias: my-key
-          keyStorePassword: "Sh@090609"
-          keyPassword: "Sh@090609"
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
 
       - name: Rename signed APK
         run: |
-          mv "${{ steps.sign_release.outputs.signedReleaseFile }}" \
+          mv app/build/outputs/apk/release/app-release.apk \
              app/build/outputs/apk/release/aegis-${{ steps.version.outputs.release_tag }}.apk
 
       - name: Upload ProGuard Mapping as artifact
