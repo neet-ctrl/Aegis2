@@ -217,6 +217,42 @@ private val knownSettingsMeta: Map<String, SettingMeta> = mapOf(
 private fun String.toFriendlyLabel(): String =
     split("_").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
 
+private data class KeyDropdownItem(
+    val key: String,
+    val currentValue: String?,
+    val meta: SettingMeta?,
+)
+
+private fun buildDropdownItems(
+    query: String,
+    secureSettings: List<SecureSetting>,
+): List<KeyDropdownItem> {
+    val q = query.lowercase().trim()
+
+    val knownMatches: List<KeyDropdownItem> = if (q.isBlank()) {
+        knownSettingsMeta.entries.map { (k, meta) ->
+            KeyDropdownItem(k, secureSettings.firstOrNull { it.name == k }?.value, meta)
+        }
+    } else {
+        knownSettingsMeta.entries
+            .filter { (k, meta) ->
+                k.contains(q) ||
+                    meta.description.lowercase().contains(q) ||
+                    meta.suggestedLabel.lowercase().contains(q)
+            }
+            .map { (k, meta) ->
+                KeyDropdownItem(k, secureSettings.firstOrNull { it.name == k }?.value, meta)
+            }
+    }
+
+    val knownKeys = knownMatches.map { it.key }.toSet()
+    val systemOnlyItems: List<KeyDropdownItem> = secureSettings
+        .filter { ss -> ss.name != null && ss.name !in knownKeys }
+        .map { ss -> KeyDropdownItem(ss.name ?: "", ss.value, null) }
+
+    return knownMatches + systemOnlyItems
+}
+
 @OptIn(FlowPreview::class)
 @Composable
 internal fun AppSettingDialog(
@@ -650,14 +686,18 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
 
-        if (secureSettings.isNotEmpty()) {
+        val dropdownItems = remember(key, secureSettings) {
+            buildDropdownItems(query = key, secureSettings = secureSettings)
+        }
+
+        if (dropdownItems.isNotEmpty()) {
             ExposedDropdownMenu(
                 expanded = secureSettingsExpanded,
                 onDismissRequest = { onUpdateSecureSettingsExpanded(false) },
             ) {
-                secureSettings.forEach { secureSetting ->
-                    val itemKey = secureSetting.name ?: ""
-                    val meta = knownSettingsMeta[itemKey]
+                dropdownItems.forEach { item ->
+                    val itemKey = item.key
+                    val meta = item.meta
                     DropdownMenuItem(
                         text = {
                             Column(modifier = Modifier.weight(1f)) {
@@ -672,12 +712,14 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
                                         text = meta.description,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
+                                        maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                                 Text(
-                                    text = "Current: ${secureSetting.value ?: "—"}",
+                                    text = item.currentValue?.let { "Current: $it" }
+                                        ?: meta?.valueFormat?.let { "Format: $it" }
+                                        ?: "",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 )
@@ -685,7 +727,7 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
                         },
                         onClick = {
                             onUpdateKey(itemKey)
-                            onUpdateValueOnRevert(secureSetting.value ?: "")
+                            onUpdateValueOnRevert(item.currentValue ?: "")
                             if (label.isBlank()) {
                                 val suggested = meta?.suggestedLabel ?: itemKey.toFriendlyLabel()
                                 onUpdateLabel(suggested)
