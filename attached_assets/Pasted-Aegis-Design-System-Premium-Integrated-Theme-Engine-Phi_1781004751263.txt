@@ -1,0 +1,478 @@
+Aegis Design System — Premium Integrated Theme Engine
+
+Philosophy
+
+Aegis must not use simple color overlays.
+
+The entire application should be built around a custom design system.
+
+Every screen, component, animation, spacing rule, typography rule, icon treatment, card style, navigation style, dialog style, widget style, and dashboard style must follow the Aegis Design Language.
+
+The user should immediately recognize the application even if all text is removed.
+
+---
+
+Aegis Visual Identity
+
+Theme Name
+
+Aegis Prime
+
+Design Goals
+
+- Premium
+- Futuristic
+- Professional
+- Fast
+- Minimal
+- Powerful
+- Technical
+- Android-native
+
+---
+
+Global Design Language
+
+Surface Layers
+
+Layer 1
+Background surface
+
+Layer 2
+Content containers
+
+Layer 3
+Interactive cards
+
+Layer 4
+Elevated cards
+
+Layer 5
+Floating controls
+
+Layer 6
+System overlays
+
+Each layer should have unique elevation treatment.
+
+Not just shadows.
+
+Use:
+
+- Blur
+- Transparency
+- Contrast
+- Dynamic depth
+
+---
+
+Navigation Experience
+
+Bottom Navigation
+
+Not standard Material navigation.
+
+Create custom Aegis Navigation Bar.
+
+Features:
+
+- Floating appearance
+- Dynamic morphing indicator
+- Blur background
+- Animated selection transitions
+- Context aware icons
+- Expandable center action button
+
+Tabs:
+
+Dashboard
+
+Apps
+
+Automations
+
+Activity
+
+Settings
+
+---
+
+Dashboard Experience
+
+The dashboard should feel like a command center.
+
+Sections:
+
+Device Status Card
+
+Displays:
+
+- Battery
+- Memory
+- Storage
+- Shizuku state
+- Permissions health
+
+Animated live updates.
+
+---
+
+Automation Status
+
+Animated timeline.
+
+Shows:
+
+- Active triggers
+- Recent actions
+- Running rules
+
+---
+
+App Control Center
+
+Pinned applications.
+
+One tap access.
+
+Live status indicators.
+
+---
+
+Permission Center
+
+Collapsed by default.
+
+Expandable.
+
+Displays:
+
+- Granted permissions
+- Missing permissions
+- Required setup steps
+
+Every command:
+
+Copy button
+
+Run guide button
+
+Explanation button
+
+---
+
+Typography System
+
+Primary Font:
+
+Modern Android optimized font.
+
+Rules:
+
+Display
+Headline
+Title
+Body
+Label
+
+Strict hierarchy.
+
+No random font sizing.
+
+---
+
+Animation System
+
+Every animation must feel intentional.
+
+Examples:
+
+- Shared element transitions
+- Elastic card expansion
+- Smooth page transitions
+- Morphing icons
+- Contextual motion
+
+Target:
+
+120Hz ready.
+
+No lag.
+
+No jank.
+
+---
+
+Card System
+
+Cards are the core design element.
+
+Types:
+
+Information Card
+
+Read only.
+
+Action Card
+
+Contains actions.
+
+Live Card
+
+Updates automatically.
+
+Expandable Card
+
+Shows advanced options.
+
+Dashboard Card
+
+Special dashboard component.
+
+All cards support:
+
+- Blur
+- Dynamic elevation
+- Smooth expansion
+- Swipe actions
+
+---
+
+Advanced App Page Design
+
+Every application opens a dedicated control center.
+
+Top Section:
+
+- App icon
+- App name
+- Package name
+- Version
+- Last update
+
+Actions:
+
+- Open
+- App Info
+- Share
+- Export APK
+- Save Icon
+- Copy Package Name
+
+---
+
+Advanced Permission Viewer
+
+Show:
+
+- Runtime permissions
+- App Ops
+- Special permissions
+
+Modern interface:
+
+Permission cards.
+
+Each card displays:
+
+- Current state
+- Description
+- Risk level
+- Last usage
+
+---
+
+Manifest Explorer
+
+Modern code viewer.
+
+Features:
+
+- Syntax highlighting
+- Search
+- Collapse sections
+- Copy section
+- Export manifest
+
+View:
+
+Activities
+
+Services
+
+Receivers
+
+Providers
+
+Permissions
+
+Metadata
+
+---
+
+Theme Engine
+
+Multiple premium themes.
+
+Aegis Prime
+
+Dark futuristic theme.
+
+Obsidian
+
+AMOLED black.
+
+Titanium
+
+Professional gray.
+
+Aurora
+
+Dynamic Material You.
+
+Midnight Blue
+
+Blue-focused premium theme.
+
+Carbon
+
+Minimalist black and graphite.
+
+Emerald
+
+Green technical theme.
+
+---
+
+Theme Customization
+
+User can customize:
+
+- Accent color
+- Card radius
+- Blur intensity
+- Animation speed
+- Icon shape
+- Font scaling
+- Dashboard layout
+
+Changes apply instantly.
+
+No restart required.
+
+---
+
+Glass Engine
+
+Custom blur system.
+
+Applies to:
+
+- Navigation
+- Dialogs
+- Sheets
+- Cards
+
+Adaptive to performance level.
+
+---
+
+Settings Experience
+
+Settings should not be a long list.
+
+Use categories:
+
+Appearance
+
+Automation
+
+Apps
+
+Permissions
+
+Backup
+
+Security
+
+Developer
+
+Advanced
+
+Each category becomes its own dedicated page.
+
+---
+
+Backup UI
+
+Backup screen should feel premium.
+
+Backup button:
+
+Animated.
+
+Restore button:
+
+Animated.
+
+Shows:
+
+- Last backup date
+- Backup size
+- Encryption status
+
+---
+
+Activity Center
+
+Modern timeline interface.
+
+Shows:
+
+- Trigger events
+- Rule executions
+- Errors
+- Permission changes
+
+Supports:
+
+- Search
+- Filters
+- Export
+
+---
+
+Widgets
+
+Widgets should use same design language.
+
+Not generic Android widgets.
+
+Use:
+
+- Blur
+- Live updates
+- Rounded design
+- Dynamic theme support
+
+---
+
+Performance Goals
+
+Launch time under 1 second.
+
+Smooth 120Hz animations.
+
+Low memory usage.
+
+Battery efficient.
+
+No unnecessary background services.
+
+---
+
+Final Goal
+
+Aegis should feel like a premium Android system application built directly by the Android OS team rather than a third-party utility.
+
+Every screen should communicate power, control, visibility, and reliability while remaining clean and easy to use.

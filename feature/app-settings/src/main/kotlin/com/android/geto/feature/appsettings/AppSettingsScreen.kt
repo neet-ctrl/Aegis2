@@ -149,6 +149,7 @@ internal fun AppSettingsRoute(
     val activityIcon by viewModel.activityIcon.collectAsStateWithLifecycle()
     val requestPinShortcutResult by viewModel.requestPinShortcutResult.collectAsStateWithLifecycle()
     val appSettingTemplates by viewModel.appSettingTemplates.collectAsStateWithLifecycle()
+    val ruleApplyResults by viewModel.ruleApplyResults.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -164,6 +165,7 @@ internal fun AppSettingsRoute(
         revertAppSettingsResult = revertAppSettingsResult,
         requestPinShortcutResult = requestPinShortcutResult,
         appSettingTemplates = appSettingTemplates,
+        ruleApplyResults = ruleApplyResults,
         onApplyAppSettings = viewModel::applyAppSettings,
         onRevertAppSettings = viewModel::revertAppSettings,
         onCheckAppSetting = viewModel::checkAppSetting,
@@ -193,6 +195,7 @@ internal fun AppSettingsScreen(
     revertAppSettingsResult: AppSettingsResult?,
     requestPinShortcutResult: RequestPinShortcutResult?,
     appSettingTemplates: List<AppSettingTemplate>,
+    ruleApplyResults: Map<String, Boolean> = emptyMap(),
     onApplyAppSettings: () -> Unit,
     onRevertAppSettings: () -> Unit,
     onCheckAppSetting: (appSetting: AppSetting) -> Unit,
@@ -519,6 +522,7 @@ internal fun AppSettingsScreen(
                                     if (appSettingsUiState.appSettings.isNotEmpty()) {
                                         SuccessState(
                                             appSettingsUiState = appSettingsUiState,
+                                            ruleApplyResults = ruleApplyResults,
                                             onCheckAppSetting = onCheckAppSetting,
                                             onDeleteAppSettingsItem = onDeleteAppSetting,
                                         )
@@ -860,6 +864,7 @@ private fun AppSettingsBottomAppBarActions(
 @Composable
 private fun SuccessState(
     appSettingsUiState: AppSettingsUiState.Success,
+    ruleApplyResults: Map<String, Boolean>,
     onCheckAppSetting: (AppSetting) -> Unit,
     onDeleteAppSettingsItem: (AppSetting) -> Unit,
 ) {
@@ -867,6 +872,7 @@ private fun SuccessState(
         items(items = appSettingsUiState.appSettings) { appSetting ->
             AppSettingItem(
                 appSetting = appSetting,
+                ruleResult = ruleApplyResults[appSetting.key],
                 onCheckAppSetting = onCheckAppSetting,
                 onDeleteAppSetting = onDeleteAppSettingsItem,
             )
@@ -877,16 +883,53 @@ private fun SuccessState(
 @Composable
 private fun LazyItemScope.AppSettingItem(
     appSetting: AppSetting,
+    ruleResult: Boolean?,
     onCheckAppSetting: (AppSetting) -> Unit,
     onDeleteAppSetting: (AppSetting) -> Unit,
 ) {
     ListItem(
         modifier = Modifier.animateItem(),
         headlineContent = {
-            Text(
-                text = appSetting.label,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = appSetting.label,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (ruleResult != null) {
+                    val badgeColor = if (ruleResult) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.errorContainer
+                    val textColor = if (ruleResult) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onErrorContainer
+                    val badgeIcon = if (ruleResult) GetoIcons.CheckCircle else GetoIcons.Close
+                    val badgeLabel = if (ruleResult) "OK" else "Failed"
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = badgeColor,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            Icon(
+                                imageVector = badgeIcon,
+                                contentDescription = null,
+                                tint = textColor,
+                                modifier = Modifier.size(12.dp),
+                            )
+                            Text(
+                                text = badgeLabel,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = textColor,
+                            )
+                        }
+                    }
+                }
+            }
         },
         supportingContent = {
             Text(

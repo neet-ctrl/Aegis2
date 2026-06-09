@@ -85,6 +85,11 @@ class AppSettingsViewModel @Inject constructor(
     private val _revertAppSettingsResult = MutableStateFlow<AppSettingsResult?>(null)
     val revertAppSettingsResult = _revertAppSettingsResult.asStateFlow()
 
+    /** Per-rule apply status: settingKey → true (wrote OK) / false (write failed).
+     *  Populated after each apply; cleared after each revert. */
+    private val _ruleApplyResults = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val ruleApplyResults = _ruleApplyResults.asStateFlow()
+
     private val _requestPinShortcutResult = MutableStateFlow<RequestPinShortcutResult?>(null)
     val requestPinShortcutResult = _requestPinShortcutResult.asStateFlow()
 
@@ -108,7 +113,9 @@ class AppSettingsViewModel @Inject constructor(
 
     fun applyAppSettings() {
         viewModelScope.launch {
-            _applyAppSettingsResult.update { applyAppSettingsUseCase(componentName = componentName) }
+            val result = applyAppSettingsUseCase(componentName = componentName)
+            _applyAppSettingsResult.update { result.overallResult }
+            _ruleApplyResults.update { result.ruleResults }
         }
     }
 
@@ -140,7 +147,9 @@ class AppSettingsViewModel @Inject constructor(
 
     fun revertAppSettings() {
         viewModelScope.launch {
-            _revertAppSettingsResult.update { revertAppSettingsUseCase(componentName = componentName) }
+            val result = revertAppSettingsUseCase(componentName = componentName)
+            _revertAppSettingsResult.update { result.overallResult }
+            _ruleApplyResults.update { emptyMap() }
         }
     }
 

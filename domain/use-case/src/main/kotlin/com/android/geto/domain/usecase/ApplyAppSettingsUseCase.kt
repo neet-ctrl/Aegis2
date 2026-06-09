@@ -20,6 +20,7 @@ package com.android.geto.domain.usecase
 import com.android.geto.domain.common.dispatcher.Dispatcher
 import com.android.geto.domain.common.dispatcher.GetoDispatchers.Default
 import com.android.geto.domain.framework.SecureSettingsWrapper
+import com.android.geto.domain.model.AppSettingsApplyResult
 import com.android.geto.domain.model.AppSettingsResult
 import com.android.geto.domain.model.AppSettingsResult.DisabledAppSettings
 import com.android.geto.domain.model.AppSettingsResult.EmptyAppSettings
@@ -37,32 +38,37 @@ class ApplyAppSettingsUseCase @Inject constructor(
     private val appSettingsRepository: AppSettingsRepository,
     private val secureSettingsWrapper: SecureSettingsWrapper,
 ) {
-    suspend operator fun invoke(componentName: String): AppSettingsResult {
+    suspend operator fun invoke(componentName: String): AppSettingsApplyResult {
         return withContext(defaultDispatcher) {
             val appSettings =
                 appSettingsRepository.getAppSettingsByComponentName(componentName = componentName)
 
-            if (appSettings.isEmpty()) return@withContext EmptyAppSettings
+            if (appSettings.isEmpty()) {
+                return@withContext AppSettingsApplyResult(EmptyAppSettings, emptyMap())
+            }
 
             val enabledSettings = appSettings.filter { it.enabled }
 
-            if (enabledSettings.isEmpty()) return@withContext DisabledAppSettings
+            if (enabledSettings.isEmpty()) {
+                return@withContext AppSettingsApplyResult(DisabledAppSettings, emptyMap())
+            }
 
             try {
-                // Apply every enabled rule individually — do NOT short-circuit.
-                // One failing key must NOT block the others.
-                val results = enabledSettings.map { appSetting ->
-                    secureSettingsWrapper.canWriteSecureSettings(
+                // Apply every enabled rule individually — map{} does NOT short-circuit.
+                // One failing key must NOT block the others from being applied.
+                val ruleResults: Map<String, Boolean> = enabledSettings.associate { appSetting ->
+                    appSetting.key to secureSettingsWrapper.canWriteSecureSettings(
                         settingType = appSetting.settingType,
                         key = appSetting.key,
                         value = appSetting.valueOnLaunch,
                     )
                 }
-                if (results.all { it }) Success else Failure
+                val overall: AppSettingsResult = if (ruleResults.values.all { it }) Success else Failure
+                AppSettingsApplyResult(overall, ruleResults)
             } catch (_: SecurityException) {
-                NoPermission
+                AppSettingsApplyResult(NoPermission, emptyMap())
             } catch (_: IllegalArgumentException) {
-                InvalidValues
+                AppSettingsApplyResult(InvalidValues, emptyMap())
             }
         }
     }

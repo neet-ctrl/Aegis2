@@ -41,7 +41,7 @@ class ShortcutActivityViewModel @Inject constructor(
         viewModelScope.launch {
             _shortcutActivityUiState.update {
                 ShortcutActivityUiState.Success(
-                    appSettingsResult = applyAppSettingsUseCase(componentName = componentName),
+                    appSettingsResult = applyAppSettingsUseCase(componentName = componentName).overallResult,
                     applicationIcon = packageManagerWrapper.getActivityIcon(componentName = componentName),
                 )
             }
