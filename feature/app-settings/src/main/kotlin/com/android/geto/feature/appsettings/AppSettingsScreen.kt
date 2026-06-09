@@ -374,7 +374,7 @@ internal fun AppSettingsScreen(
                 containerColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.primary,
             ) {
-                listOf("Rules", "Details", "Controls").forEachIndexed { index, title ->
+                listOf("Rules", "Details", "Controls", "Security").forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
@@ -422,6 +422,9 @@ internal fun AppSettingsScreen(
                     )
                     2 -> AppControlsTab(
                         onAddRule = { showAppSettingDialog = true },
+                    )
+                    3 -> AppSecurityTab(
+                        packageName = packageName,
                     )
                 }
             }

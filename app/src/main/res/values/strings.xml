@@ -26,4 +26,6 @@
     <string name="please_grant_notifications_permission">Please grant notifications permission</string>
     <string name="allow">Allow</string>
     <string name="service">Service</string>
+    <string name="app_lock_service_label">Aegis App Lock</string>
+    <string name="app_lock_service_description">Aegis uses Accessibility to enforce per-app locks and block protected apps from launching.</string>
 </resources>

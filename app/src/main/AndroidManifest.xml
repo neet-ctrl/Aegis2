@@ -18,6 +18,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
     <application
         android:name=".GetoApplication"
         android:allowBackup="true"
@@ -43,6 +46,28 @@
             android:name=".activity.shortcut.ShortcutActivity"
             android:excludeFromRecents="true"
             android:theme="@style/Theme.Geto.Shortcut" />
+
+        <activity
+            android:name=".lock.AppLockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.Geto" />
+
+        <service
+            android:name=".lock.AppLockService"
+            android:exported="true"
+            android:label="@string/app_lock_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/app_lock_service" />
+        </service>
 
     </application>
 
