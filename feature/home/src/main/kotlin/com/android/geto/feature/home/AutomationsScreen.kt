@@ -78,6 +78,8 @@ internal fun AutomationsRoute(modifier: Modifier = Modifier) {
 internal fun AutomationsScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var showBuilder by remember { mutableStateOf(false) }
+    var builderTriggerLabel by remember { mutableStateOf<String?>(null) }
+    var builderInitialName by remember { mutableStateOf("") }
     var refreshKey by remember { mutableIntStateOf(0) }
 
     val automations = remember(refreshKey) {
@@ -85,10 +87,16 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
     }
 
     if (showBuilder) {
-        AutomationBuilderSheet(onDismiss = {
-            showBuilder = false
-            refreshKey++
-        })
+        AutomationBuilderSheet(
+            onDismiss = {
+                showBuilder = false
+                builderTriggerLabel = null
+                builderInitialName = ""
+                refreshKey++
+            },
+            initialTriggerLabel = builderTriggerLabel,
+            initialName = builderInitialName,
+        )
     }
 
     Scaffold(
@@ -140,7 +148,11 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                     TriggerCategorySection(
                         category = category,
                         modifier = Modifier.padding(bottom = 8.dp),
-                        onTriggerClick = { showBuilder = true },
+                        onTriggerClick = { label ->
+                            builderTriggerLabel = label
+                            builderInitialName = ""
+                            showBuilder = true
+                        },
                     )
                 }
             }
@@ -204,7 +216,14 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     exampleAutomations.forEach { example ->
-                        ExampleAutomationCard(example = example, onUseTemplate = { showBuilder = true })
+                        ExampleAutomationCard(
+                            example = example,
+                            onUseTemplate = { ex ->
+                                builderTriggerLabel = ex.trigger.substringBefore(":").trim()
+                                builderInitialName = ""
+                                showBuilder = true
+                            },
+                        )
                     }
                 }
             }
@@ -456,7 +475,7 @@ private val exampleAutomations = listOf(
 private fun TriggerCategorySection(
     category: TriggerCategory,
     modifier: Modifier = Modifier,
-    onTriggerClick: () -> Unit,
+    onTriggerClick: (String) -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -496,7 +515,7 @@ private fun TriggerCategorySection(
                 TriggerChip(
                     icon = trigger.icon,
                     label = trigger.label,
-                    onClick = onTriggerClick,
+                    onClick = { onTriggerClick(trigger.label) },
                 )
             }
         }
@@ -704,7 +723,7 @@ private fun AutomationCard(
 }
 
 @Composable
-private fun ExampleAutomationCard(example: ExampleAutomation, onUseTemplate: () -> Unit) {
+private fun ExampleAutomationCard(example: ExampleAutomation, onUseTemplate: (ExampleAutomation) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -745,7 +764,7 @@ private fun ExampleAutomationCard(example: ExampleAutomation, onUseTemplate: () 
                 )
             }
 
-            androidx.compose.material3.TextButton(onClick = onUseTemplate) {
+            androidx.compose.material3.TextButton(onClick = { onUseTemplate(example) }) {
                 Text(
                     text = "Use",
                     style = MaterialTheme.typography.labelSmall,

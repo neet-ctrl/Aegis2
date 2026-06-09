@@ -141,17 +141,25 @@ private data class AutomationCondition(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-internal fun AutomationBuilderSheet(onDismiss: () -> Unit) {
+internal fun AutomationBuilderSheet(
+    onDismiss: () -> Unit,
+    initialTriggerLabel: String? = null,
+    initialName: String = "",
+) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    var step by remember { mutableIntStateOf(0) }
-    var selectedTrigger by remember { mutableStateOf<TriggerOption?>(null) }
+    var step by remember { mutableIntStateOf(if (initialTriggerLabel != null) 1 else 0) }
+    var selectedTrigger by remember {
+        mutableStateOf<TriggerOption?>(
+            initialTriggerLabel?.let { label -> allTriggers.firstOrNull { it.label == label } },
+        )
+    }
     val conditions = remember { mutableStateListOf<AutomationCondition>() }
     var conditionLogic by remember { mutableStateOf("AND") }
     val selectedActions = remember { mutableStateListOf<Pair<ActionOption, String>>() }
     var delaySeconds by remember { mutableStateOf("0") }
-    var automationName by remember { mutableStateOf("") }
+    var automationName by remember { mutableStateOf(initialName) }
     var isHidden by remember { mutableStateOf(false) }
 
     ModalBottomSheet(

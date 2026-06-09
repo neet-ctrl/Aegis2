@@ -24,19 +24,26 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,9 +58,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.geto.designsystem.component.DialogContainer
+import com.android.geto.designsystem.icon.GetoIcons
 import com.android.geto.domain.model.AppSetting
 import com.android.geto.domain.model.SecureSetting
 import com.android.geto.domain.model.SettingType
@@ -64,6 +74,148 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
+
+private data class SettingMeta(
+    val description: String,
+    val valueFormat: String,
+    val suggestedLabel: String,
+)
+
+private val knownSettingsMeta: Map<String, SettingMeta> = mapOf(
+    "screen_brightness" to SettingMeta(
+        "Screen brightness level (used in manual mode only)",
+        "0 (darkest) – 255 (max bright)",
+        "Set Brightness",
+    ),
+    "screen_brightness_mode" to SettingMeta(
+        "Automatic adaptive brightness toggle",
+        "0 = manual, 1 = auto (adaptive)",
+        "Auto Brightness",
+    ),
+    "screen_off_timeout" to SettingMeta(
+        "How long the screen stays on before turning off from inactivity",
+        "Milliseconds — 15000=15s, 30000=30s, 60000=1min, 0=never",
+        "Screen Timeout",
+    ),
+    "font_scale" to SettingMeta(
+        "Font size multiplier applied across all app UIs system-wide",
+        "1.0 = normal, 0.85 = small, 1.15 = large, 1.3 = largest",
+        "Font Scale",
+    ),
+    "accelerometer_rotation" to SettingMeta(
+        "Whether the screen auto-rotates based on physical device orientation",
+        "1 = auto-rotate on, 0 = locked to portrait",
+        "Auto Rotate",
+    ),
+    "haptic_feedback_enabled" to SettingMeta(
+        "Vibration feedback for touch interactions, keypresses, and UI actions",
+        "1 = on, 0 = off",
+        "Haptic Feedback",
+    ),
+    "sound_effects_enabled" to SettingMeta(
+        "Audible sound effects for tapping UI elements like keyboard keys and buttons",
+        "1 = on, 0 = off",
+        "Touch Sounds",
+    ),
+    "zen_mode" to SettingMeta(
+        "Do Not Disturb mode — controls which notifications and sounds break through",
+        "0 = off, 1 = priority only, 2 = total silence, 3 = alarms only",
+        "DND Mode",
+    ),
+    "volume_music" to SettingMeta(
+        "Volume level for media playback: music, video, podcasts, games",
+        "0–15 (exact max depends on device model)",
+        "Media Volume",
+    ),
+    "volume_ring" to SettingMeta(
+        "Volume level for incoming call ringtone alerts",
+        "0–7 (exact max depends on device model)",
+        "Ring Volume",
+    ),
+    "volume_notification" to SettingMeta(
+        "Volume level for notification chimes and alert sounds",
+        "0–7 (exact max depends on device model)",
+        "Notif Volume",
+    ),
+    "volume_system" to SettingMeta(
+        "Volume for system UI sounds such as lock screen, screenshot, charging",
+        "0–7 (exact max depends on device model)",
+        "System Volume",
+    ),
+    "volume_alarm" to SettingMeta(
+        "Volume level for alarm clock alerts",
+        "0–7 (exact max depends on device model)",
+        "Alarm Volume",
+    ),
+    "low_power" to SettingMeta(
+        "Battery Saver mode — restricts background activity and reduces CPU/GPU performance",
+        "1 = Battery Saver on, 0 = off",
+        "Battery Saver",
+    ),
+    "development_settings_enabled" to SettingMeta(
+        "Whether the Developer Options menu is visible in the Settings app",
+        "1 = visible in Settings, 0 = hidden from Settings",
+        "Hide Dev Options",
+    ),
+    "adb_enabled" to SettingMeta(
+        "USB debugging (ADB over cable) — allows shell access and sideloading from a computer",
+        "1 = enabled, 0 = disabled",
+        "Hide USB Debug",
+    ),
+    "adb_wifi_enabled" to SettingMeta(
+        "Wireless ADB debugging over Wi-Fi without a USB cable (Android 11+)",
+        "1 = enabled, 0 = disabled",
+        "Hide WiFi ADB",
+    ),
+    "accessibility_enabled" to SettingMeta(
+        "Master global switch for all accessibility services on this device",
+        "1 = all services active, 0 = all disabled (affects screen readers, Aegis App Lock, etc.)",
+        "Hide Accessibility",
+    ),
+    "mobile_data" to SettingMeta(
+        "Mobile/cellular data connection state",
+        "1 = on, 0 = off",
+        "Mobile Data",
+    ),
+    "wifi_on" to SettingMeta(
+        "Wi-Fi radio power state",
+        "1 = on, 0 = off",
+        "Wi-Fi Toggle",
+    ),
+    "bluetooth_on" to SettingMeta(
+        "Bluetooth radio power state",
+        "1 = on, 0 = off",
+        "Bluetooth Toggle",
+    ),
+    "pointer_speed" to SettingMeta(
+        "Cursor/pointer movement speed for external mouse or touchpad input devices",
+        "-7 (slowest) to 7 (fastest), 0 = system default",
+        "Pointer Speed",
+    ),
+    "location_mode" to SettingMeta(
+        "GPS and location accuracy mode used by location services and apps",
+        "0 = off, 1 = device only (GPS), 2 = battery saving (network), 3 = high accuracy (GPS+network)",
+        "Location Mode",
+    ),
+    "private_dns_mode" to SettingMeta(
+        "Encrypted DNS configuration — Private DNS / DNS-over-TLS setting",
+        "off / opportunistic / hostname (e.g. dns.google or 1dot1dot1dot1.cloudflare-dns.com)",
+        "Private DNS",
+    ),
+    "adaptive_battery_management_enabled" to SettingMeta(
+        "System learns which apps you rarely use and restricts their background battery usage",
+        "1 = on, 0 = off",
+        "Adaptive Battery",
+    ),
+    "wifi_scan_always_enabled" to SettingMeta(
+        "Allows apps and system services to scan for Wi-Fi networks for location even when Wi-Fi is off",
+        "1 = on, 0 = off",
+        "Wi-Fi Scanning",
+    ),
+)
+
+private fun String.toFriendlyLabel(): String =
+    split("_").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -82,25 +234,15 @@ internal fun AppSettingDialog(
     ) -> Unit,
 ) {
     var selectedRadioOptionIndex by remember { mutableIntStateOf(initialSettingTypeIndex) }
-
     var label by remember { mutableStateOf(initialLabel) }
-
     var key by remember { mutableStateOf(initialKey) }
-
     var valueOnLaunch by remember { mutableStateOf("") }
-
     var valueOnRevert by remember { mutableStateOf("") }
-
     var showLabelError by remember { mutableStateOf(false) }
-
     var showKeyError by remember { mutableStateOf(false) }
-
     var showKeyNotFoundError by remember { mutableStateOf(false) }
-
     var showValueOnLaunchError by remember { mutableStateOf(false) }
-
     var showValueOnRevertError by remember { mutableStateOf(false) }
-
     var secureSettingsExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
@@ -132,14 +274,14 @@ internal fun AppSettingDialog(
                 .padding(10.dp),
         ) {
             Text(
-                modifier = modifier.padding(10.dp),
+                modifier = Modifier.padding(10.dp),
                 text = stringResource(R.string.add_app_setting),
                 style = MaterialTheme.typography.titleLarge,
             )
 
-            androidx.compose.material3.Surface(
+            Surface(
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -147,12 +289,12 @@ internal fun AppSettingDialog(
                 Column(modifier = Modifier.padding(10.dp)) {
                     Text(
                         text = "How to fill this form",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary,
                     )
-                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "1. Choose Type → SYSTEM / SECURE / GLOBAL\n2. Type a Key (e.g. screen_brightness) and pick from the dropdown — it auto-fills the current value into \"Value on Revert\"\n3. Set Value on Launch = what it changes TO\n4. Set Value on Revert = what it goes back to\n5. Give it a Label (any friendly name)",
+                        text = "1. Choose Type → SYSTEM / SECURE / GLOBAL\n2. Type a Key and pick from the dropdown — auto-fills Value on Revert and suggests a Label\n3. Tap ℹ on any dropdown result to see its description and value format\n4. Set Value on Launch = what changes when you tap ▶\n5. Set Value on Revert = what it restores when you tap ↺",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
@@ -161,9 +303,7 @@ internal fun AppSettingDialog(
 
             AppSettingDialogRadioButtonGroup(
                 selected = selectedRadioOptionIndex,
-                onSelect = {
-                    selectedRadioOptionIndex = it
-                },
+                onSelect = { selectedRadioOptionIndex = it },
             )
 
             AppSettingDialogTextFields(
@@ -178,35 +318,21 @@ internal fun AppSettingDialog(
                 showValueOnRevertError = showValueOnRevertError,
                 valueOnLaunch = valueOnLaunch,
                 valueOnRevert = valueOnRevert,
-                onUpdateKey = {
-                    key = it
-                },
-                onUpdateLabel = {
-                    label = it
-                },
-                onUpdateSecureSettingsExpanded = {
-                    secureSettingsExpanded = it
-                },
-                onUpdateValueOnLaunch = {
-                    valueOnLaunch = it
-                },
-                onUpdateValueOnRevert = {
-                    valueOnRevert = it
-                },
+                onUpdateKey = { key = it },
+                onUpdateLabel = { label = it },
+                onUpdateSecureSettingsExpanded = { secureSettingsExpanded = it },
+                onUpdateValueOnLaunch = { valueOnLaunch = it },
+                onUpdateValueOnRevert = { valueOnRevert = it },
             )
 
             AppSettingDialogButtons(
                 onCancelClick = onDismissRequest,
                 onAddClick = {
                     showLabelError = label.isBlank()
-
                     showKeyError = key.isBlank()
-
                     showKeyNotFoundError =
                         key.isNotBlank() && !secureSettings.mapNotNull { it.name }.contains(key)
-
                     showValueOnLaunchError = valueOnLaunch.isBlank()
-
                     showValueOnRevertError = valueOnRevert.isBlank()
 
                     if (!showLabelError &&
@@ -226,7 +352,6 @@ internal fun AppSettingDialog(
                                 valueOnRevert = valueOnRevert,
                             ),
                         )
-
                         onDismissRequest()
                     }
                 },
@@ -255,9 +380,7 @@ private fun AppSettingDialogRadioButtonGroup(
                         selected = index == selected,
                         role = Role.RadioButton,
                         enabled = true,
-                        onClick = {
-                            onSelect(index)
-                        },
+                        onClick = { onSelect(index) },
                     )
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -296,10 +419,9 @@ private fun AppSettingDialogTextFields(
     onUpdateValueOnRevert: (String) -> Unit,
 ) {
     val labelIsBlank = stringResource(id = R.string.setting_label_is_blank)
-
     val valueOnLaunchIsBlank = stringResource(id = R.string.setting_value_on_launch_is_blank)
-
     val valueOnRevertIsBlank = stringResource(id = R.string.setting_value_on_revert_is_blank)
+    val meta = knownSettingsMeta[key]
 
     Spacer(modifier = Modifier.height(10.dp))
 
@@ -309,18 +431,25 @@ private fun AppSettingDialogTextFields(
             .padding(horizontal = 10.dp),
         value = label,
         onValueChange = onUpdateLabel,
-        label = {
-            Text(text = stringResource(R.string.setting_label))
-        },
+        label = { Text(text = stringResource(R.string.setting_label)) },
         placeholder = {
-            Text(text = "e.g. Low brightness", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+            Text(
+                text = "e.g. Low brightness",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                ),
+            )
         },
         isError = showLabelError,
         supportingText = {
             if (showLabelError) {
                 Text(text = labelIsBlank)
             } else {
-                Text(text = "Any friendly name shown in the list", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = "Friendly name for this rule — auto-filled when you pick a key from the dropdown",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         },
         singleLine = true,
@@ -329,11 +458,13 @@ private fun AppSettingDialogTextFields(
 
     AppSettingDialogTextFieldWithDropdownMenu(
         key = key,
+        label = label,
         secureSettings = secureSettings,
         secureSettingsExpanded = secureSettingsExpanded,
         showKeyError = showKeyError,
         showKeyNotFoundError = showKeyNotFoundError,
         onUpdateKey = onUpdateKey,
+        onUpdateLabel = onUpdateLabel,
         onUpdateSecureSettingsExpanded = onUpdateSecureSettingsExpanded,
         onUpdateValueOnRevert = onUpdateValueOnRevert,
     )
@@ -344,18 +475,31 @@ private fun AppSettingDialogTextFields(
             .padding(horizontal = 10.dp),
         value = valueOnLaunch,
         onValueChange = onUpdateValueOnLaunch,
-        label = {
-            Text(text = stringResource(R.string.setting_value_on_launch))
-        },
+        label = { Text(text = stringResource(R.string.setting_value_on_launch)) },
         placeholder = {
-            Text(text = "e.g. 50", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+            Text(
+                text = if (meta != null) "e.g. ${meta.valueFormat.substringBefore(" ").substringBefore("–").trim()}" else "e.g. 50",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                ),
+            )
         },
         isError = showValueOnLaunchError,
         supportingText = {
             if (showValueOnLaunchError) {
                 Text(text = valueOnLaunchIsBlank)
+            } else if (meta != null) {
+                Text(
+                    text = "Format: ${meta.valueFormat}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             } else {
-                Text(text = "Value applied when you tap ▶ (launch)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = "Value applied when you tap ▶ (launch)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         },
         singleLine = true,
@@ -368,18 +512,25 @@ private fun AppSettingDialogTextFields(
             .padding(horizontal = 10.dp),
         value = valueOnRevert,
         onValueChange = onUpdateValueOnRevert,
-        label = {
-            Text(text = stringResource(R.string.setting_value_on_revert))
-        },
+        label = { Text(text = stringResource(R.string.setting_value_on_revert)) },
         placeholder = {
-            Text(text = "e.g. 128", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+            Text(
+                text = "e.g. 128",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                ),
+            )
         },
         isError = showValueOnRevertError,
         supportingText = {
             if (showValueOnRevertError) {
                 Text(text = valueOnRevertIsBlank)
             } else {
-                Text(text = "Value restored when you tap ↺ (auto-filled from key dropdown)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = "Value restored when you tap ↺ — auto-filled from current system value when you pick a key",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         },
         singleLine = true,
@@ -392,14 +543,77 @@ private fun AppSettingDialogTextFields(
 private fun AppSettingDialogTextFieldWithDropdownMenu(
     modifier: Modifier = Modifier,
     key: String,
+    label: String,
     secureSettings: List<SecureSetting>,
     secureSettingsExpanded: Boolean,
     showKeyError: Boolean,
     showKeyNotFoundError: Boolean,
     onUpdateKey: (String) -> Unit,
+    onUpdateLabel: (String) -> Unit,
     onUpdateSecureSettingsExpanded: (Boolean) -> Unit,
     onUpdateValueOnRevert: (String) -> Unit,
 ) {
+    var infoDialogKey by remember { mutableStateOf<String?>(null) }
+    val infoMeta = infoDialogKey?.let { knownSettingsMeta[it] }
+
+    if (infoDialogKey != null && infoMeta != null) {
+        AlertDialog(
+            onDismissRequest = { infoDialogKey = null },
+            icon = {
+                Icon(
+                    imageVector = GetoIcons.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            },
+            title = {
+                Text(
+                    text = infoDialogKey ?: "",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = infoMeta.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    HorizontalDivider()
+                    Text(
+                        text = "Value format",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Text(
+                            text = infoMeta.valueFormat,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                        )
+                    }
+                    HorizontalDivider()
+                    Text(
+                        text = "Suggested label",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = "\"${infoMeta.suggestedLabel}\"",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { infoDialogKey = null }) {
+                    Text("Got it")
+                }
+            },
+        )
+    }
+
     ExposedDropdownMenuBox(
         modifier = modifier.fillMaxWidth(),
         expanded = secureSettingsExpanded,
@@ -415,19 +629,21 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
                 .padding(horizontal = 10.dp),
             value = key,
             onValueChange = onUpdateKey,
-            label = {
-                Text(text = stringResource(R.string.setting_key))
-            },
+            label = { Text(text = stringResource(R.string.setting_key)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = secureSettingsExpanded) },
             colors = ExposedDropdownMenuDefaults.textFieldColors(),
             isError = showKeyError || showKeyNotFoundError,
             supportingText = {
                 if (showKeyError) {
                     Text(text = stringResource(id = R.string.setting_key_is_blank))
-                }
-
-                if (showKeyNotFoundError) {
+                } else if (showKeyNotFoundError) {
                     Text(text = stringResource(id = R.string.setting_key_not_found))
+                } else {
+                    Text(
+                        text = "Type to search — tap ℹ on any result to see its description and value format",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             },
             singleLine = true,
@@ -437,25 +653,60 @@ private fun AppSettingDialogTextFieldWithDropdownMenu(
         if (secureSettings.isNotEmpty()) {
             ExposedDropdownMenu(
                 expanded = secureSettingsExpanded,
-                onDismissRequest = {
-                    onUpdateSecureSettingsExpanded(false)
-                },
+                onDismissRequest = { onUpdateSecureSettingsExpanded(false) },
             ) {
                 secureSettings.forEach { secureSetting ->
+                    val itemKey = secureSetting.name ?: ""
+                    val meta = knownSettingsMeta[itemKey]
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                text = secureSetting.name ?: "null",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = itemKey,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                if (meta != null) {
+                                    Text(
+                                        text = meta.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                Text(
+                                    text = "Current: ${secureSetting.value ?: "—"}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                )
+                            }
                         },
                         onClick = {
-                            onUpdateKey(secureSetting.name ?: "null")
-
-                            onUpdateValueOnRevert(secureSetting.value ?: "null")
-
+                            onUpdateKey(itemKey)
+                            onUpdateValueOnRevert(secureSetting.value ?: "")
+                            if (label.isBlank()) {
+                                val suggested = meta?.suggestedLabel ?: itemKey.toFriendlyLabel()
+                                onUpdateLabel(suggested)
+                            }
                             onUpdateSecureSettingsExpanded(false)
                         },
+                        trailingIcon = if (meta != null) {
+                            {
+                                IconButton(
+                                    onClick = { infoDialogKey = itemKey },
+                                    modifier = Modifier.size(32.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = GetoIcons.Info,
+                                        contentDescription = "Info about $itemKey",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                        } else null,
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     )
                 }
@@ -484,8 +735,7 @@ private fun AppSettingDialogButtons(
         }
         TextButton(
             onClick = onAddClick,
-            modifier = Modifier
-                .padding(5.dp),
+            modifier = Modifier.padding(5.dp),
         ) {
             Text(text = stringResource(R.string.add))
         }

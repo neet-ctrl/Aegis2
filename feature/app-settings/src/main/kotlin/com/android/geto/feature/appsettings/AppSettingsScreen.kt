@@ -302,6 +302,8 @@ internal fun AppSettingsScreen(
         appSettingTemplates = appSettingTemplates,
         componentName = appSettingsRouteData.componentName,
         icon = activityIcon,
+        appSettings = (appSettingsUiState as? AppSettingsUiState.Success)?.appSettings ?: emptyList(),
+        appLabel = appSettingsRouteData.activityLabel,
         secureSettings = secureSettings,
         showAppSettingDialog = showAppSettingDialog,
         showShortcutDialog = showShortcutDialog,
@@ -625,6 +627,8 @@ private fun AppSettingsDialogs(
     appSettingTemplates: List<AppSettingTemplate>,
     componentName: String,
     icon: ByteArray?,
+    appSettings: List<AppSetting>,
+    appLabel: String,
     secureSettings: List<SecureSetting>,
     showAppSettingDialog: Boolean,
     showShortcutDialog: Boolean,
@@ -657,6 +661,8 @@ private fun AppSettingsDialogs(
     if (showShortcutDialog) {
         ShortcutDialog(
             icon = icon,
+            appLabel = appLabel,
+            appSettings = appSettings,
             onDismissRequest = onDismissShortcutDialog,
             onRequestPinShortcut = onRequestPinShortcut,
         )

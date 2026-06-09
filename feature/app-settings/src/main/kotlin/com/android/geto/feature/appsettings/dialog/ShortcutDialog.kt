@@ -26,40 +26,37 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.android.geto.designsystem.component.DialogContainer
-import com.android.geto.feature.appsettings.R
+import com.android.geto.designsystem.icon.GetoIcons
+import com.android.geto.domain.model.AppSetting
 
 @Composable
 internal fun ShortcutDialog(
     modifier: Modifier = Modifier,
     icon: ByteArray?,
+    appLabel: String,
+    appSettings: List<AppSetting>,
     onDismissRequest: () -> Unit,
     onRequestPinShortcut: (ByteArray?, String, String) -> Unit,
 ) {
-    var shortLabel by remember { mutableStateOf("") }
-
-    var showShortLabelError by remember { mutableStateOf(false) }
-
-    var longLabel by remember { mutableStateOf("") }
-
-    var showLongLabelError by remember { mutableStateOf(false) }
+    val shortLabel = appLabel.take(10)
+    val longLabel = appLabel.take(25)
+    val enabledCount = appSettings.count { it.enabled }
 
     DialogContainer(
         modifier = modifier.verticalScroll(rememberScrollState()),
@@ -71,148 +68,202 @@ internal fun ShortcutDialog(
                 .padding(10.dp),
         ) {
             Text(
-                modifier = modifier.padding(10.dp),
-                text = stringResource(R.string.add_shortcut),
-                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(10.dp),
+                text = "Pin Home Screen Shortcut",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             )
 
-            ShortcutDialogApplicationIcon(
-                modifier = modifier
-                    .size(50.dp)
-                    .align(Alignment.CenterHorizontally),
-                icon = icon,
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                AsyncImage(
+                    modifier = Modifier.size(64.dp),
+                    model = icon,
+                    contentDescription = null,
+                )
+                Text(
+                    text = appLabel,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                )
+                Text(
+                    text = "Tap the shortcut → applies all enabled rules and launches the app",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
-            ShortcutDialogTextFields(
-                longLabel = longLabel,
-                shortLabel = shortLabel,
-                showLongLabelError = showLongLabelError,
-                showShortLabelError = showShortLabelError,
-                onUpdateLongLabel = {
-                    longLabel = it
-                },
-                onUpdateShortLabel = {
-                    shortLabel = it
-                },
-            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            ShortcutDialogButtons(
-                onPositiveTextButtonClick = {
-                    showShortLabelError = shortLabel.isBlank()
-
-                    showLongLabelError = longLabel.isBlank()
-
-                    if (!showShortLabelError && !showLongLabelError) {
-                        onRequestPinShortcut(icon, shortLabel, longLabel)
-
-                        onDismissRequest()
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = "Shortcut labels",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Short:",
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                        )
+                        Text(
+                            text = "\"$shortLabel\"",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                },
-                onNegativeTextButtonClick = onDismissRequest,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ShortcutDialogApplicationIcon(
-    modifier: Modifier = Modifier,
-    icon: ByteArray?,
-) {
-    Spacer(modifier = Modifier.height(10.dp))
-
-    AsyncImage(
-        modifier = modifier,
-        model = icon,
-        contentDescription = null,
-    )
-}
-
-@Composable
-private fun ShortcutDialogTextFields(
-    longLabel: String,
-    shortLabel: String,
-    showLongLabelError: Boolean,
-    showShortLabelError: Boolean,
-    onUpdateLongLabel: (String) -> Unit,
-    onUpdateShortLabel: (String) -> Unit,
-) {
-    val shortLabelIsBlank = stringResource(id = R.string.short_label_is_blank)
-
-    val longLabelIsBlank = stringResource(id = R.string.long_label_is_blank)
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        value = shortLabel,
-        onValueChange = onUpdateShortLabel,
-        label = {
-            Text(text = stringResource(R.string.short_label))
-        },
-        isError = showShortLabelError,
-        supportingText = {
-            if (showShortLabelError) {
-                Text(text = shortLabelIsBlank)
-            } else {
-                Text(
-                    text = "${shortLabel.length}/10",
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Long:",
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                        )
+                        Text(
+                            text = "\"$longLabel\"",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-    )
 
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        value = longLabel,
-        onValueChange = onUpdateLongLabel,
-        label = {
-            Text(text = stringResource(R.string.long_label))
-        },
-        isError = showLongLabelError,
-        supportingText = {
-            if (showLongLabelError) {
-                Text(text = longLabelIsBlank)
-            } else {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Column(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Text(
-                    text = "${longLabel.length}/25",
-                    modifier = Modifier.fillMaxWidth(),
+                    text = when {
+                        appSettings.isEmpty() -> "No rules saved yet"
+                        enabledCount == 0 -> "All rules are disabled — enable at least one rule before pinning"
+                        else -> "$enabledCount enabled rule${if (enabledCount == 1) "" else "s"} will be applied on tap"
+                    },
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = when {
+                        appSettings.isEmpty() || enabledCount == 0 -> MaterialTheme.colorScheme.error
+                        else -> MaterialTheme.colorScheme.primary
+                    },
                 )
-            }
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-    )
-}
 
-@Composable
-private fun ShortcutDialogButtons(
-    modifier: Modifier = Modifier,
-    onPositiveTextButtonClick: () -> Unit,
-    onNegativeTextButtonClick: () -> Unit,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        horizontalArrangement = Arrangement.End,
-    ) {
-        TextButton(
-            onClick = onNegativeTextButtonClick,
-        ) {
-            Text(text = stringResource(id = R.string.cancel))
-        }
-        TextButton(
-            onClick = onPositiveTextButtonClick,
-        ) {
-            Text(text = stringResource(id = R.string.add))
+                if (appSettings.isEmpty()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = "Go to the Rules tab and add at least one rule first, then come back here to create the shortcut.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(10.dp),
+                        )
+                    }
+                } else {
+                    appSettings.forEach { rule ->
+                        Surface(
+                            color = if (rule.enabled)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                            else
+                                MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = if (rule.enabled) GetoIcons.CheckCircle else GetoIcons.Block,
+                                    contentDescription = null,
+                                    tint = if (rule.enabled)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = rule.label,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                        color = if (rule.enabled)
+                                            MaterialTheme.colorScheme.onSurface
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Text(
+                                        text = "${rule.settingType.name} › ${rule.key}  →  ${rule.valueOnLaunch}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (!rule.enabled) {
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        shape = RoundedCornerShape(4.dp),
+                                    ) {
+                                        Text(
+                                            text = "disabled",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                TextButton(
+                    onClick = onDismissRequest,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Cancel")
+                }
+                Button(
+                    onClick = {
+                        onRequestPinShortcut(icon, shortLabel, longLabel)
+                        onDismissRequest()
+                    },
+                    modifier = Modifier.weight(2f),
+                    enabled = appSettings.isNotEmpty() && enabledCount > 0,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = GetoIcons.Shortcut,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                    Text("Pin to Home Screen")
+                }
+            }
         }
     }
 }
