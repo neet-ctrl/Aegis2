@@ -40,6 +40,10 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.android.geto.ACTION_OPEN_DASHBOARD" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -68,6 +72,43 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/app_lock_service" />
         </service>
+
+        <!-- Quick Settings Tile: Aegis Dashboard -->
+        <service
+            android:name=".tile.AegisDashboardTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Aegis"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Quick Settings Tile: Aegis Automations Toggle -->
+        <service
+            android:name=".tile.AegisAutomationTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Automations"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Home Screen Widget -->
+        <receiver
+            android:name=".widget.AegisWidgetProvider"
+            android:exported="true"
+            android:label="Aegis Status Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/aegis_widget_info" />
+        </receiver>
 
     </application>
 

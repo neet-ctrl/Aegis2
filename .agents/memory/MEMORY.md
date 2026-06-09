@@ -1,0 +1,1 @@
+- [Aegis project overview](aegis-overview.md) — multi-module Kotlin/Compose Android app (Geto renamed to Aegis), full spec with per-app controls, automations, environment detection, app lock, tiles, widget.

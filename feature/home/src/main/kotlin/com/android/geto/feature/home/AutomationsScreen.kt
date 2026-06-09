@@ -17,6 +17,9 @@
  */
 package com.android.geto.feature.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,13 +40,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,11 +73,17 @@ internal fun AutomationsRoute(modifier: Modifier = Modifier) {
 
 @Composable
 internal fun AutomationsScreen(modifier: Modifier = Modifier) {
+    var showBuilder by remember { mutableStateOf(false) }
+
+    if (showBuilder) {
+        AutomationBuilderSheet(onDismiss = { showBuilder = false })
+    }
+
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = {},
+                onClick = { showBuilder = true },
                 icon = {
                     Icon(imageVector = GetoIcons.Add, contentDescription = null)
                 },
@@ -110,6 +128,7 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                     TriggerCategorySection(
                         category = category,
                         modifier = Modifier.padding(bottom = 8.dp),
+                        onTriggerClick = { showBuilder = true },
                     )
                 }
             }
@@ -134,7 +153,11 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                 }
             }
 
-            item { AutomationEmptyHint() }
+            item { AutomationEmptyHint(onTapCreate = { showBuilder = true }) }
+
+            item {
+                HiddenVaultSection()
+            }
 
             item {
                 Column(
@@ -149,12 +172,163 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     exampleAutomations.forEach { example ->
-                        ExampleAutomationCard(example = example)
+                        ExampleAutomationCard(example = example, onUseTemplate = { showBuilder = true })
                     }
                 }
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun HiddenVaultSection() {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var vaultUnlocked by remember { mutableStateOf(false) }
+
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        ),
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = if (vaultUnlocked) GetoIcons.LockOpen else GetoIcons.Lock,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "Hidden Vault",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = if (vaultUnlocked) "Vault unlocked — hidden automations visible" else "Automations marked as hidden are stored here",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) GetoIcons.ExpandLess else GetoIcons.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Icon(
+                                imageVector = GetoIcons.Shield,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = "Hidden automations are protected by your device screen lock. They run normally but don't appear in the main list. Mark automations as hidden when creating them.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    }
+
+                    if (!vaultUnlocked) {
+                        Button(
+                            onClick = { vaultUnlocked = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                            ),
+                        ) {
+                            Icon(
+                                imageVector = GetoIcons.Fingerprint,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Unlock Vault")
+                        }
+                    } else {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(
+                                    imageVector = GetoIcons.Visibility,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(28.dp),
+                                )
+                                Text(
+                                    text = "No hidden automations",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = "Create an automation and toggle \"Hidden\" to store it here",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -250,6 +424,7 @@ private val exampleAutomations = listOf(
 private fun TriggerCategorySection(
     category: TriggerCategory,
     modifier: Modifier = Modifier,
+    onTriggerClick: () -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -286,17 +461,22 @@ private fun TriggerCategorySection(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(category.triggers) { trigger ->
-                TriggerChip(icon = trigger.icon, label = trigger.label)
+                TriggerChip(
+                    icon = trigger.icon,
+                    label = trigger.label,
+                    onClick = onTriggerClick,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun TriggerChip(icon: ImageVector, label: String) {
+private fun TriggerChip(icon: ImageVector, label: String, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        onClick = onClick,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -328,7 +508,7 @@ private fun TriggerChip(icon: ImageVector, label: String) {
 }
 
 @Composable
-private fun AutomationEmptyHint() {
+private fun AutomationEmptyHint(onTapCreate: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -361,7 +541,7 @@ private fun AutomationEmptyHint() {
 }
 
 @Composable
-private fun ExampleAutomationCard(example: ExampleAutomation) {
+private fun ExampleAutomationCard(example: ExampleAutomation, onUseTemplate: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -402,15 +582,10 @@ private fun ExampleAutomationCard(example: ExampleAutomation) {
                 )
             }
 
-            Surface(
-                shape = RoundedCornerShape(50.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            ) {
+            androidx.compose.material3.TextButton(onClick = onUseTemplate) {
                 Text(
-                    text = "Example",
+                    text = "Use",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 )
             }
         }

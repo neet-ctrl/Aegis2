@@ -369,12 +369,13 @@ internal fun AppSettingsScreen(
                 },
             )
 
-            TabRow(
+            androidx.compose.material3.ScrollableTabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = MaterialTheme.colorScheme.background,
                 contentColor = MaterialTheme.colorScheme.primary,
+                edgePadding = 0.dp,
             ) {
-                listOf("Rules", "Details", "Controls", "Security").forEachIndexed { index, title ->
+                listOf("Rules", "Details", "Controls", "Security", "Detect").forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
@@ -424,6 +425,9 @@ internal fun AppSettingsScreen(
                         onAddRule = { showAppSettingDialog = true },
                     )
                     3 -> AppSecurityTab(
+                        packageName = packageName,
+                    )
+                    4 -> EnvironmentDetectionTab(
                         packageName = packageName,
                     )
                 }

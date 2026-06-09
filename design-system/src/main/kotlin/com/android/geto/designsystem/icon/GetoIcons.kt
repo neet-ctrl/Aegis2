@@ -21,52 +21,72 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.AccessibilityNew
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.AppShortcut
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BrightnessHigh
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.DeveloperMode
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.filled.HeadsetOff
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RestoreFromTrash
 import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Terminal
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Usb
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.outlined.Apps
@@ -110,6 +130,7 @@ object GetoIcons {
     val FlashOn = Icons.Default.FlashOn
     val BatteryCharging = Icons.Default.BatteryChargingFull
     val BatteryAlert = Icons.Default.BatteryAlert
+    val BatteryFull = Icons.Default.BatteryFull
     val Tune = Icons.Default.Tune
     val Speed = Icons.Default.Speed
     val Notifications = Icons.Default.Notifications
@@ -132,4 +153,23 @@ object GetoIcons {
     val FileDownload = Icons.Default.FileDownload
     val PhoneAndroid = Icons.Default.PhoneAndroid
     val Palette = Icons.Default.Palette
+    val Memory = Icons.Default.Memory
+    val Dns = Icons.Default.Dns
+    val VpnKey = Icons.Default.VpnKey
+    val NetworkCheck = Icons.Default.NetworkCheck
+    val Widgets = Icons.Default.Widgets
+    val Visibility = Icons.Default.Visibility
+    val VisibilityOff = Icons.Default.VisibilityOff
+    val Analytics = Icons.Default.Analytics
+    val Policy = Icons.Default.Policy
+    val DeveloperMode = Icons.Default.DeveloperMode
+    val Usb = Icons.Default.Usb
+    val BugReport = Icons.Default.BugReport
+    val Layers = Icons.Default.Layers
+    val Store = Icons.Default.Store
+    val Timer = Icons.Default.Timer
+    val AccessibilityNew = Icons.Default.AccessibilityNew
+    val BrightnessHigh = Icons.Default.BrightnessHigh
+    val ScreenRotation = Icons.Default.ScreenRotation
+    val Fullscreen = Icons.Default.Fullscreen
 }

@@ -39,13 +39,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -61,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -85,6 +85,8 @@ internal fun DashboardScreen(modifier: Modifier = Modifier) {
         item { HeroBanner() }
         item { StatusGrid() }
         item { AshellCommandsPanel() }
+        item { StatisticsSection() }
+        item { RecentActivitySection() }
         item { QuickActionsSection() }
         item { Spacer(modifier = Modifier.height(16.dp)) }
     }
@@ -242,6 +244,26 @@ private fun StatusGrid() {
                 isGood = true,
             )
         }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            StatusCard(
+                modifier = Modifier.weight(1f),
+                title = "Automations",
+                value = "0 Active",
+                icon = GetoIcons.Automations,
+                isGood = true,
+            )
+            StatusCard(
+                modifier = Modifier.weight(1f),
+                title = "App Lock",
+                value = "0 Locked",
+                icon = GetoIcons.Security,
+                isGood = true,
+            )
+        }
     }
 }
 
@@ -295,6 +317,204 @@ private fun StatusCard(
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = if (isGood) MaterialTheme.colorScheme.onSurface
                 else MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatisticsSection() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "Statistics",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                StatRow(
+                    icon = GetoIcons.Automations,
+                    label = "Automation Triggers Today",
+                    value = "0",
+                    progress = 0f,
+                    progressLabel = "0 / 100",
+                )
+                StatRow(
+                    icon = GetoIcons.Analytics,
+                    label = "Automation Success Rate",
+                    value = "—",
+                    progress = 0f,
+                    progressLabel = "No data yet",
+                )
+                StatRow(
+                    icon = GetoIcons.BatteryFull,
+                    label = "Estimated Battery Impact",
+                    value = "< 0.1%",
+                    progress = 0.01f,
+                    progressLabel = "Minimal",
+                )
+                StatRow(
+                    icon = GetoIcons.Tune,
+                    label = "Rules Applied Today",
+                    value = "0",
+                    progress = 0f,
+                    progressLabel = "No rules active",
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    progress: Float,
+    progressLabel: String,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp)),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            strokeCap = StrokeCap.Round,
+        )
+        Text(
+            text = progressLabel,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+private data class RecentActivityEntry(
+    val icon: ImageVector,
+    val title: String,
+    val subtitle: String,
+    val time: String,
+    val tag: String,
+)
+
+private val recentActivityEntries = listOf(
+    RecentActivityEntry(GetoIcons.Shield, "Aegis Ready", "App started — accessibility service active", "Just now", "system"),
+    RecentActivityEntry(GetoIcons.Info, "No Permissions Yet", "Run AShell U commands to grant full permissions", "Just now", "info"),
+)
+
+@Composable
+private fun RecentActivitySection() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Recent Activity",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            TextButton(onClick = {}) {
+                Text(
+                    text = "View All",
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
+        }
+
+        recentActivityEntries.forEach { entry ->
+            RecentActivityCard(entry = entry)
+        }
+    }
+}
+
+@Composable
+private fun RecentActivityCard(entry: RecentActivityEntry) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = entry.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.title,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = entry.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Text(
+                text = entry.time,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -400,11 +620,33 @@ private val ashellCommands = listOf(
         command = "pm grant com.android.geto android.permission.READ_DEVICE_CONFIG",
         isRequired = false,
     ),
+    AshellCommand(
+        step = 14,
+        title = "Force Stop Apps",
+        description = "Allows Aegis to force-stop other apps when used in automations.",
+        command = "pm grant com.android.geto android.permission.FORCE_STOP_PACKAGES",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 15,
+        title = "Observe App Usage",
+        description = "Enables per-app trigger detection via UsageStatsManager.",
+        command = "appops set com.android.geto android:get_usage_stats allow",
+        isRequired = false,
+    ),
+    AshellCommand(
+        step = 16,
+        title = "Manage Overlay Permission",
+        description = "Allows Aegis to draw on top of other apps (for on-screen status).",
+        command = "appops set com.android.geto SYSTEM_ALERT_WINDOW allow",
+        isRequired = false,
+    ),
 )
 
 @Composable
 private fun AshellCommandsPanel() {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
 
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -524,7 +766,7 @@ private fun AshellCommandsPanel() {
                     }
 
                     ashellCommands.forEach { cmd ->
-                        CommandItem(command = cmd)
+                        CommandItem(command = cmd, context = context)
                     }
                 }
             }
@@ -564,9 +806,7 @@ private fun RequiredLegendChip(label: String, isRequired: Boolean) {
 }
 
 @Composable
-private fun CommandItem(command: AshellCommand) {
-    val context = LocalContext.current
-
+private fun CommandItem(command: AshellCommand, context: Context) {
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -590,89 +830,65 @@ private fun CommandItem(command: AshellCommand) {
                             .size(22.dp)
                             .clip(CircleShape)
                             .background(
-                                if (command.isRequired) MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
-                                else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                if (command.isRequired) MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
+                                else MaterialTheme.colorScheme.secondaryContainer,
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = "${command.step}",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                            ),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = if (command.isRequired) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.primary,
+                            else MaterialTheme.colorScheme.secondary,
                         )
                     }
-
-                    Text(
-                        text = command.title,
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    if (command.isRequired) {
-                        Surface(
-                            shape = RoundedCornerShape(50.dp),
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
-                        ) {
-                            Text(
-                                text = "REQUIRED",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.5.sp,
-                                ),
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            )
-                        }
+                    Column {
+                        Text(
+                            text = command.title,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = command.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
 
-            Text(
-                text = command.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
             Surface(
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(8.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = command.command,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontFamily = FontFamily.Monospace,
-                        ),
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                         maxLines = 3,
-                        overflow = TextOverflow.Visible,
+                        overflow = TextOverflow.Ellipsis,
                     )
-
                     IconButton(
                         onClick = {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText("Aegis Command", command.command)
-                            clipboard.setPrimaryClip(clip)
+                            clipboard.setPrimaryClip(ClipData.newPlainText("AShell command", command.command))
                         },
+                        modifier = Modifier.size(32.dp),
                     ) {
                         Icon(
                             imageVector = GetoIcons.Copy,
                             contentDescription = "Copy command",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(16.dp),
                         )
                     }
                 }
@@ -694,87 +910,63 @@ private fun QuickActionsSection() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            QuickActionCard(
-                modifier = Modifier.weight(1f),
-                icon = GetoIcons.Apps,
-                label = "Browse Apps",
-                sublabel = "Manage per-app rules",
-            )
-            QuickActionCard(
+            QuickActionButton(
                 modifier = Modifier.weight(1f),
                 icon = GetoIcons.Automations,
-                label = "Automations",
-                sublabel = "Create IF/THEN rules",
+                label = "Automation Engine",
+                subtitle = "Inactive",
+                isActive = false,
             )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            QuickActionCard(
-                modifier = Modifier.weight(1f),
-                icon = GetoIcons.Activity,
-                label = "Activity Log",
-                sublabel = "View recent events",
-            )
-            QuickActionCard(
+            QuickActionButton(
                 modifier = Modifier.weight(1f),
                 icon = GetoIcons.Security,
-                label = "Permissions",
-                sublabel = "Check AShell status",
+                label = "App Lock",
+                subtitle = "0 apps locked",
+                isActive = false,
             )
         }
     }
 }
 
 @Composable
-private fun QuickActionCard(
+private fun QuickActionButton(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     label: String,
-    sublabel: String,
+    subtitle: String,
+    isActive: Boolean,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
+        onClick = {},
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isActive) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
+            )
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurface,
             )
-
             Text(
-                text = sublabel,
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                color = if (isActive) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

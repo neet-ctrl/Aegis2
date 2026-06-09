@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,12 +67,16 @@ private val controlCategories = listOf(
         name = "Display",
         icon = GetoIcons.PhoneAndroid,
         entries = listOf(
-            ControlEntry(GetoIcons.Tune, "Brightness", "Override screen brightness (0–255)", "screen_brightness", "SYSTEM"),
+            ControlEntry(GetoIcons.BrightnessHigh, "Brightness", "Override screen brightness (0–255)", "screen_brightness", "SYSTEM"),
             ControlEntry(GetoIcons.Tune, "Auto-Brightness", "1 = auto, 0 = manual", "screen_brightness_mode", "SYSTEM"),
             ControlEntry(GetoIcons.Speed, "Screen Timeout", "Timeout in ms (e.g. 30000 = 30s)", "screen_off_timeout", "SYSTEM"),
-            ControlEntry(GetoIcons.PhoneAndroid, "Font Scale", "Font size multiplier (e.g. 1.0, 1.15, 1.3)", "font_scale", "SYSTEM"),
-            ControlEntry(GetoIcons.Tune, "Rotation", "0 = portrait, 1 = landscape, 2 = reverse", "user_rotation", "SYSTEM"),
+            ControlEntry(GetoIcons.Tune, "Font Scale", "Font size multiplier (e.g. 1.0, 1.15, 1.3)", "font_scale", "SYSTEM"),
+            ControlEntry(GetoIcons.ScreenRotation, "Rotation", "0 = portrait, 1 = landscape, 2 = reverse portrait", "user_rotation", "SYSTEM"),
             ControlEntry(GetoIcons.Block, "Accelerometer Rotation", "1 = auto-rotate on, 0 = off", "accelerometer_rotation", "SYSTEM"),
+            ControlEntry(GetoIcons.Speed, "Refresh Rate", "Preferred display refresh rate in Hz (e.g. 60, 90, 120)", "min_refresh_rate", "SYSTEM"),
+            ControlEntry(GetoIcons.Tune, "Display Density (DPI)", "Force display density in DPI (e.g. 420, 480, 560)", "display_density_forced", "GLOBAL"),
+            ControlEntry(GetoIcons.Fullscreen, "Force Fullscreen", "1 = hide display cutout, 0 = normal layout", "force_fullscreen_cutouts", "SECURE"),
+            ControlEntry(GetoIcons.Fullscreen, "Immersive Mode Policy", "vr=*;apps=-*;touch_pad=*;navigation=navkeys;*", "policy_control", "GLOBAL"),
         ),
     ),
     ControlCategory(
@@ -95,6 +98,10 @@ private val controlCategories = listOf(
             ControlEntry(GetoIcons.Wifi, "Wi-Fi State", "1 = enabled, 0 = disabled", "wifi_on", "GLOBAL"),
             ControlEntry(GetoIcons.Bluetooth, "Bluetooth State", "1 = enabled, 0 = disabled (API limited)", "bluetooth_on", "GLOBAL"),
             ControlEntry(GetoIcons.Block, "Airplane Mode", "1 = on, 0 = off (Shizuku required)", "airplane_mode_on", "GLOBAL"),
+            ControlEntry(GetoIcons.NetworkCheck, "Mobile Data", "1 = enabled, 0 = disabled (Shizuku required)", "mobile_data", "GLOBAL"),
+            ControlEntry(GetoIcons.VpnKey, "VPN Lockdown", "1 = always-on VPN, 0 = off", "always_on_vpn_lockdown", "SECURE"),
+            ControlEntry(GetoIcons.Dns, "Private DNS Mode", "off / opportunistic / hostname", "private_dns_mode", "GLOBAL"),
+            ControlEntry(GetoIcons.Wifi, "Metered Network Override", "1 = treat as metered, 0 = unmetered", "network_preference", "GLOBAL"),
         ),
     ),
     ControlCategory(
@@ -102,6 +109,9 @@ private val controlCategories = listOf(
         icon = GetoIcons.BatteryCharging,
         entries = listOf(
             ControlEntry(GetoIcons.BatteryAlert, "Battery Saver", "1 = on, 0 = off (Shizuku required)", "low_power", "GLOBAL"),
+            ControlEntry(GetoIcons.BatteryFull, "Adaptive Battery", "1 = on, 0 = off", "adaptive_battery_management_enabled", "GLOBAL"),
+            ControlEntry(GetoIcons.Speed, "Performance Mode", "powersave / balanced / performance / high-performance", "perf_profile", "GLOBAL"),
+            ControlEntry(GetoIcons.Memory, "Stay Awake (Wake Lock)", "1 = AC, 2 = USB, 4 = Wireless (bitmask)", "stay_on_while_plugged_in", "GLOBAL"),
             ControlEntry(GetoIcons.Speed, "Pointer Speed", "Mouse/touch pointer speed (-7 to 7)", "pointer_speed", "SYSTEM"),
             ControlEntry(GetoIcons.Tune, "Haptic Feedback", "1 = enabled, 0 = disabled", "haptic_feedback_enabled", "SYSTEM"),
             ControlEntry(GetoIcons.Tune, "Sound Effects", "1 = enabled, 0 = disabled", "sound_effects_enabled", "SYSTEM"),
@@ -114,7 +124,7 @@ private val controlCategories = listOf(
         entries = listOf(
             ControlEntry(GetoIcons.Fingerprint, "Location Mode", "0=off, 1=sensors, 2=battery, 3=high accuracy", "location_mode", "SECURE"),
             ControlEntry(GetoIcons.Block, "Install Non-Market Apps", "1 = allow, 0 = block", "install_non_market_apps", "SECURE"),
-            ControlEntry(GetoIcons.Security, "Developer Options", "1 = enabled, 0 = disabled", "development_settings_enabled", "GLOBAL"),
+            ControlEntry(GetoIcons.DeveloperMode, "Developer Options", "1 = enabled, 0 = disabled", "development_settings_enabled", "GLOBAL"),
             ControlEntry(GetoIcons.Terminal, "USB Debugging", "1 = enabled, 0 = disabled", "adb_enabled", "GLOBAL"),
         ),
     ),
@@ -148,7 +158,7 @@ internal fun AppControlsTab(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = "These controls require WRITE_SECURE_SETTINGS via AShell U. Tap \"+ Add to Rules\" on any control to create a per-app rule for it.",
+                        text = "These controls require WRITE_SECURE_SETTINGS via AShell U. Tap \"+ Add\" on any control to create a per-app rule for it.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
