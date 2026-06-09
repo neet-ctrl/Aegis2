@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.geto.designsystem.icon.GetoIcons
 
@@ -312,12 +313,16 @@ private fun ActivityEntryCard(entry: ActivityEntry) {
                     text = entry.title,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = entry.subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
@@ -326,6 +331,8 @@ private fun ActivityEntryCard(entry: ActivityEntry) {
                     text = entry.timestamp,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    softWrap = false,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Surface(
@@ -337,6 +344,8 @@ private fun ActivityEntryCard(entry: ActivityEntry) {
                         style = MaterialTheme.typography.labelSmall,
                         color = iconColor,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        maxLines = 1,
+                        softWrap = false,
                     )
                 }
             }

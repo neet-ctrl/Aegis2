@@ -244,7 +244,15 @@ private fun setOpMode(context: Context, op: String, uid: Int, packageName: Strin
     return try {
         val appOpsManager = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = if (allow) AppOpsManager.MODE_ALLOWED else AppOpsManager.MODE_IGNORED
-        appOpsManager.setMode(op, uid, packageName, mode)
+        val method = AppOpsManager::class.java.getDeclaredMethod(
+            "setMode",
+            String::class.java,
+            Int::class.javaPrimitiveType,
+            String::class.java,
+            Int::class.javaPrimitiveType,
+        )
+        method.isAccessible = true
+        method.invoke(appOpsManager, op, uid, packageName, mode)
         true
     } catch (_: Exception) {
         false

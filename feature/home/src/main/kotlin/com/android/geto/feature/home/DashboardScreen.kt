@@ -42,7 +42,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -52,14 +54,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -170,6 +177,7 @@ private fun HeroBanner() {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     StatusChip(label = "Offline First", isActive = true)
@@ -210,6 +218,8 @@ private fun StatusChip(label: String, isActive: Boolean) {
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isActive) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                softWrap = false,
             )
         }
     }
@@ -232,7 +242,7 @@ private fun StatusGrid() {
 
     val activeRules = AegisAutomationStore.getEnabledCount(context)
     val totalAutomations = AegisAutomationStore.getTotalCount(context)
-    val lockedCount = com.android.geto.feature.appsettings.security.AppLockManager.getLockedCount(context)
+    val lockedCount = getLockedCountFromPrefs(context)
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -353,6 +363,8 @@ private fun StatusCard(
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = if (isGood) MaterialTheme.colorScheme.onSurface
                 else MaterialTheme.colorScheme.error,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -432,6 +444,7 @@ private fun StatRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
+                modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -445,12 +458,16 @@ private fun StatRow(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                softWrap = false,
             )
         }
         LinearProgressIndicator(
@@ -585,6 +602,8 @@ private fun RecentActivityCard(entry: RecentActivityEntry) {
                 text = entry.time,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                softWrap = false,
             )
         }
     }
@@ -787,6 +806,7 @@ private fun AshellCommandsPanel() {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -805,8 +825,9 @@ private fun AshellCommandsPanel() {
                         )
                     }
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Row(
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
@@ -816,6 +837,9 @@ private fun AshellCommandsPanel() {
                                     fontWeight = FontWeight.SemiBold,
                                 ),
                                 color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
                             )
                             Surface(
                                 shape = RoundedCornerShape(50.dp),
@@ -826,6 +850,8 @@ private fun AshellCommandsPanel() {
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    maxLines = 1,
+                                    softWrap = false,
                                 )
                             }
                         }
@@ -833,6 +859,8 @@ private fun AshellCommandsPanel() {
                             text = if (expanded) "Tap to collapse" else "Run these in AShell U before using Aegis",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
@@ -1057,10 +1085,8 @@ private fun CommandItem(command: AshellCommand, context: Context, isGranted: Boo
 private fun QuickActionsSection(onNavigateToAutomations: () -> Unit) {
     val context = LocalContext.current
     val activeRules = AegisAutomationStore.getEnabledCount(context)
-    val lockedCount = remember {
-        com.android.geto.feature.appsettings.security.AppLockManager.getLockedCount(context)
-    }
-    var showLockedAppsSheet by remember { androidx.compose.runtime.mutableStateOf(false) }
+    val lockedCount = remember { getLockedCountFromPrefs(context) }
+    var showLockedAppsSheet by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -1102,17 +1128,15 @@ private fun QuickActionsSection(onNavigateToAutomations: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LockedAppsSheet(context: android.content.Context, onDismiss: () -> Unit) {
-    val lockedPackages = remember {
-        com.android.geto.feature.appsettings.security.AppLockManager.getAllLockedPackages(context)
-    }
+private fun LockedAppsSheet(context: Context, onDismiss: () -> Unit) {
+    val lockedPackages = remember { getAllLockedPackagesFromPrefs(context) }
     val pm = context.packageManager
 
-    androidx.compose.material3.ModalBottomSheet(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
@@ -1125,9 +1149,9 @@ private fun LockedAppsSheet(context: android.content.Context, onDismiss: () -> U
                 modifier = Modifier.padding(bottom = 8.dp),
             )
             if (lockedPackages.isEmpty()) {
-                androidx.compose.material3.Surface(
+                Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(14.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
@@ -1140,21 +1164,29 @@ private fun LockedAppsSheet(context: android.content.Context, onDismiss: () -> U
             } else {
                 lockedPackages.forEach { pkg ->
                     val appName = try { pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString() } catch (_: Exception) { pkg }
-                    val config = com.android.geto.feature.appsettings.security.AppLockManager.getConfig(context, pkg)
-                    androidx.compose.material3.ListItem(
-                        headlineContent = { Text(appName, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)) },
+                    val isBlocked = isAppBlockedFromPrefs(context, pkg)
+                    val lockLabel = getLockTypeLabelFromPrefs(context, pkg)
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                appName,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
                         supportingContent = {
                             Text(
-                                text = if (config.isBlocked) "Blocked" else "${config.lockType.label} lock",
+                                text = if (isBlocked) "Blocked" else "$lockLabel lock",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (config.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                color = if (isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                             )
                         },
                         leadingContent = {
                             Icon(
-                                imageVector = if (config.isBlocked) GetoIcons.Block else GetoIcons.Lock,
+                                imageVector = if (isBlocked) GetoIcons.Block else GetoIcons.Lock,
                                 contentDescription = null,
-                                tint = if (config.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                tint = if (isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(22.dp),
                             )
                         },
@@ -1163,18 +1195,50 @@ private fun LockedAppsSheet(context: android.content.Context, onDismiss: () -> U
                                 text = pkg.substringAfterLast("."),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
-                        colors = androidx.compose.material3.ListItemDefaults.colors(
+                        colors = ListItemDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ),
                         modifier = Modifier
-                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(14.dp))
                             .padding(vertical = 2.dp),
                     )
                 }
             }
         }
+    }
+}
+
+private fun getLockedCountFromPrefs(context: Context): Int {
+    val prefs = context.getSharedPreferences("aegis_app_lock_v1", Context.MODE_PRIVATE)
+    return prefs.all.keys.count { key ->
+        key.endsWith("_enabled") && prefs.getBoolean(key, false)
+    }
+}
+
+private fun getAllLockedPackagesFromPrefs(context: Context): List<String> {
+    val prefs = context.getSharedPreferences("aegis_app_lock_v1", Context.MODE_PRIVATE)
+    return prefs.all.keys
+        .filter { it.endsWith("_enabled") && prefs.getBoolean(it, false) }
+        .map { it.removeSuffix("_enabled") }
+        .distinct()
+}
+
+private fun isAppBlockedFromPrefs(context: Context, pkg: String): Boolean {
+    val prefs = context.getSharedPreferences("aegis_app_lock_v1", Context.MODE_PRIVATE)
+    return prefs.getBoolean("${pkg}_blocked", false)
+}
+
+private fun getLockTypeLabelFromPrefs(context: Context, pkg: String): String {
+    val prefs = context.getSharedPreferences("aegis_app_lock_v1", Context.MODE_PRIVATE)
+    return when (prefs.getString("${pkg}_type", "pattern")) {
+        "pin" -> "PIN"
+        "password" -> "Password"
+        "biometric" -> "Biometric"
+        else -> "Pattern"
     }
 }
 
@@ -1218,6 +1282,8 @@ private fun QuickActionButton(
                 style = MaterialTheme.typography.bodySmall,
                 color = if (isActive) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
