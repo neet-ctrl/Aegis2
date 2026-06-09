@@ -47,6 +47,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -274,8 +276,9 @@ internal fun AutomationBuilderSheet(
                                 val actionSummary = selectedActions
                                     .joinToString(", ") { it.first.label }
                                     .ifEmpty { "No actions" }
+                                val automationId = System.currentTimeMillis()
                                 val automation = SavedAutomation(
-                                    id = System.currentTimeMillis(),
+                                    id = automationId,
                                     name = automationName.trim(),
                                     triggerLabel = selectedTrigger?.label ?: "Unknown",
                                     conditionCount = conditions.size,
@@ -283,12 +286,13 @@ internal fun AutomationBuilderSheet(
                                     delaySeconds = delaySeconds.toIntOrNull() ?: 0,
                                     isHidden = isHidden,
                                     isEnabled = true,
-                                    createdAt = System.currentTimeMillis(),
+                                    createdAt = automationId,
+                                    conditionLogic = conditionLogic,
                                 )
                                 AegisAutomationStore.addAutomation(context, automation)
                                 AegisActionStore.setActions(
                                     context,
-                                    automation.id,
+                                    automationId,
                                     selectedActions.map { (action, value) ->
                                         StoredAction(
                                             label = action.label,
@@ -298,6 +302,18 @@ internal fun AutomationBuilderSheet(
                                         )
                                     },
                                 )
+                                AegisConditionStore.setConditions(
+                                    context,
+                                    automationId,
+                                    conditions.map { c ->
+                                        StoredCondition(
+                                            field = c.field,
+                                            operator = c.operator,
+                                            value = c.value,
+                                        )
+                                    },
+                                )
+                                AegisTimeScheduler.scheduleIfNeeded(context, automation)
                                 AegisActivityLog.addEntry(
                                     context,
                                     "Automation Created",
@@ -461,6 +477,8 @@ private fun ConditionsStep(
     }
 }
 
+private val conditionOperators = listOf("is", "is not", "<", "<=", ">", ">=")
+
 @Composable
 private fun ConditionRow(
     condition: AutomationCondition,
@@ -469,49 +487,98 @@ private fun ConditionRow(
     onRemove: () -> Unit,
     onUpdate: (AutomationCondition) -> Unit,
 ) {
+    var operatorMenuExpanded by remember { mutableStateOf(false) }
+
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = logic,
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                ) {
+                    Text(
+                        text = logic,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                    )
+                }
+                OutlinedTextField(
+                    value = condition.field,
+                    onValueChange = { onUpdate(condition.copy(field = it)) },
+                    label = { Text("Field", style = MaterialTheme.typography.labelSmall) },
+                    placeholder = { Text("e.g. battery, app, volume", style = MaterialTheme.typography.labelSmall) },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(10.dp),
                 )
+                IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        imageVector = GetoIcons.Close,
+                        contentDescription = "Remove",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
-            OutlinedTextField(
-                value = condition.field,
-                onValueChange = { onUpdate(condition.copy(field = it)) },
-                label = { Text("Field") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                shape = RoundedCornerShape(10.dp),
-            )
-            OutlinedTextField(
-                value = condition.value,
-                onValueChange = { onUpdate(condition.copy(value = it)) },
-                label = { Text("Value") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                shape = RoundedCornerShape(10.dp),
-            )
-            IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    imageVector = GetoIcons.Close,
-                    contentDescription = "Remove",
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(18.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Box {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        modifier = Modifier.clickable { operatorMenuExpanded = true },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = condition.operator,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Icon(
+                                imageVector = GetoIcons.ExpandMore,
+                                contentDescription = "Operator",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = operatorMenuExpanded,
+                        onDismissRequest = { operatorMenuExpanded = false },
+                    ) {
+                        conditionOperators.forEach { op ->
+                            DropdownMenuItem(
+                                text = { Text(op) },
+                                onClick = {
+                                    onUpdate(condition.copy(operator = op))
+                                    operatorMenuExpanded = false
+                                },
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = condition.value,
+                    onValueChange = { onUpdate(condition.copy(value = it)) },
+                    label = { Text("Value", style = MaterialTheme.typography.labelSmall) },
+                    placeholder = { Text("e.g. 20%, com.app, 8", style = MaterialTheme.typography.labelSmall) },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(10.dp),
                 )
             }
         }

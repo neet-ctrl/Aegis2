@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.android.geto.engine.AegisAutomationEngine
 import com.android.geto.feature.home.AegisAutomationStore
-import com.android.geto.scheduler.AegisTimeScheduler
+import com.android.geto.feature.home.AegisTimeScheduler
 
 class AegisTimeScheduleReceiver : BroadcastReceiver() {
 

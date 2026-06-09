@@ -187,11 +187,25 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                         automation = automation,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onDelete = {
+                            if (automation.triggerLabel == "Time Schedule" ||
+                                automation.triggerLabel == "Day Schedule"
+                            ) {
+                                AegisTimeScheduler.cancel(context, automation.id)
+                            }
                             AegisAutomationStore.deleteAutomation(context, automation.id)
                             refreshKey++
                         },
                         onToggle = {
                             AegisAutomationStore.toggleEnabled(context, automation.id)
+                            if (automation.triggerLabel == "Time Schedule" ||
+                                automation.triggerLabel == "Day Schedule"
+                            ) {
+                                if (automation.isEnabled) {
+                                    AegisTimeScheduler.cancel(context, automation.id)
+                                } else {
+                                    AegisTimeScheduler.scheduleIfNeeded(context, automation)
+                                }
+                            }
                             refreshKey++
                         },
                     )

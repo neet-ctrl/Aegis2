@@ -1,14 +1,10 @@
-package com.android.geto.scheduler
+package com.android.geto.feature.home
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.android.geto.feature.home.AegisAutomationStore
-import com.android.geto.feature.home.AegisConditionStore
-import com.android.geto.feature.home.SavedAutomation
-import com.android.geto.receiver.AegisTimeScheduleReceiver
 import java.util.Calendar
 
 object AegisTimeScheduler {
@@ -16,6 +12,8 @@ object AegisTimeScheduler {
     const val ACTION_FIRE = "com.android.geto.ACTION_FIRE_TIME_SCHEDULE"
     const val EXTRA_AUTOMATION_ID = "automation_id"
     const val EXTRA_TRIGGER_LABEL = "trigger_label"
+
+    private const val RECEIVER_CLASS = "com.android.geto.receiver.AegisTimeScheduleReceiver"
 
     fun scheduleIfNeeded(context: Context, automation: SavedAutomation) {
         if (!automation.isEnabled) return
@@ -29,7 +27,7 @@ object AegisTimeScheduler {
         context: Context,
         automationId: Long,
         triggerLabel: String,
-        conditions: List<com.android.geto.feature.home.StoredCondition>,
+        conditions: List<StoredCondition>,
     ) {
         val nextMs: Long = when (triggerLabel) {
             "Time Schedule" -> {
@@ -44,7 +42,7 @@ object AegisTimeScheduler {
         }
 
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pi = buildPendingIntent(context, automationId, triggerLabel)
+        val pi = buildPendingIntent(context, automationId, triggerLabel) ?: return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextMs, pi)
         } else {
@@ -54,15 +52,7 @@ object AegisTimeScheduler {
 
     fun cancel(context: Context, automationId: Long) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, AegisTimeScheduleReceiver::class.java).apply {
-            action = ACTION_FIRE
-        }
-        val pi = PendingIntent.getBroadcast(
-            context,
-            automationId.toInt(),
-            intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
-        ) ?: return
+        val pi = buildPendingIntent(context, automationId, "", noCreate = true) ?: return
         am.cancel(pi)
         pi.cancel()
     }
@@ -73,18 +63,25 @@ object AegisTimeScheduler {
         }
     }
 
-    private fun buildPendingIntent(context: Context, automationId: Long, triggerLabel: String): PendingIntent {
-        val intent = Intent(context, AegisTimeScheduleReceiver::class.java).apply {
-            action = ACTION_FIRE
-            putExtra(EXTRA_AUTOMATION_ID, automationId)
-            putExtra(EXTRA_TRIGGER_LABEL, triggerLabel)
-        }
-        return PendingIntent.getBroadcast(
-            context,
-            automationId.toInt(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+    private fun buildPendingIntent(
+        context: Context,
+        automationId: Long,
+        triggerLabel: String,
+        noCreate: Boolean = false,
+    ): PendingIntent? {
+        return runCatching {
+            val receiverClass = Class.forName(RECEIVER_CLASS)
+            val intent = Intent(context, receiverClass).apply {
+                action = ACTION_FIRE
+                if (!noCreate) {
+                    putExtra(EXTRA_AUTOMATION_ID, automationId)
+                    putExtra(EXTRA_TRIGGER_LABEL, triggerLabel)
+                }
+            }
+            val flags = (if (noCreate) PendingIntent.FLAG_NO_CREATE else PendingIntent.FLAG_UPDATE_CURRENT) or
+                PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.getBroadcast(context, automationId.toInt(), intent, flags)
+        }.getOrNull()
     }
 
     private fun nextTimeMs(timeStr: String): Long {

@@ -342,6 +342,33 @@
             </intent-filter>
         </receiver>
 
+        <!-- Time / Day Schedule AlarmManager receiver -->
+        <receiver
+            android:name=".receiver.AegisTimeScheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.android.geto.ACTION_FIRE_TIME_SCHEDULE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- NFC Tag Detected: transparent activity that fires the automation trigger -->
+        <activity
+            android:name=".receiver.NfcTriggerActivity"
+            android:exported="true"
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.nfc.action.TAG_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
         <!-- Static system event receiver: charger, Bluetooth, package events -->
         <receiver
             android:name=".receiver.AegisSystemTriggerReceiver"
