@@ -168,6 +168,66 @@
             </intent-filter>
         </service>
 
+        <!-- Quick Settings Tile: Developer Options -->
+        <service
+            android:name=".tile.AegisDeveloperOptionsTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Dev Options"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Quick Settings Tile: USB Debugging -->
+        <service
+            android:name=".tile.AegisUsbDebuggingTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="USB Debug"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Quick Settings Tile: WiFi Debugging -->
+        <service
+            android:name=".tile.AegisWifiDebuggingTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="WiFi Debug"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Quick Settings Tile: Dark Mode -->
+        <service
+            android:name=".tile.AegisDarkModeTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Dark Mode"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Quick Settings Tile: Auto-rotate -->
+        <service
+            android:name=".tile.AegisAutoRotateTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Auto-rotate"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <!-- Home Screen Widget: Status (shows automations + rules + last trigger) -->
         <receiver
             android:name=".widget.AegisWidgetProvider"
@@ -219,6 +279,19 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/aegis_widget_activity_info" />
+        </receiver>
+
+        <!-- Home Screen Widget: Quick Toggles (shows live status of top 10 system toggles) -->
+        <receiver
+            android:name=".widget.AegisQuickTogglesWidgetProvider"
+            android:exported="true"
+            android:label="Aegis Quick Toggles Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/aegis_widget_quick_toggles_info" />
         </receiver>
 
         <!-- FileProvider: serves APK and internal files for sharing -->

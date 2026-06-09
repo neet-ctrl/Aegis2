@@ -44,6 +44,8 @@ import com.android.geto.feature.home.navigation.homeScreen
 import com.android.geto.feature.home.navigation.navigateToActivity
 import com.android.geto.feature.home.navigation.navigateToAutomations
 import com.android.geto.feature.home.navigation.navigateToDashboard
+import com.android.geto.feature.home.navigation.navigateToQuickToggles
+import com.android.geto.feature.home.navigation.quickTogglesScreen
 import com.android.geto.feature.settings.navigation.navigateToSettings
 import com.android.geto.feature.settings.navigation.settingsScreen
 import com.android.geto.navigation.TopLevelDestination.ACTIVITY
@@ -82,6 +84,7 @@ fun GetoNavHost(navController: NavHostController) {
                 dashboardScreen(
                     onNavigateToActivity = { homeNavHostController.navigateToActivity() },
                     onNavigateToAutomations = { homeNavHostController.navigateToAutomations() },
+                    onNavigateToQuickToggles = { navController.navigateToQuickToggles() },
                 )
                 appsScreen(onClickApp = navController::navigateToAppSettings)
                 automationsScreen()
@@ -91,6 +94,7 @@ fun GetoNavHost(navController: NavHostController) {
         )
 
         appSettingsScreen(onNavigationIconClick = navController::navigateUp)
+        quickTogglesScreen(onNavigationIconClick = navController::navigateUp)
     }
 }
 

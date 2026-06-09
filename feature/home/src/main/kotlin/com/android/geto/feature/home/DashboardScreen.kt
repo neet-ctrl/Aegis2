@@ -89,11 +89,13 @@ internal fun DashboardRoute(
     modifier: Modifier = Modifier,
     onNavigateToActivity: () -> Unit = {},
     onNavigateToAutomations: () -> Unit = {},
+    onNavigateToQuickToggles: () -> Unit = {},
 ) {
     DashboardScreen(
         modifier = modifier,
         onNavigateToActivity = onNavigateToActivity,
         onNavigateToAutomations = onNavigateToAutomations,
+        onNavigateToQuickToggles = onNavigateToQuickToggles,
     )
 }
 
@@ -102,6 +104,7 @@ internal fun DashboardScreen(
     modifier: Modifier = Modifier,
     onNavigateToActivity: () -> Unit = {},
     onNavigateToAutomations: () -> Unit = {},
+    onNavigateToQuickToggles: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -109,12 +112,80 @@ internal fun DashboardScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { HeroBanner() }
+        item { QuickTogglesEntryCard(onNavigateToQuickToggles = onNavigateToQuickToggles) }
         item { StatusGrid() }
         item { AshellCommandsPanel() }
         item { StatisticsSection() }
         item { RecentActivitySection(onNavigateToActivity = onNavigateToActivity) }
         item { QuickActionsSection(onNavigateToAutomations = onNavigateToAutomations) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
+    }
+}
+
+@Composable
+private fun QuickTogglesEntryCard(onNavigateToQuickToggles: () -> Unit) {
+    val context = LocalContext.current
+    val hasWriteSecure = ContextCompat.checkSelfPermission(
+        context, "android.permission.WRITE_SECURE_SETTINGS",
+    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
+        onClick = onNavigateToQuickToggles,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = GetoIcons.Tune,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(26.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Quick Toggles",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    text = "60 system toggles • Developer tools, Network, Display & more",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (!hasWriteSecure) {
+                    Text(
+                        text = "ADB setup recommended for full access",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+                    )
+                }
+            }
+            Icon(
+                imageVector = GetoIcons.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }
 

@@ -18,31 +18,18 @@
 package com.android.geto.feature.home.navigation
 
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.android.geto.feature.home.DashboardRoute
+import com.android.geto.feature.home.QuickTogglesRoute
 
-fun NavController.navigateToDashboard() {
-    navigate(DashboardRouteData) {
-        popUpTo(graph.findStartDestination().id) {
-            saveState = true
-        }
-        launchSingleTop = true
-        restoreState = true
-    }
+fun NavController.navigateToQuickToggles() {
+    navigate(QuickTogglesRouteData)
 }
 
-fun NavGraphBuilder.dashboardScreen(
-    onNavigateToActivity: () -> Unit = {},
-    onNavigateToAutomations: () -> Unit = {},
-    onNavigateToQuickToggles: () -> Unit = {},
+fun NavGraphBuilder.quickTogglesScreen(
+    onNavigationIconClick: () -> Unit,
 ) {
-    composable<DashboardRouteData> {
-        DashboardRoute(
-            onNavigateToActivity = onNavigateToActivity,
-            onNavigateToAutomations = onNavigateToAutomations,
-            onNavigateToQuickToggles = onNavigateToQuickToggles,
-        )
+    composable<QuickTogglesRouteData> {
+        QuickTogglesRoute(onNavigationIconClick = onNavigationIconClick)
     }
 }

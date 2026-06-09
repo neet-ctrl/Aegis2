@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~
+  ~   Copyright 2023 Einstein Blanco
+  ~
+  ~   Licensed under the GNU General Public License v3.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~       https://www.gnu.org/licenses/gpl-3.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~
+  -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_quick_toggles_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@mipmap/ic_launcher"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="5dp"
+            android:text="QUICK TOGGLES"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tap to open"
+            android:textSize="8sp"
+            android:textColor="#66FFFFFF" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#33FFFFFF"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Row 1: Toggle 1 & 2 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_marginBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginEnd="2dp">
+            <TextView
+                android:id="@+id/wqt_name_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dev Options"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginStart="2dp">
+            <TextView
+                android:id="@+id/wqt_name_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="USB Debug"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Row 2: Toggle 3 & 4 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_marginBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginEnd="2dp">
+            <TextView
+                android:id="@+id/wqt_name_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WiFi Debug"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginStart="2dp">
+            <TextView
+                android:id="@+id/wqt_name_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dark Mode"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Row 3: Toggle 5 & 6 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_marginBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginEnd="2dp">
+            <TextView
+                android:id="@+id/wqt_name_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Auto-rotate"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginStart="2dp">
+            <TextView
+                android:id="@+id/wqt_name_6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WiFi"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Row 4: Toggle 7 & 8 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_marginBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginEnd="2dp">
+            <TextView
+                android:id="@+id/wqt_name_7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bluetooth"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginStart="2dp">
+            <TextView
+                android:id="@+id/wqt_name_8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Night Light"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Row 5: Toggle 9 & 10 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginEnd="2dp">
+            <TextView
+                android:id="@+id/wqt_name_9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Battery Saver"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:background="#22FFFFFF"
+            android:padding="5dp"
+            android:layout_marginStart="2dp">
+            <TextView
+                android:id="@+id/wqt_name_10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Do Not Disturb"
+                android:textSize="8sp"
+                android:textColor="#CCFFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/wqt_status_10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#FF4CAF50" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
