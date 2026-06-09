@@ -25,7 +25,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.graphics.drawable.Icon
+import androidx.core.graphics.drawable.IconCompat
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -844,9 +844,9 @@ private fun getNotification(
     )
         .setSmallIcon(
             if (icon != null) {
-                Icon.createWithData(icon, 0, icon.size)
+                IconCompat.createWithData(icon, 0, icon.size)
             } else {
-                Icon.createWithResource(context, android.R.drawable.ic_dialog_info)
+                IconCompat.createWithResource(context, android.R.drawable.ic_dialog_info)
             },
         )
         .setContentTitle(contentTitle)
