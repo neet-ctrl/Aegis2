@@ -80,22 +80,25 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
     var showBuilder by remember { mutableStateOf(false) }
     var builderTriggerLabel by remember { mutableStateOf<String?>(null) }
     var builderInitialName by remember { mutableStateOf("") }
+    var editingAutomation by remember { mutableStateOf<SavedAutomation?>(null) }
     var refreshKey by remember { mutableIntStateOf(0) }
 
     val automations = remember(refreshKey) {
         AegisAutomationStore.getVisibleAutomations(context)
     }
 
-    if (showBuilder) {
+    if (showBuilder || editingAutomation != null) {
         AutomationBuilderSheet(
             onDismiss = {
                 showBuilder = false
                 builderTriggerLabel = null
                 builderInitialName = ""
+                editingAutomation = null
                 refreshKey++
             },
             initialTriggerLabel = builderTriggerLabel,
             initialName = builderInitialName,
+            editingAutomation = editingAutomation,
         )
     }
 
@@ -186,6 +189,9 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                     AutomationCard(
                         automation = automation,
                         modifier = Modifier.padding(horizontal = 16.dp),
+                        onEdit = {
+                            editingAutomation = automation
+                        },
                         onDelete = {
                             if (automation.triggerLabel == "Time Schedule" ||
                                 automation.triggerLabel == "Day Schedule"
@@ -609,6 +615,7 @@ private fun AutomationEmptyHint(onTapCreate: () -> Unit) {
 private fun AutomationCard(
     automation: SavedAutomation,
     modifier: Modifier = Modifier,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggle: () -> Unit,
 ) {
@@ -667,6 +674,14 @@ private fun AutomationCard(
                         checked = automation.isEnabled,
                         onCheckedChange = { onToggle() },
                     )
+                    IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = GetoIcons.Edit,
+                            contentDescription = "Edit automation",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                     IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = GetoIcons.DeleteSweep,

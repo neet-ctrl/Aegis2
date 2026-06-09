@@ -96,6 +96,19 @@ object AegisAutomationStore {
         p.edit().putStringSet(KEY_SET, updated).apply()
     }
 
+    fun updateAutomation(context: Context, automation: SavedAutomation) {
+        val p = prefs(context)
+        val existing = p.getStringSet(KEY_SET, null)?.toMutableSet() ?: return
+        val updated = mutableSetOf<String>()
+        for (raw in existing) {
+            val decoded = decode(raw)
+            updated.add(
+                if (decoded?.id == automation.id) encode(automation) else raw,
+            )
+        }
+        p.edit().putStringSet(KEY_SET, updated).apply()
+    }
+
     fun getEnabledCount(context: Context): Int =
         getAutomations(context).count { it.isEnabled }
 

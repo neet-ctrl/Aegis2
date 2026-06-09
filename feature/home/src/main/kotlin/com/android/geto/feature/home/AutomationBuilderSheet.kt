@@ -147,25 +147,77 @@ internal fun AutomationBuilderSheet(
     onDismiss: () -> Unit,
     initialTriggerLabel: String? = null,
     initialName: String = "",
+    editingAutomation: SavedAutomation? = null,
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isEditMode = editingAutomation != null
 
-    var step by remember { mutableIntStateOf(if (initialTriggerLabel != null) 1 else 0) }
-    var selectedTrigger by remember {
+    // Pre-load stored actions + conditions so edit mode can initialise from them.
+    val existingActions = remember(editingAutomation?.id) {
+        if (editingAutomation != null) AegisActionStore.getActions(context, editingAutomation.id)
+        else emptyList()
+    }
+    val existingConditions = remember(editingAutomation?.id) {
+        if (editingAutomation != null) AegisConditionStore.getConditions(context, editingAutomation.id)
+        else emptyList()
+    }
+    val existingTimeCond = remember(editingAutomation?.id) {
+        existingConditions.firstOrNull { it.field.trim().lowercase() == "time" }?.value ?: "08:00"
+    }
+    val existingDayCond = remember(editingAutomation?.id) {
+        existingConditions.firstOrNull { it.field.trim().lowercase() == "day" }
+            ?.value?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+    }
+
+    var step by remember(editingAutomation?.id) { mutableIntStateOf(0) }
+    var selectedTrigger by remember(editingAutomation?.id) {
         mutableStateOf<TriggerOption?>(
-            initialTriggerLabel?.let { label -> allTriggers.firstOrNull { it.label == label } },
+            when {
+                editingAutomation != null ->
+                    allTriggers.firstOrNull { it.label == editingAutomation.triggerLabel }
+                initialTriggerLabel != null ->
+                    allTriggers.firstOrNull { it.label == initialTriggerLabel }
+                else -> null
+            },
         )
     }
-    val conditions = remember { mutableStateListOf<AutomationCondition>() }
-    var conditionLogic by remember { mutableStateOf("AND") }
-    val selectedActions = remember { mutableStateListOf<Pair<ActionOption, String>>() }
-    var delaySeconds by remember { mutableStateOf("0") }
-    var automationName by remember { mutableStateOf(initialName) }
-    var isHidden by remember { mutableStateOf(false) }
-    var scheduleHour by remember { mutableIntStateOf(8) }
-    var scheduleMinute by remember { mutableIntStateOf(0) }
-    val scheduleDays = remember { mutableStateListOf<String>() }
+    val conditions = remember(editingAutomation?.id) {
+        mutableStateListOf<AutomationCondition>().also { list ->
+            existingConditions
+                .filter { it.field.trim().lowercase() !in listOf("time", "day") }
+                .mapTo(list) { AutomationCondition(it.field, it.operator, it.value) }
+        }
+    }
+    var conditionLogic by remember(editingAutomation?.id) {
+        mutableStateOf(editingAutomation?.conditionLogic ?: "AND")
+    }
+    val selectedActions = remember(editingAutomation?.id) {
+        mutableStateListOf<Pair<ActionOption, String>>().also { list ->
+            existingActions.mapNotNullTo(list) { stored ->
+                val opt = allActions.firstOrNull { it.label == stored.label } ?: return@mapNotNullTo null
+                Pair(opt, stored.value)
+            }
+        }
+    }
+    var delaySeconds by remember(editingAutomation?.id) {
+        mutableStateOf(editingAutomation?.delaySeconds?.toString() ?: "0")
+    }
+    var automationName by remember(editingAutomation?.id) {
+        mutableStateOf(editingAutomation?.name ?: initialName)
+    }
+    var isHidden by remember(editingAutomation?.id) {
+        mutableStateOf(editingAutomation?.isHidden ?: false)
+    }
+    var scheduleHour by remember(editingAutomation?.id) {
+        mutableIntStateOf(existingTimeCond.split(":").getOrNull(0)?.toIntOrNull() ?: 8)
+    }
+    var scheduleMinute by remember(editingAutomation?.id) {
+        mutableIntStateOf(existingTimeCond.split(":").getOrNull(1)?.toIntOrNull() ?: 0)
+    }
+    val scheduleDays = remember(editingAutomation?.id) {
+        mutableStateListOf<String>().also { it.addAll(existingDayCond) }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -190,7 +242,7 @@ internal fun AutomationBuilderSheet(
             ) {
                 Column {
                     Text(
-                        text = "New Automation",
+                        text = if (isEditMode) "Edit Automation" else "New Automation",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -306,51 +358,73 @@ internal fun AutomationBuilderSheet(
                                     ) else emptyList()
                                     else -> conditions.toList()
                                 }
-                                val automationId = System.currentTimeMillis()
-                                val automation = SavedAutomation(
-                                    id = automationId,
-                                    name = automationName.trim(),
-                                    triggerLabel = triggerLabel,
-                                    conditionCount = finalConditions.size,
-                                    actionSummary = actionSummary,
-                                    delaySeconds = delaySeconds.toIntOrNull() ?: 0,
-                                    isHidden = isHidden,
-                                    isEnabled = true,
-                                    createdAt = automationId,
-                                    conditionLogic = conditionLogic,
-                                )
-                                AegisAutomationStore.addAutomation(context, automation)
-                                AegisActionStore.setActions(
-                                    context,
-                                    automationId,
-                                    selectedActions.map { (action, value) ->
-                                        StoredAction(
-                                            label = action.label,
-                                            settingKey = action.settingKey,
-                                            settingType = action.settingType,
-                                            value = value,
-                                        )
-                                    },
-                                )
-                                AegisConditionStore.setConditions(
-                                    context,
-                                    automationId,
-                                    finalConditions.map { c ->
-                                        StoredCondition(
-                                            field = c.field,
-                                            operator = c.operator,
-                                            value = c.value,
-                                        )
-                                    },
-                                )
-                                AegisTimeScheduler.scheduleIfNeeded(context, automation)
-                                AegisActivityLog.addEntry(
-                                    context,
-                                    "Automation Created",
-                                    "\"$automationName\" saved — trigger: ${selectedTrigger?.label ?: "none"}",
-                                    "system",
-                                )
-                                Toast.makeText(context, "Automation \"$automationName\" saved!", Toast.LENGTH_SHORT).show()
+                                val storedActions = selectedActions.map { (action, value) ->
+                                    StoredAction(
+                                        label = action.label,
+                                        settingKey = action.settingKey,
+                                        settingType = action.settingType,
+                                        value = value,
+                                    )
+                                }
+                                val storedConditions = finalConditions.map { c ->
+                                    StoredCondition(field = c.field, operator = c.operator, value = c.value)
+                                }
+
+                                if (isEditMode && editingAutomation != null) {
+                                    // Cancel any existing scheduled alarm before re-scheduling.
+                                    val oldTrigger = editingAutomation.triggerLabel
+                                    if (oldTrigger == "Time Schedule" || oldTrigger == "Day Schedule") {
+                                        AegisTimeScheduler.cancel(context, editingAutomation.id)
+                                    }
+                                    val updated = SavedAutomation(
+                                        id = editingAutomation.id,
+                                        name = automationName.trim(),
+                                        triggerLabel = triggerLabel,
+                                        conditionCount = finalConditions.size,
+                                        actionSummary = actionSummary,
+                                        delaySeconds = delaySeconds.toIntOrNull() ?: 0,
+                                        isHidden = isHidden,
+                                        isEnabled = editingAutomation.isEnabled,
+                                        createdAt = editingAutomation.createdAt,
+                                        conditionLogic = conditionLogic,
+                                    )
+                                    AegisAutomationStore.updateAutomation(context, updated)
+                                    AegisActionStore.setActions(context, editingAutomation.id, storedActions)
+                                    AegisConditionStore.setConditions(context, editingAutomation.id, storedConditions)
+                                    AegisTimeScheduler.scheduleIfNeeded(context, updated)
+                                    AegisActivityLog.addEntry(
+                                        context,
+                                        "Automation Updated",
+                                        "\"${automationName.trim()}\" edited — trigger: $triggerLabel",
+                                        "system",
+                                    )
+                                    Toast.makeText(context, "Automation updated!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    val automationId = System.currentTimeMillis()
+                                    val automation = SavedAutomation(
+                                        id = automationId,
+                                        name = automationName.trim(),
+                                        triggerLabel = triggerLabel,
+                                        conditionCount = finalConditions.size,
+                                        actionSummary = actionSummary,
+                                        delaySeconds = delaySeconds.toIntOrNull() ?: 0,
+                                        isHidden = isHidden,
+                                        isEnabled = true,
+                                        createdAt = automationId,
+                                        conditionLogic = conditionLogic,
+                                    )
+                                    AegisAutomationStore.addAutomation(context, automation)
+                                    AegisActionStore.setActions(context, automationId, storedActions)
+                                    AegisConditionStore.setConditions(context, automationId, storedConditions)
+                                    AegisTimeScheduler.scheduleIfNeeded(context, automation)
+                                    AegisActivityLog.addEntry(
+                                        context,
+                                        "Automation Created",
+                                        "\"$automationName\" saved — trigger: ${selectedTrigger?.label ?: "none"}",
+                                        "system",
+                                    )
+                                    Toast.makeText(context, "Automation \"$automationName\" saved!", Toast.LENGTH_SHORT).show()
+                                }
                                 onDismiss()
                             }
                         }
@@ -367,7 +441,7 @@ internal fun AutomationBuilderSheet(
                     },
                     shape = RoundedCornerShape(14.dp),
                 ) {
-                    Text(if (step < 4) "Next" else "Save Automation")
+                    Text(if (step < 4) "Next" else if (isEditMode) "Save Changes" else "Save Automation")
                 }
             }
         }

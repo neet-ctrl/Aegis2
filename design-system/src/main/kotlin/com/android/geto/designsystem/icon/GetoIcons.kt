@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -140,6 +141,7 @@ object GetoIcons {
     val List = Icons.AutoMirrored.Filled.List
     val Search = Icons.Default.Search
     val DeleteSweep = Icons.Default.DeleteSweep
+    val Edit = Icons.Default.Edit
     val Bluetooth = Icons.Default.Bluetooth
     val Wifi = Icons.Default.Wifi
     val WifiOff = Icons.Default.WifiOff
