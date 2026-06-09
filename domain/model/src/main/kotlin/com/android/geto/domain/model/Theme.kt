@@ -21,4 +21,5 @@ enum class Theme {
     FOLLOW_SYSTEM,
     LIGHT,
     DARK,
+    AMOLED,
 }

@@ -38,6 +38,7 @@ class UserPreferencesDataSource @Inject constructor(private val userPreferences:
 
                 ThemeProto.THEME_LIGHT -> Theme.LIGHT
                 ThemeProto.THEME_DARK -> Theme.DARK
+                ThemeProto.THEME_AMOLED -> Theme.AMOLED
             },
             dynamicTheme = it.dynamicTheme,
         )
@@ -56,6 +57,7 @@ class UserPreferencesDataSource @Inject constructor(private val userPreferences:
                     Theme.FOLLOW_SYSTEM -> ThemeProto.THEME_FOLLOW_SYSTEM
                     Theme.LIGHT -> ThemeProto.THEME_LIGHT
                     Theme.DARK -> ThemeProto.THEME_DARK
+                    Theme.AMOLED -> ThemeProto.THEME_AMOLED
                 }
             }
         }

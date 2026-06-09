@@ -15,16 +15,9 @@
  *   limitations under the License.
  *
  */
+package com.android.geto.feature.home.navigation
 
-syntax = "proto3";
+import kotlinx.serialization.Serializable
 
-option java_package = "com.android.geto.data.datastore.proto";
-option java_multiple_files = true;
-
-enum ThemeProto {
-  THEME_UNSPECIFIED = 0;
-  THEME_FOLLOW_SYSTEM = 1;
-  THEME_LIGHT = 2;
-  THEME_DARK = 3;
-  THEME_AMOLED = 4;
-}
+@Serializable
+data object AutomationsRouteData

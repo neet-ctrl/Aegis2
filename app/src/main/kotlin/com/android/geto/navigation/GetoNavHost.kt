@@ -33,11 +33,23 @@ import com.android.geto.feature.apps.navigation.appsScreen
 import com.android.geto.feature.apps.navigation.navigateToApps
 import com.android.geto.feature.appsettings.navigation.appSettingsScreen
 import com.android.geto.feature.appsettings.navigation.navigateToAppSettings
+import com.android.geto.feature.home.navigation.ActivityRouteData
+import com.android.geto.feature.home.navigation.AutomationsRouteData
+import com.android.geto.feature.home.navigation.DashboardRouteData
 import com.android.geto.feature.home.navigation.HomeRouteData
+import com.android.geto.feature.home.navigation.activityScreen
+import com.android.geto.feature.home.navigation.automationsScreen
+import com.android.geto.feature.home.navigation.dashboardScreen
 import com.android.geto.feature.home.navigation.homeScreen
+import com.android.geto.feature.home.navigation.navigateToActivity
+import com.android.geto.feature.home.navigation.navigateToAutomations
+import com.android.geto.feature.home.navigation.navigateToDashboard
 import com.android.geto.feature.settings.navigation.navigateToSettings
 import com.android.geto.feature.settings.navigation.settingsScreen
+import com.android.geto.navigation.TopLevelDestination.ACTIVITY
 import com.android.geto.navigation.TopLevelDestination.APPS
+import com.android.geto.navigation.TopLevelDestination.AUTOMATIONS
+import com.android.geto.navigation.TopLevelDestination.DASHBOARD
 import com.android.geto.navigation.TopLevelDestination.SETTINGS
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -56,16 +68,21 @@ fun GetoNavHost(navController: NavHostController) {
         homeScreen(
             snackbarHostState = snackbarHostState,
             topLevelDestinations = TopLevelDestination.entries,
-            startDestination = AppsRouteData::class,
+            startDestination = DashboardRouteData::class,
             onClickHomeDestination = { homeNavHostController, homeDestination ->
                 when (homeDestination) {
+                    DASHBOARD -> homeNavHostController.navigateToDashboard()
                     APPS -> homeNavHostController.navigateToApps()
+                    AUTOMATIONS -> homeNavHostController.navigateToAutomations()
+                    ACTIVITY -> homeNavHostController.navigateToActivity()
                     SETTINGS -> homeNavHostController.navigateToSettings()
                 }
             },
             builder = {
+                dashboardScreen()
                 appsScreen(onClickApp = navController::navigateToAppSettings)
-
+                automationsScreen()
+                activityScreen()
                 settingsScreen()
             },
         )

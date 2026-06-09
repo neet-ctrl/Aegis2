@@ -18,7 +18,9 @@
 package com.android.geto.feature.settings
 
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,11 +29,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,10 +49,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.android.geto.designsystem.icon.GetoIcons
 import com.android.geto.designsystem.theme.supportsDynamicTheming
 import com.android.geto.domain.model.Theme
 import com.android.geto.domain.model.UserData
@@ -81,7 +92,10 @@ internal fun SettingsScreen(
     ) {
         when (settingsUiState) {
             SettingsUiState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
 
             is SettingsUiState.Success -> {
@@ -105,37 +119,60 @@ private fun SuccessState(
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
     var selectedTheme by remember {
-        mutableIntStateOf(
-            Theme.entries.indexOf(
-                userData.theme,
-            ),
-        )
+        mutableIntStateOf(Theme.entries.indexOf(userData.theme))
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        DynamicThemeSetting(
-            dynamicTheme = userData.dynamicTheme,
-            onUpdateDynamicTheme = onUpdateDynamicTheme,
-        )
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
+    ) {
+        SettingsSection(title = "Appearance") {
+            if (supportsDynamicTheming()) {
+                SettingsToggleRow(
+                    icon = GetoIcons.Tune,
+                    title = "Material You",
+                    subtitle = "Use wallpaper-based dynamic colors (Android 12+)",
+                    checked = userData.dynamicTheme,
+                    onCheckedChange = onUpdateDynamicTheme,
+                )
+            }
 
-        ThemeSetting(
-            title = userData.theme.getTitle(),
-            onShowThemeDialog = {
-                showThemeDialog = true
-            },
-        )
+            SettingsNavigationRow(
+                icon = GetoIcons.Settings,
+                title = "Theme",
+                subtitle = userData.theme.getTitle(),
+                onClick = { showThemeDialog = true },
+            )
+        }
+
+        SettingsSection(title = "About") {
+            SettingsInfoRow(
+                icon = GetoIcons.Shield,
+                title = "Aegis",
+                subtitle = "Control Your Android Environment.",
+            )
+            SettingsInfoRow(
+                icon = GetoIcons.Security,
+                title = "Privacy",
+                subtitle = "No cloud. No telemetry. No analytics. Offline-first.",
+            )
+            SettingsInfoRow(
+                icon = GetoIcons.Info,
+                title = "Version",
+                subtitle = "Built for Android 15, 16 and beyond",
+            )
+        }
     }
 
     if (showThemeDialog) {
         ThemeDialog(
-            onDismissRequest = {
-                showThemeDialog = false
-            },
+            onDismissRequest = { showThemeDialog = false },
             selected = selectedTheme,
             onSelect = { selectedTheme = it },
             onChangeClick = {
                 onUpdateTheme(Theme.entries[selectedTheme])
-
                 showThemeDialog = false
             },
         )
@@ -143,70 +180,188 @@ private fun SuccessState(
 }
 
 @Composable
-private fun DynamicThemeSetting(
-    modifier: Modifier = Modifier,
-    dynamicTheme: Boolean,
-    onUpdateDynamicTheme: (Boolean) -> Unit,
+private fun SettingsSection(
+    title: String,
+    content: @Composable () -> Unit,
 ) {
-    if (supportsDynamicTheming()) {
-        Spacer(modifier = Modifier.height(8.dp))
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+            ),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+        )
 
-        Row(
-            modifier = modifier
-                .clickable {
-                    onUpdateDynamicTheme(!dynamicTheme)
-                }
-                .fillMaxWidth()
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.dynamic_theme),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = stringResource(R.string.available_on_android_12),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                content()
             }
-
-            Switch(
-                checked = dynamicTheme,
-                onCheckedChange = onUpdateDynamicTheme,
-            )
         }
     }
 }
 
 @Composable
-private fun ThemeSetting(
-    modifier: Modifier = Modifier,
+private fun SettingsToggleRow(
+    icon: ImageVector,
     title: String,
-    onShowThemeDialog: () -> Unit,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
 ) {
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Column(
-        modifier = modifier
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable { onShowThemeDialog() }
-            .padding(10.dp),
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = stringResource(R.string.theme),
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(22.dp),
+            )
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 14.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodySmall,
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+            ),
         )
+    }
+}
+
+@Composable
+private fun SettingsNavigationRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 14.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Icon(
+            imageVector = GetoIcons.ArrowForward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+    }
+}
+
+@Composable
+private fun SettingsInfoRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.tertiaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 14.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -215,4 +370,5 @@ internal fun Theme.getTitle() = when (this) {
     Theme.FOLLOW_SYSTEM -> stringResource(R.string.follow_system)
     Theme.LIGHT -> stringResource(R.string.light)
     Theme.DARK -> stringResource(R.string.dark)
+    Theme.AMOLED -> stringResource(R.string.amoled)
 }

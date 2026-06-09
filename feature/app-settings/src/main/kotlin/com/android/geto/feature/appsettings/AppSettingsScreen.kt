@@ -25,23 +25,28 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -49,12 +54,15 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,12 +71,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.android.geto.broadcastreceiver.RevertSettingsBroadcastReceiver
 import com.android.geto.designsystem.icon.GetoIcons
 import com.android.geto.domain.model.AddAppSettingResult
@@ -112,24 +124,15 @@ internal fun AppSettingsRoute(
     onNavigationIconClick: () -> Unit,
 ) {
     val appSettingsUiState by viewModel.appSettingsUiState.collectAsStateWithLifecycle()
-
     val secureSettings by viewModel.secureSettings.collectAsStateWithLifecycle()
-
     val applyAppSettingsResult by viewModel.applyAppSettingsResult.collectAsStateWithLifecycle()
-
     val revertAppSettingsResult by viewModel.revertAppSettingsResult.collectAsStateWithLifecycle()
-
     val addAppSettingResult by viewModel.addAppSettingsResult.collectAsStateWithLifecycle()
-
     val activityIcon by viewModel.activityIcon.collectAsStateWithLifecycle()
-
     val requestPinShortcutResult by viewModel.requestPinShortcutResult.collectAsStateWithLifecycle()
-
     val appSettingTemplates by viewModel.appSettingTemplates.collectAsStateWithLifecycle()
 
-    val snackbarHostState = remember {
-        SnackbarHostState()
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     AppSettingsScreen(
         modifier = modifier,
@@ -190,11 +193,8 @@ internal fun AppSettingsScreen(
     onNavigationIconClick: () -> Unit,
 ) {
     var showAppSettingDialog by remember { mutableStateOf(false) }
-
     var showShortcutDialog by remember { mutableStateOf(false) }
-
     var showTemplateDialog by remember { mutableStateOf(false) }
-
     var showWriteSecureSettingsDialog by remember { mutableStateOf(false) }
 
     AppSettingsLaunchedEffects(
@@ -209,9 +209,7 @@ internal fun AppSettingsScreen(
         onResetRevertAppSettingsResult = onResetRevertAppSettingsResult,
         onResetRequestPinShortcutResult = onResetRequestPinShortcutResult,
         onResetAddAppSettingResult = onResetAddAppSettingResult,
-        onShowWriteSecureSettingsDialog = {
-            showWriteSecureSettingsDialog = true
-        },
+        onShowWriteSecureSettingsDialog = { showWriteSecureSettingsDialog = true },
     )
 
     AppSettingsDialogs(
@@ -224,18 +222,10 @@ internal fun AppSettingsScreen(
         showTemplateDialog = showTemplateDialog,
         showWriteSecureSettingsDialog = showWriteSecureSettingsDialog,
         onAddAppSetting = onAddAppSetting,
-        onDismissAppSettingDialog = {
-            showAppSettingDialog = false
-        },
-        onDismissShortcutDialog = {
-            showShortcutDialog = false
-        },
-        onDismissTemplateDialog = {
-            showTemplateDialog = false
-        },
-        onDismissWriteSecureSettingsDialog = {
-            showWriteSecureSettingsDialog = false
-        },
+        onDismissAppSettingDialog = { showAppSettingDialog = false },
+        onDismissShortcutDialog = { showShortcutDialog = false },
+        onDismissTemplateDialog = { showTemplateDialog = false },
+        onDismissWriteSecureSettingsDialog = { showWriteSecureSettingsDialog = false },
         onGetSecureSettingsByName = onGetSecureSettingsByName,
         onRequestPinShortcut = onRequestPinShortcut,
     )
@@ -244,27 +234,23 @@ internal fun AppSettingsScreen(
         topBar = {
             AppSettingsTopAppBar(
                 title = appSettingsRouteData.activityLabel,
+                activityIcon = activityIcon,
                 onNavigationIconClick = onNavigationIconClick,
             )
         },
         bottomBar = {
             AppSettingsBottomAppBar(
                 onRefreshIconClick = onRevertAppSettings,
-                onSettingsIconClick = {
-                    showAppSettingDialog = true
-                },
-                onShortcutIconClick = {
-                    showShortcutDialog = true
-                },
-                onSettingsSuggestIconClick = {
-                    showTemplateDialog = true
-                },
+                onSettingsIconClick = { showAppSettingDialog = true },
+                onShortcutIconClick = { showShortcutDialog = true },
+                onSettingsSuggestIconClick = { showTemplateDialog = true },
                 onFloatingActionButtonClick = onApplyAppSettings,
             )
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
             modifier = modifier
@@ -274,7 +260,10 @@ internal fun AppSettingsScreen(
         ) {
             when (appSettingsUiState) {
                 AppSettingsUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
 
                 is AppSettingsUiState.Success -> {
@@ -313,63 +302,33 @@ private fun AppSettingsLaunchedEffects(
     onShowWriteSecureSettingsDialog: () -> Unit,
 ) {
     val context = LocalContext.current
-
     val androidLauncherAppsWrapper = LocalLauncherApps.current
-
     val androidNotificationManagerWrapper = LocalNotificationManager.current
 
     val appSettingsDisabled = stringResource(id = R.string.app_settings_disabled)
-
     val emptyAppSettingsList = stringResource(id = R.string.empty_app_settings_list)
-
     val getoSettings = stringResource(id = R.string.geto_settings)
-
     val applySuccess = stringResource(id = R.string.apply_success)
-
     val applyFailure = stringResource(id = R.string.apply_failure)
-
     val revertFailure = stringResource(id = R.string.revert_failure)
-
     val revertSuccess = stringResource(id = R.string.revert_success)
-
-    val shortcutUpdateImmutableShortcuts =
-        stringResource(id = R.string.shortcut_update_immutable_shortcuts)
-
+    val shortcutUpdateImmutableShortcuts = stringResource(id = R.string.shortcut_update_immutable_shortcuts)
     val shortcutUpdateFailed = stringResource(id = R.string.shortcut_update_failed)
-
     val shortcutUpdateSuccess = stringResource(id = R.string.shortcut_update_success)
-
     val supportedLauncher = stringResource(id = R.string.supported_launcher)
-
     val unsupportedLauncher = stringResource(id = R.string.unsupported_launcher)
-
     val invalidValues = stringResource(R.string.settings_has_invalid_values)
-
     val appSettingAddSuccess = stringResource(R.string.app_setting_added_successfully)
-
     val appSettingAddFailed = stringResource(R.string.app_setting_already_exists)
 
     LaunchedEffect(key1 = applyAppSettingsResult) {
         when (applyAppSettingsResult) {
-            DisabledAppSettings -> {
-                snackbarHostState.showSnackbar(message = appSettingsDisabled)
-            }
-
-            EmptyAppSettings -> {
-                snackbarHostState.showSnackbar(message = emptyAppSettingsList)
-            }
-
-            Failure -> {
-                snackbarHostState.showSnackbar(message = applyFailure)
-            }
-
-            NoPermission -> {
-                onShowWriteSecureSettingsDialog()
-            }
-
+            DisabledAppSettings -> snackbarHostState.showSnackbar(message = appSettingsDisabled)
+            EmptyAppSettings -> snackbarHostState.showSnackbar(message = emptyAppSettingsList)
+            Failure -> snackbarHostState.showSnackbar(message = applyFailure)
+            NoPermission -> onShowWriteSecureSettingsDialog()
             Success -> {
                 val notificationId = appSettingsRouteData.componentName.hashCode()
-
                 androidNotificationManagerWrapper.notify(
                     id = notificationId,
                     notification = getNotification(
@@ -381,107 +340,45 @@ private fun AppSettingsLaunchedEffects(
                         contentText = applySuccess,
                     ),
                 )
-
                 androidLauncherAppsWrapper.startMainActivity(componentName = appSettingsRouteData.componentName)
             }
-
-            InvalidValues -> {
-                snackbarHostState.showSnackbar(
-                    message = invalidValues,
-                )
-            }
-
+            InvalidValues -> snackbarHostState.showSnackbar(message = invalidValues)
             null -> Unit
         }
-
         onResetApplyAppSettingsResult()
     }
 
     LaunchedEffect(key1 = revertAppSettingsResult) {
         when (revertAppSettingsResult) {
-            DisabledAppSettings -> {
-                snackbarHostState.showSnackbar(message = appSettingsDisabled)
-            }
-
-            EmptyAppSettings -> {
-                snackbarHostState.showSnackbar(message = emptyAppSettingsList)
-            }
-
-            Failure -> {
-                snackbarHostState.showSnackbar(message = revertFailure)
-            }
-
-            NoPermission -> {
-                onShowWriteSecureSettingsDialog()
-            }
-
-            Success -> {
-                snackbarHostState.showSnackbar(message = revertSuccess)
-            }
-
-            InvalidValues -> {
-                snackbarHostState.showSnackbar(
-                    message = invalidValues,
-                )
-            }
-
+            DisabledAppSettings -> snackbarHostState.showSnackbar(message = appSettingsDisabled)
+            EmptyAppSettings -> snackbarHostState.showSnackbar(message = emptyAppSettingsList)
+            Failure -> snackbarHostState.showSnackbar(message = revertFailure)
+            NoPermission -> onShowWriteSecureSettingsDialog()
+            Success -> snackbarHostState.showSnackbar(message = revertSuccess)
+            InvalidValues -> snackbarHostState.showSnackbar(message = invalidValues)
             null -> Unit
         }
-
         onResetRevertAppSettingsResult()
     }
 
     LaunchedEffect(key1 = requestPinShortcutResult) {
         when (requestPinShortcutResult) {
-            SupportedLauncher -> {
-                snackbarHostState.showSnackbar(
-                    message = supportedLauncher,
-                )
-            }
-
-            UnsupportedLauncher -> {
-                snackbarHostState.showSnackbar(
-                    message = unsupportedLauncher,
-                )
-            }
-
-            UpdateFailure -> {
-                snackbarHostState.showSnackbar(
-                    message = shortcutUpdateFailed,
-                )
-            }
-
-            UpdateSuccess -> {
-                snackbarHostState.showSnackbar(
-                    message = shortcutUpdateSuccess,
-                )
-            }
-
-            UpdateImmutableShortcuts -> {
-                snackbarHostState.showSnackbar(
-                    message = shortcutUpdateImmutableShortcuts,
-                )
-            }
-
+            SupportedLauncher -> snackbarHostState.showSnackbar(message = supportedLauncher)
+            UnsupportedLauncher -> snackbarHostState.showSnackbar(message = unsupportedLauncher)
+            UpdateFailure -> snackbarHostState.showSnackbar(message = shortcutUpdateFailed)
+            UpdateSuccess -> snackbarHostState.showSnackbar(message = shortcutUpdateSuccess)
+            UpdateImmutableShortcuts -> snackbarHostState.showSnackbar(message = shortcutUpdateImmutableShortcuts)
             null -> Unit
         }
-
         onResetRequestPinShortcutResult()
     }
 
     LaunchedEffect(key1 = addAppSettingResult) {
         when (addAppSettingResult) {
-            SUCCESS -> {
-                snackbarHostState.showSnackbar(message = appSettingAddSuccess)
-            }
-
-            FAILED -> {
-                snackbarHostState.showSnackbar(message = appSettingAddFailed)
-            }
-
+            SUCCESS -> snackbarHostState.showSnackbar(message = appSettingAddSuccess)
+            FAILED -> snackbarHostState.showSnackbar(message = appSettingAddFailed)
             null -> Unit
         }
-
         onResetAddAppSettingResult()
     }
 }
@@ -501,10 +398,7 @@ private fun AppSettingsDialogs(
     onDismissShortcutDialog: () -> Unit,
     onDismissTemplateDialog: () -> Unit,
     onDismissWriteSecureSettingsDialog: () -> Unit,
-    onGetSecureSettingsByName: (
-        settingType: SettingType,
-        text: String,
-    ) -> Unit,
+    onGetSecureSettingsByName: (settingType: SettingType, text: String) -> Unit,
     onRequestPinShortcut: (ByteArray?, String, String) -> Unit,
 ) {
     if (showAppSettingDialog) {
@@ -516,7 +410,6 @@ private fun AppSettingsDialogs(
             onGetSecureSettingsByName = onGetSecureSettingsByName,
         )
     }
-
     if (showShortcutDialog) {
         ShortcutDialog(
             icon = icon,
@@ -524,7 +417,6 @@ private fun AppSettingsDialogs(
             onRequestPinShortcut = onRequestPinShortcut,
         )
     }
-
     if (showTemplateDialog) {
         TemplateDialog(
             appSettingTemplates = appSettingTemplates,
@@ -533,7 +425,6 @@ private fun AppSettingsDialogs(
             onDismissRequest = onDismissTemplateDialog,
         )
     }
-
     if (showWriteSecureSettingsDialog) {
         WriteSecureSettingsDialog(onDismissRequest = onDismissWriteSecureSettingsDialog)
     }
@@ -544,21 +435,32 @@ private fun AppSettingsDialogs(
 private fun AppSettingsTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
+    activityIcon: ByteArray?,
     onNavigationIconClick: () -> Unit,
 ) {
     TopAppBar(
         modifier = modifier,
         title = {
-            Text(text = title, maxLines = 1)
+            Text(
+                text = title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            )
         },
         navigationIcon = {
             IconButton(onClick = onNavigationIconClick) {
                 Icon(
                     imageVector = GetoIcons.Back,
                     contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+        ),
     )
 }
 
@@ -571,6 +473,7 @@ private fun AppSettingsBottomAppBar(
     onFloatingActionButtonClick: () -> Unit,
 ) {
     BottomAppBar(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
         actions = {
             AppSettingsBottomAppBarActions(
                 onRefreshIconClick = onRefreshIconClick,
@@ -580,9 +483,7 @@ private fun AppSettingsBottomAppBar(
             )
         },
         floatingActionButton = {
-            AppSettingsFloatingActionButton(
-                onClick = onFloatingActionButtonClick,
-            )
+            AppSettingsFloatingActionButton(onClick = onFloatingActionButtonClick)
         },
     )
 }
@@ -591,12 +492,14 @@ private fun AppSettingsBottomAppBar(
 private fun AppSettingsFloatingActionButton(onClick: () -> Unit) {
     FloatingActionButton(
         onClick = onClick,
-        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
+        shape = RoundedCornerShape(16.dp),
     ) {
         Icon(
-            imageVector = GetoIcons.ArrowForward,
-            contentDescription = null,
+            imageVector = GetoIcons.PlayArrow,
+            contentDescription = "Apply settings",
         )
     }
 }
@@ -611,34 +514,93 @@ private fun AppSettingsBottomAppBarActions(
     IconButton(onClick = onRefreshIconClick) {
         Icon(
             imageVector = GetoIcons.Refresh,
-            contentDescription = null,
+            contentDescription = "Revert settings",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-
     IconButton(onClick = onSettingsIconClick) {
         Icon(
-            GetoIcons.Settings,
-            contentDescription = null,
+            imageVector = GetoIcons.Add,
+            contentDescription = "Add setting",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-
-    IconButton(
-        onClick = onShortcutIconClick,
-    ) {
+    IconButton(onClick = onShortcutIconClick) {
         Icon(
-            GetoIcons.Shortcut,
-            contentDescription = null,
+            imageVector = GetoIcons.Shortcut,
+            contentDescription = "Add shortcut",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-
-    IconButton(
-        onClick = onSettingsSuggestIconClick,
-    ) {
+    IconButton(onClick = onSettingsSuggestIconClick) {
         Icon(
             imageVector = GetoIcons.SettingsSuggest,
-            contentDescription = null,
+            contentDescription = "Suggest template",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+@Composable
+private fun SuccessState(
+    appSettingsUiState: AppSettingsUiState.Success,
+    onCheckAppSetting: (AppSetting) -> Unit,
+    onDeleteAppSettingsItem: (AppSetting) -> Unit,
+) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(items = appSettingsUiState.appSettings) { appSetting ->
+            AppSettingItem(
+                appSetting = appSetting,
+                onCheckAppSetting = onCheckAppSetting,
+                onDeleteAppSetting = onDeleteAppSettingsItem,
+            )
+        }
+    }
+}
+
+@Composable
+private fun LazyItemScope.AppSettingItem(
+    appSetting: AppSetting,
+    onCheckAppSetting: (AppSetting) -> Unit,
+    onDeleteAppSetting: (AppSetting) -> Unit,
+) {
+    ListItem(
+        modifier = Modifier.animateItem(),
+        headlineContent = {
+            Text(
+                text = appSetting.label,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            )
+        },
+        supportingContent = {
+            Text(
+                text = appSetting.key,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        leadingContent = {
+            Checkbox(
+                checked = appSetting.enabled,
+                onCheckedChange = { onCheckAppSetting(appSetting) },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                ),
+            )
+        },
+        trailingContent = {
+            IconButton(onClick = { onDeleteAppSetting(appSetting) }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.background,
+        ),
+    )
 }
 
 @Composable
@@ -649,89 +611,42 @@ private fun EmptyState(
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+            .fillMaxSize()
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Icon(
-            modifier = Modifier.size(100.dp),
-            imageVector = GetoIcons.Android,
-            contentDescription = null,
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Text(text = title, style = MaterialTheme.typography.titleLarge)
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Text(text = subtitle, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@Composable
-private fun SuccessState(
-    modifier: Modifier = Modifier,
-    appSettingsUiState: AppSettingsUiState.Success,
-    onCheckAppSetting: (AppSetting) -> Unit,
-    onDeleteAppSettingsItem: (AppSetting) -> Unit,
-) {
-    LazyColumn(modifier = modifier) {
-        items(items = appSettingsUiState.appSettings, key = { it.id }) { appSettings ->
-            AppSettingItem(
-                appSetting = appSettings,
-                onCheckedChange = { check ->
-                    onCheckAppSetting(
-                        appSettings.copy(enabled = check),
-                    )
-                },
-                onDeleteClick = {
-                    onDeleteAppSettingsItem(appSettings)
-                },
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = GetoIcons.SettingsSuggest,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(40.dp),
             )
         }
-    }
-}
 
-@Composable
-private fun LazyItemScope.AppSettingItem(
-    modifier: Modifier = Modifier,
-    appSetting: AppSetting,
-    onCheckedChange: (Boolean) -> Unit,
-    onDeleteClick: () -> Unit,
-) {
-    ListItem(
-        modifier = modifier.animateItem(),
-        headlineContent = {
-            Text(
-                text = appSetting.label,
-            )
-        },
-        overlineContent = {
-            Text(
-                text = appSetting.key,
-            )
-        },
-        supportingContent = {
-            Text(
-                text = appSetting.settingType.getSettingTypeTitle(),
-            )
-        },
-        leadingContent = {
-            Checkbox(
-                checked = appSetting.enabled,
-                onCheckedChange = onCheckedChange,
-            )
-        },
-        trailingContent = {
-            IconButton(onClick = onDeleteClick) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = null,
-                )
-            }
-        },
-    )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 private fun getNotification(
@@ -750,35 +665,29 @@ private fun getNotification(
 
     val revertPendingIntent = PendingIntent.getBroadcast(
         context,
-        0,
+        notificationId,
         revertIntent,
         FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE,
     )
 
     return NotificationCompat.Builder(
         context,
-        AndroidNotificationManagerWrapper.NOTIFICATION_CHANNEL_ID,
-    ).apply {
-        setSmallIcon(com.android.geto.framework.notificationmanager.R.drawable.baseline_settings_24)
-
-        icon?.let {
-            setLargeIcon(Icon.createWithData(icon, 0, it.size))
-        }
-
-        setContentTitle(contentTitle)
-        setContentText(contentText)
-        setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        addAction(
-            com.android.geto.framework.notificationmanager.R.drawable.baseline_settings_24,
-            context.getString(com.android.geto.framework.notificationmanager.R.string.revert),
+        AndroidNotificationManagerWrapper.CHANNEL_ID,
+    )
+        .setSmallIcon(
+            if (icon != null) {
+                Icon.createWithData(icon, 0, icon.size)
+            } else {
+                Icon.createWithResource(context, android.R.drawable.ic_dialog_info)
+            },
+        )
+        .setContentTitle(contentTitle)
+        .setContentText(contentText)
+        .addAction(
+            android.R.drawable.ic_menu_revert,
+            "Revert",
             revertPendingIntent,
         )
-    }.build()
-}
-
-@Composable
-internal fun SettingType.getSettingTypeTitle() = when (this) {
-    SettingType.SYSTEM -> stringResource(R.string.system)
-    SettingType.SECURE -> stringResource(R.string.secure)
-    SettingType.GLOBAL -> stringResource(R.string.global)
+        .setAutoCancel(true)
+        .build()
 }

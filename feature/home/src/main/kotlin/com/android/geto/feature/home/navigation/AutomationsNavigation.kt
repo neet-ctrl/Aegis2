@@ -17,20 +17,24 @@
  */
 package com.android.geto.feature.home.navigation
 
-import androidx.annotation.StringRes
-import androidx.compose.ui.graphics.vector.ImageVector
-import kotlin.reflect.KClass
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import com.android.geto.feature.home.AutomationsRoute
 
-interface HomeDestination {
-    @get:StringRes
-    val label: Int
+fun NavController.navigateToAutomations() {
+    navigate(AutomationsRouteData) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
 
-    val icon: ImageVector
-
-    val selectedIcon: ImageVector
-
-    @get:StringRes
-    val contentDescription: Int
-
-    val route: KClass<*>
+fun NavGraphBuilder.automationsScreen() {
+    composable<AutomationsRouteData> {
+        AutomationsRoute()
+    }
 }
