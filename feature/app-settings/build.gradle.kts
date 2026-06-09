@@ -26,6 +26,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.activity.compose)
     implementation(projects.broadcastReceiver)
     implementation(projects.common)
     implementation(projects.domain.common)

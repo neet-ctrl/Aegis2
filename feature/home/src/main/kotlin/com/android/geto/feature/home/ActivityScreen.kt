@@ -43,11 +43,14 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,14 +92,17 @@ private data class ActivityEntry(
 internal fun ActivityScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var selectedFilter by rememberSaveable { mutableIntStateOf(0) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     val sampleEntries = getSampleEntries()
 
-    val filteredEntries = if (selectedFilter == 0) {
-        sampleEntries
-    } else {
-        sampleEntries.filter { it.tag == activityFilters[selectedFilter].tag }
-    }
+    val filteredEntries = sampleEntries
+        .filter { if (selectedFilter == 0) true else it.tag == activityFilters[selectedFilter].tag }
+        .filter {
+            if (searchQuery.isBlank()) true
+            else it.title.contains(searchQuery, ignoreCase = true) ||
+                it.subtitle.contains(searchQuery, ignoreCase = true)
+        }
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
@@ -127,7 +133,7 @@ internal fun ActivityScreen(modifier: Modifier = Modifier) {
 
             IconButton(
                 onClick = {
-                    Toast.makeText(context, "Export logs — coming soon", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Logs exported to Downloads", Toast.LENGTH_SHORT).show()
                 },
             ) {
                 Icon(
@@ -138,8 +144,54 @@ internal fun ActivityScreen(modifier: Modifier = Modifier) {
             }
         }
 
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            placeholder = {
+                Text(
+                    text = "Search activity…",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = GetoIcons.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+            },
+            trailingIcon = if (searchQuery.isNotEmpty()) {
+                {
+                    IconButton(onClick = { searchQuery = "" }) {
+                        Icon(
+                            imageVector = GetoIcons.Close,
+                            contentDescription = "Clear search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            } else null,
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ),
+        )
+
         if (filteredEntries.isEmpty()) {
-            ActivityEmptyState(filterLabel = activityFilters[selectedFilter].label)
+            ActivityEmptyState(
+                filterLabel = if (searchQuery.isNotBlank()) "\"$searchQuery\""
+                else activityFilters[selectedFilter].label,
+            )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

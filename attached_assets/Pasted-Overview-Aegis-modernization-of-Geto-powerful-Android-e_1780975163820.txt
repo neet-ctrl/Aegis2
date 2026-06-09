@@ -1,0 +1,38 @@
+Overview - Aegis, modernization of Geto, powerful Android environment control, Shizuku-based, no AI, offline-first ✅
+
+AShell U Commands - All commands user must run before app is fully functional, in Settings by default collapsed tray with copy button on each ✅ (We have this in Dashboard, but the spec says Settings too)
+
+Modern UI/UX - Material 3 Expressive, Material You, AMOLED/Light/Dark themes are all in place ✅
+
+Home Dashboard - Shows active automations, active per-app rules, trigger status, battery impact, and all permission status from AShell U in a collapsed tray that's expandable, plus recently triggered actions and quick shortcuts ✅ mostly
+
+Navigation - Dashboard, Apps, Automations, Activity, Settings are all there ✅, but universal search that instantly searches across apps, rules, triggers, actions, and settings is missing ❌
+
+Advanced App Manager - Each installed app should have its own configuration page displaying app icon, package name, UID, install date, and last update, but this isn't fully implemented yet ❌
+
+, and the AppSettingsScreen doesn't show permissions, activities, services, receivers, or providers ❌, nor does it display running state, app ops, all components, or the full Android manifest with copy functionality ❌, and it's missing open, settings, share, and save buttons ❌
+
+Advanced Per-App Controls - Display, audio, network, device state, and privacy controls per app haven't been implemented yet ❌
+
+Environment Detection Center - Showing what each app attempts to detect is still missing ❌
+
+Automation Engine - The 20 trigger types are already in place ✅
+
+Advanced Rule Builder - Visual drag-and-drop builder isn't implemented, only the UI scaffolding exists ❌
+
+Activity Center - Trigger history and rule executions need to be added with filters, search, and export capabilities ✅ partially
+
+Security & Privacy - App lock with fingerprint, face, or credential authentication per app isn't implemented ❌
+
+Hidden Vault - Hidden automations feature is missing ❌
+
+Backup & Restore - The SAF picker works but actual encryption isn't implemented ✅ partially
+
+Widgets - Not implemented ❌
+
+Quick Settings Tiles - Not implemented ❌
+
+Statistics - Not implemented ❌
+
+Accessibility - Only what Material 3 provides by default ❌
+

@@ -17,10 +17,16 @@
  */
 package com.android.geto.feature.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +44,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -56,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -216,6 +224,8 @@ private fun SuccessState(
                 subtitle = "No cloud sync, no analytics, no telemetry — ever",
             )
         }
+
+        AshellSetupSection()
 
         SettingsSection(title = "AShell U Permissions") {
             PermissionStatusRow(
@@ -538,6 +548,177 @@ private fun PermissionStatusRow(
                 else MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             )
+        }
+    }
+}
+
+private data class AshellCommand(
+    val step: String,
+    val label: String,
+    val command: String,
+    val required: Boolean = false,
+)
+
+private val ashellCommands = listOf(
+    AshellCommand("Step 1 — REQUIRED", "Write Secure Settings", "adb shell pm grant com.android.geto android.permission.WRITE_SECURE_SETTINGS", required = true),
+    AshellCommand("Step 1 — REQUIRED", "Dump", "adb shell pm grant com.android.geto android.permission.DUMP", required = true),
+    AshellCommand("Step 1 — REQUIRED", "Write Settings", "adb shell pm grant com.android.geto android.permission.WRITE_SETTINGS", required = true),
+    AshellCommand("Step 2 — Recommended", "Read Logs", "adb shell pm grant com.android.geto android.permission.READ_LOGS"),
+    AshellCommand("Step 2 — Recommended", "Change Configuration", "adb shell pm grant com.android.geto android.permission.CHANGE_CONFIGURATION"),
+    AshellCommand("Step 2 — Recommended", "Get Usage Stats", "adb shell appops set com.android.geto GET_USAGE_STATS allow"),
+    AshellCommand("Step 2 — Recommended", "Package Usage Stats", "adb shell appops set com.android.geto PACKAGE_USAGE_STATS allow"),
+    AshellCommand("Step 2 — Recommended", "Battery Stats", "adb shell pm grant com.android.geto android.permission.BATTERY_STATS"),
+    AshellCommand("Step 3 — Optional", "Manage App Ops", "adb shell pm grant com.android.geto android.permission.MANAGE_APP_OPS_MODES"),
+    AshellCommand("Step 3 — Optional", "Notification Policy", "adb shell pm grant com.android.geto android.permission.ACCESS_NOTIFICATION_POLICY"),
+    AshellCommand("Step 3 — Optional", "Change Network State", "adb shell pm grant com.android.geto android.permission.CHANGE_NETWORK_STATE"),
+    AshellCommand("Step 3 — Optional", "Status Bar", "adb shell pm grant com.android.geto android.permission.STATUS_BAR"),
+    AshellCommand("Step 3 — Optional", "Read Device Config", "adb shell pm grant com.android.geto android.permission.READ_DEVICE_CONFIG"),
+)
+
+@Composable
+private fun AshellSetupSection() {
+    val context = LocalContext.current
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = "ASHELL U SETUP GUIDE",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+        )
+
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = !expanded }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = GetoIcons.Terminal,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = "Run these commands in AShell U",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = "${ashellCommands.size} commands · 3 required · tap to ${if (expanded) "collapse" else "expand"}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = if (expanded) GetoIcons.ExpandLess else GetoIcons.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = expandVertically(),
+                    exit = shrinkVertically(),
+                ) {
+                    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                        var lastStep = ""
+                        ashellCommands.forEach { cmd ->
+                            if (cmd.step != lastStep) {
+                                lastStep = cmd.step
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(50.dp),
+                                        color = if (cmd.required) MaterialTheme.colorScheme.errorContainer
+                                        else MaterialTheme.colorScheme.secondaryContainer,
+                                    ) {
+                                        Text(
+                                            text = cmd.step,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                            color = if (cmd.required) MaterialTheme.colorScheme.onErrorContainer
+                                            else MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                        )
+                                    }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                                ) {
+                                    Text(
+                                        text = cmd.label,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = cmd.command,
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                        ),
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        clipboard.setPrimaryClip(ClipData.newPlainText("AShell command", cmd.command))
+                                        Toast.makeText(context, "Copied: ${cmd.label}", Toast.LENGTH_SHORT).show()
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = GetoIcons.Copy,
+                                        contentDescription = "Copy command",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

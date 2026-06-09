@@ -23,7 +23,15 @@ import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,7 +52,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,14 +67,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -192,10 +203,58 @@ internal fun AppSettingsScreen(
     onResetAddAppSettingResult: () -> Unit,
     onNavigationIconClick: () -> Unit,
 ) {
+    val context = LocalContext.current
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var showAppSettingDialog by remember { mutableStateOf(false) }
     var showShortcutDialog by remember { mutableStateOf(false) }
     var showTemplateDialog by remember { mutableStateOf(false) }
     var showWriteSecureSettingsDialog by remember { mutableStateOf(false) }
+
+    val packageName = remember(appSettingsRouteData.componentName) {
+        appSettingsRouteData.componentName.substringBefore("/")
+    }
+
+    val packageInfo: PackageInfo? = remember(packageName) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.PackageInfoFlags.of(
+                        (PackageManager.GET_PERMISSIONS or
+                            PackageManager.GET_ACTIVITIES or
+                            PackageManager.GET_SERVICES or
+                            PackageManager.GET_RECEIVERS or
+                            PackageManager.GET_PROVIDERS).toLong(),
+                    ),
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.GET_PERMISSIONS or
+                        PackageManager.GET_ACTIVITIES or
+                        PackageManager.GET_SERVICES or
+                        PackageManager.GET_RECEIVERS or
+                        PackageManager.GET_PROVIDERS,
+                )
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    val saveIconLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("image/png"),
+    ) { uri ->
+        if (uri != null && activityIcon != null) {
+            try {
+                context.contentResolver.openOutputStream(uri)?.use { it.write(activityIcon) }
+                Toast.makeText(context, "Icon saved", Toast.LENGTH_SHORT).show()
+            } catch (_: Exception) {
+                Toast.makeText(context, "Failed to save icon", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     AppSettingsLaunchedEffects(
         appSettingsRouteData = appSettingsRouteData,
@@ -234,51 +293,136 @@ internal fun AppSettingsScreen(
         topBar = {
             AppSettingsTopAppBar(
                 title = appSettingsRouteData.activityLabel,
-                activityIcon = activityIcon,
                 onNavigationIconClick = onNavigationIconClick,
+                onSaveIconClick = {
+                    saveIconLauncher.launch(
+                        "${appSettingsRouteData.activityLabel.replace(" ", "_")}_icon.png",
+                    )
+                },
+                onShareClick = {
+                    val versionName = packageInfo?.versionName ?: "?"
+                    val uid = packageInfo?.applicationInfo?.uid ?: 0
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "App: ${appSettingsRouteData.activityLabel}\nPackage: $packageName\nVersion: $versionName\nUID: $uid",
+                        )
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Share App Info"))
+                },
             )
         },
         bottomBar = {
-            AppSettingsBottomAppBar(
-                onRefreshIconClick = onRevertAppSettings,
-                onSettingsIconClick = { showAppSettingDialog = true },
-                onShortcutIconClick = { showShortcutDialog = true },
-                onSettingsSuggestIconClick = { showTemplateDialog = true },
-                onFloatingActionButtonClick = onApplyAppSettings,
-            )
+            if (selectedTab == 0) {
+                AppSettingsBottomAppBar(
+                    onRefreshIconClick = onRevertAppSettings,
+                    onSettingsIconClick = { showAppSettingDialog = true },
+                    onShortcutIconClick = { showShortcutDialog = true },
+                    onSettingsSuggestIconClick = { showTemplateDialog = true },
+                    onFloatingActionButtonClick = onApplyAppSettings,
+                )
+            }
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = modifier
                 .padding(innerPadding)
                 .fillMaxSize()
                 .consumeWindowInsets(innerPadding),
         ) {
-            when (appSettingsUiState) {
-                AppSettingsUiState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.primary,
+            AppInfoHeader(
+                icon = activityIcon,
+                label = appSettingsRouteData.activityLabel,
+                packageName = packageName,
+                packageInfo = packageInfo,
+            )
+
+            AppActionButtons(
+                onOpenApp = {
+                    context.packageManager.getLaunchIntentForPackage(packageName)?.let {
+                        context.startActivity(it)
+                    } ?: Toast.makeText(context, "Cannot launch app", Toast.LENGTH_SHORT).show()
+                },
+                onAppSystemSettings = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.parse("package:$packageName")
+                        },
+                    )
+                },
+                onShareApp = {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, "Package: $packageName · ${appSettingsRouteData.activityLabel}")
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Share App Info"))
+                },
+                onSaveIcon = {
+                    saveIconLauncher.launch(
+                        "${appSettingsRouteData.activityLabel.replace(" ", "_")}_icon.png",
+                    )
+                },
+            )
+
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.primary,
+            ) {
+                listOf("Rules", "Details", "Controls").forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        },
                     )
                 }
+            }
 
-                is AppSettingsUiState.Success -> {
-                    if (appSettingsUiState.appSettings.isNotEmpty()) {
-                        SuccessState(
-                            appSettingsUiState = appSettingsUiState,
-                            onCheckAppSetting = onCheckAppSetting,
-                            onDeleteAppSettingsItem = onDeleteAppSetting,
-                        )
-                    } else {
-                        EmptyState(
-                            title = stringResource(R.string.no_settings_found),
-                            subtitle = stringResource(R.string.add_your_first_settings),
-                        )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            ) {
+                when (selectedTab) {
+                    0 -> when (appSettingsUiState) {
+                        AppSettingsUiState.Loading -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        is AppSettingsUiState.Success -> {
+                            if (appSettingsUiState.appSettings.isNotEmpty()) {
+                                SuccessState(
+                                    appSettingsUiState = appSettingsUiState,
+                                    onCheckAppSetting = onCheckAppSetting,
+                                    onDeleteAppSettingsItem = onDeleteAppSetting,
+                                )
+                            } else {
+                                EmptyState(
+                                    title = stringResource(R.string.no_settings_found),
+                                    subtitle = stringResource(R.string.add_your_first_settings),
+                                )
+                            }
+                        }
                     }
+                    1 -> AppDetailsTab(
+                        packageName = packageName,
+                        packageInfo = packageInfo,
+                    )
+                    2 -> AppControlsTab(
+                        onAddRule = { showAppSettingDialog = true },
+                    )
                 }
             }
         }
@@ -435,8 +579,9 @@ private fun AppSettingsDialogs(
 private fun AppSettingsTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
-    activityIcon: ByteArray?,
     onNavigationIconClick: () -> Unit,
+    onSaveIconClick: () -> Unit,
+    onShareClick: () -> Unit,
 ) {
     TopAppBar(
         modifier = modifier,
@@ -452,8 +597,24 @@ private fun AppSettingsTopAppBar(
             IconButton(onClick = onNavigationIconClick) {
                 Icon(
                     imageVector = GetoIcons.Back,
-                    contentDescription = null,
+                    contentDescription = "Back",
                     tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onShareClick) {
+                Icon(
+                    imageVector = GetoIcons.ArrowForward,
+                    contentDescription = "Share app info",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onSaveIconClick) {
+                Icon(
+                    imageVector = GetoIcons.SaveAlt,
+                    contentDescription = "Save app icon",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
