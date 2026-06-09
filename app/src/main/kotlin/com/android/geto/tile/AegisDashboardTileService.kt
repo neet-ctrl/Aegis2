@@ -18,10 +18,12 @@
 package com.android.geto.tile
 
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
+import com.android.geto.R
 import com.android.geto.activity.main.MainActivity
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -30,6 +32,7 @@ class AegisDashboardTileService : TileService() {
     override fun onStartListening() {
         super.onStartListening()
         qsTile?.apply {
+            icon = Icon.createWithResource(this@AegisDashboardTileService, R.drawable.ic_qs_dashboard)
             state = Tile.STATE_ACTIVE
             label = "Aegis"
             contentDescription = "Open Aegis Dashboard"

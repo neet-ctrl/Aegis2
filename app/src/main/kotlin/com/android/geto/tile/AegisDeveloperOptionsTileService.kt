@@ -1,11 +1,13 @@
 package com.android.geto.tile
 
 import android.content.pm.PackageManager
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.provider.Settings
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
+import com.android.geto.R
 
 @RequiresApi(Build.VERSION_CODES.N)
 class AegisDeveloperOptionsTileService : TileService() {
@@ -22,6 +24,7 @@ class AegisDeveloperOptionsTileService : TileService() {
     override fun onStartListening() {
         super.onStartListening()
         qsTile?.apply {
+            icon = Icon.createWithResource(this@AegisDeveloperOptionsTileService, R.drawable.ic_qs_developer)
             if (!hasPermission()) {
                 state = Tile.STATE_UNAVAILABLE
                 label = "Dev Options"

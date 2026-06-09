@@ -2,10 +2,12 @@ package com.android.geto.tile
 
 import android.app.UiModeManager
 import android.content.Context
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
+import com.android.geto.R
 
 @RequiresApi(Build.VERSION_CODES.N)
 class AegisDarkModeTileService : TileService() {
@@ -18,6 +20,7 @@ class AegisDarkModeTileService : TileService() {
     override fun onStartListening() {
         super.onStartListening()
         qsTile?.apply {
+            icon = Icon.createWithResource(this@AegisDarkModeTileService, R.drawable.ic_qs_dark_mode)
             val enabled = isDarkModeEnabled()
             state = if (enabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
             label = "Dark Mode"

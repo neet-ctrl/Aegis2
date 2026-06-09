@@ -32,8 +32,9 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -1106,6 +1107,51 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
     ),
 )
 
+// ── Settings page mapping ─────────────────────────────────────────────────────
+
+private fun settingsPageForToggle(id: String): String = when (id) {
+    // Developer Tools
+    "dev_options", "usb_debugging", "wifi_debugging", "show_touches",
+    "pointer_location", "show_layout_bounds", "dont_keep_activities",
+    "window_anim_off", "transition_anim_off", "animator_off",
+    "stay_awake", "bugreport_power_menu", "gpu_overdraw",
+    "strict_mode", "verbose_wifi_log", "force_rtl",
+    "mock_location", "dev_freeform" -> Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS
+    // Network
+    "wifi" -> Settings.ACTION_WIFI_SETTINGS
+    "airplane_mode" -> Settings.ACTION_AIRPLANE_MODE_SETTINGS
+    "bluetooth" -> Settings.ACTION_BLUETOOTH_SETTINGS
+    "nfc" -> Settings.ACTION_NFC_SETTINGS
+    "mobile_data", "data_roaming" -> Settings.ACTION_DATA_ROAMING_SETTINGS
+    "hotspot", "network_anim" -> Settings.ACTION_WIRELESS_SETTINGS
+    // Display
+    "auto_rotate", "auto_brightness", "dark_mode", "night_light" -> Settings.ACTION_DISPLAY_SETTINGS
+    "screen_saver" -> Settings.ACTION_DREAM_SETTINGS
+    "high_contrast", "color_inversion", "large_text", "magnification" -> Settings.ACTION_ACCESSIBILITY_SETTINGS
+    // Sound
+    "dnd" -> Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS
+    "vibration", "silent_mode", "touch_sounds",
+    "haptic_feedback", "lockscreen_sounds" -> Settings.ACTION_SOUND_SETTINGS
+    // Battery
+    "battery_saver", "adaptive_battery",
+    "performance_mode", "background_apps_limit" -> Settings.ACTION_BATTERY_SAVER_SETTINGS
+    "auto_sync" -> Settings.ACTION_SYNC_SETTINGS
+    // Privacy & Location
+    "location" -> Settings.ACTION_LOCATION_SOURCE_SETTINGS
+    "camera_toggle", "mic_toggle", "clipboard_access" -> Settings.ACTION_PRIVACY_SETTINGS
+    "usage_access" -> Settings.ACTION_USAGE_ACCESS_SETTINGS
+    "notification_history" -> Settings.ACTION_NOTIFICATION_SETTINGS
+    // Accessibility
+    "talkback", "accessibility_shortcut",
+    "color_correction", "select_to_speak" -> Settings.ACTION_ACCESSIBILITY_SETTINGS
+    // System
+    "oem_unlock" -> Settings.ACTION_DEVICE_INFO_SETTINGS
+    "install_unknown" -> Settings.ACTION_SECURITY_SETTINGS
+    "overlay_permission" -> Settings.ACTION_MANAGE_OVERLAY_PERMISSION
+    "write_settings" -> Settings.ACTION_MANAGE_WRITE_SETTINGS
+    else -> Settings.ACTION_SETTINGS
+}
+
 // ── Composables ───────────────────────────────────────────────────────────────
 
 @Composable
@@ -1160,6 +1206,13 @@ internal fun QuickTogglesRoute(
                 }
             }
         },
+        onLongClick = { toggle ->
+            try {
+                val intent = Intent(settingsPageForToggle(toggle.id))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            } catch (_: Exception) { }
+        },
         onNavigationIconClick = onNavigationIconClick,
     )
 }
@@ -1173,6 +1226,7 @@ private fun QuickTogglesScreen(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onToggle: (QuickToggle, Boolean) -> Unit,
+    onLongClick: (QuickToggle) -> Unit,
     onNavigationIconClick: () -> Unit,
 ) {
     val filtered = remember(searchQuery, allToggles) {
@@ -1251,6 +1305,7 @@ private fun QuickTogglesScreen(
                         toggle = toggle,
                         isOn = isOn,
                         onToggle = { onToggle(toggle, !isOn) },
+                        onLongClick = { onLongClick(toggle) },
                     )
                 }
                 item(span = { GridItemSpan(4) }) {
@@ -1348,11 +1403,13 @@ private fun CategoryHeader(category: String) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ToggleTile(
     toggle: QuickToggle,
     isOn: Boolean,
     onToggle: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     val bgColor by animateColorAsState(
         targetValue = if (isOn) MaterialTheme.colorScheme.primaryContainer
@@ -1377,7 +1434,7 @@ private fun ToggleTile(
         modifier = Modifier
             .clip(RoundedCornerShape(18.dp))
             .background(bgColor)
-            .clickable(onClick = onToggle)
+            .combinedClickable(onClick = onToggle, onLongClick = onLongClick)
             .padding(vertical = 12.dp, horizontal = 6.dp),
         contentAlignment = Alignment.Center,
     ) {

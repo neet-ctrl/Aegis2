@@ -1,38 +1,69 @@
-/*
- *
- *   Copyright 2023 Einstein Blanco
- *
- *   Licensed under the GNU General Public License v3.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       https://www.gnu.org/licenses/gpl-3.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
- */
 package com.android.geto.widget
 
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.UiModeManager
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.bluetooth.BluetoothManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.widget.RemoteViews
 import com.android.geto.R
-import com.android.geto.activity.main.MainActivity
 
 class AegisQuickTogglesWidgetProvider : AppWidgetProvider() {
+
+    companion object {
+        const val ACTION_WIDGET_TOGGLE = "com.android.geto.ACTION_WIDGET_TOGGLE"
+        const val EXTRA_TOGGLE_INDEX = "toggle_index"
+
+        private val TILE_IDS = intArrayOf(
+            R.id.wqt_tile_1, R.id.wqt_tile_2, R.id.wqt_tile_3,
+            R.id.wqt_tile_4, R.id.wqt_tile_5, R.id.wqt_tile_6,
+            R.id.wqt_tile_7, R.id.wqt_tile_8, R.id.wqt_tile_9,
+            R.id.wqt_tile_10,
+        )
+        private val ICON_IDS = intArrayOf(
+            R.id.wqt_icon_1, R.id.wqt_icon_2, R.id.wqt_icon_3,
+            R.id.wqt_icon_4, R.id.wqt_icon_5, R.id.wqt_icon_6,
+            R.id.wqt_icon_7, R.id.wqt_icon_8, R.id.wqt_icon_9,
+            R.id.wqt_icon_10,
+        )
+        private val NAME_IDS = intArrayOf(
+            R.id.wqt_name_1, R.id.wqt_name_2, R.id.wqt_name_3,
+            R.id.wqt_name_4, R.id.wqt_name_5, R.id.wqt_name_6,
+            R.id.wqt_name_7, R.id.wqt_name_8, R.id.wqt_name_9,
+            R.id.wqt_name_10,
+        )
+        private val STATUS_IDS = intArrayOf(
+            R.id.wqt_status_1, R.id.wqt_status_2, R.id.wqt_status_3,
+            R.id.wqt_status_4, R.id.wqt_status_5, R.id.wqt_status_6,
+            R.id.wqt_status_7, R.id.wqt_status_8, R.id.wqt_status_9,
+            R.id.wqt_status_10,
+        )
+        private val ICON_RES = intArrayOf(
+            R.drawable.ic_qs_developer,
+            R.drawable.ic_qs_usb,
+            R.drawable.ic_qs_wifi_debug,
+            R.drawable.ic_qs_dark_mode,
+            R.drawable.ic_qs_auto_rotate,
+            R.drawable.ic_qs_wifi,
+            R.drawable.ic_qs_bluetooth,
+            R.drawable.ic_qs_night_light,
+            R.drawable.ic_qs_battery_saver,
+            R.drawable.ic_qs_dnd,
+        )
+        private val LABELS = arrayOf(
+            "Dev Options", "USB Debug", "WiFi Debug", "Dark Mode", "Auto-rotate",
+            "WiFi", "Bluetooth", "Night Light", "Battery Saver", "Do Not Disturb",
+        )
+    }
 
     override fun onUpdate(
         context: Context,
@@ -44,109 +75,178 @@ class AegisQuickTogglesWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, widgetId: Int) {
-        val views = RemoteViews(context.packageName, R.layout.widget_quick_toggles)
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == ACTION_WIDGET_TOGGLE) {
+            val index = intent.getIntExtra(EXTRA_TOGGLE_INDEX, -1)
+            if (index in 0..9) {
+                Thread {
+                    runCatching { performToggle(context, index) }
+                    val manager = AppWidgetManager.getInstance(context)
+                    val component = ComponentName(context, AegisQuickTogglesWidgetProvider::class.java)
+                    val ids = manager.getAppWidgetIds(component)
+                    onUpdate(context, manager, ids)
+                }.start()
+            }
+            return
+        }
+        super.onReceive(context, intent)
+    }
 
-        val statuses = readTop10Statuses(context)
+    private fun performToggle(context: Context, index: Int) {
+        val cr = context.contentResolver
+        val pm = context.packageManager
+        val hasSecure = pm.checkPermission(
+            "android.permission.WRITE_SECURE_SETTINGS", context.packageName,
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasWriteSettings = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.System.canWrite(context)
+        } else true
 
-        val nameIds = intArrayOf(
-            R.id.wqt_name_1, R.id.wqt_name_2, R.id.wqt_name_3, R.id.wqt_name_4, R.id.wqt_name_5,
-            R.id.wqt_name_6, R.id.wqt_name_7, R.id.wqt_name_8, R.id.wqt_name_9, R.id.wqt_name_10,
-        )
-        val statusIds = intArrayOf(
-            R.id.wqt_status_1, R.id.wqt_status_2, R.id.wqt_status_3, R.id.wqt_status_4, R.id.wqt_status_5,
-            R.id.wqt_status_6, R.id.wqt_status_7, R.id.wqt_status_8, R.id.wqt_status_9, R.id.wqt_status_10,
-        )
-
-        statuses.forEachIndexed { index, (name, isOn) ->
-            if (index < nameIds.size) {
-                views.setTextViewText(nameIds[index], name)
-                views.setTextViewText(statusIds[index], if (isOn) "ON" else "OFF")
-                views.setTextColor(
-                    statusIds[index],
-                    if (isOn) android.graphics.Color.parseColor("#4CAF50")
-                    else android.graphics.Color.parseColor("#F44336"),
-                )
+        when (index) {
+            0 -> { // Dev Options
+                if (!hasSecure) return
+                val cur = Settings.Global.getInt(cr, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0) == 1
+                runCatching { Settings.Global.putInt(cr, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, if (cur) 0 else 1) }
+            }
+            1 -> { // USB Debug
+                if (!hasSecure) return
+                val cur = Settings.Global.getInt(cr, Settings.Global.ADB_ENABLED, 0) == 1
+                runCatching { Settings.Global.putInt(cr, Settings.Global.ADB_ENABLED, if (cur) 0 else 1) }
+            }
+            2 -> { // WiFi Debug
+                if (!hasSecure || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+                val cur = Settings.Global.getInt(cr, "adb_wifi_enabled", 0) == 1
+                runCatching { Settings.Global.putInt(cr, "adb_wifi_enabled", if (cur) 0 else 1) }
+            }
+            3 -> { // Dark Mode
+                runCatching {
+                    val uiManager = context.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
+                    val cur = uiManager?.nightMode == UiModeManager.MODE_NIGHT_YES
+                    uiManager?.nightMode = if (cur) UiModeManager.MODE_NIGHT_NO else UiModeManager.MODE_NIGHT_YES
+                }
+            }
+            4 -> { // Auto-rotate
+                if (!hasWriteSettings) return
+                val cur = Settings.System.getInt(cr, Settings.System.ACCELEROMETER_ROTATION, 0) == 1
+                runCatching { Settings.System.putInt(cr, Settings.System.ACCELEROMETER_ROTATION, if (cur) 0 else 1) }
+            }
+            5 -> { // WiFi
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    runCatching {
+                        @Suppress("DEPRECATION")
+                        val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                        val cur = wm?.isWifiEnabled == true
+                        wm?.setWifiEnabled(!cur)
+                    }
+                }
+                // Android 10+: can't toggle WiFi directly — read-only status
+            }
+            6 -> { // Bluetooth
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    runCatching {
+                        @Suppress("DEPRECATION", "MissingPermission")
+                        val btm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+                        val cur = btm?.adapter?.isEnabled == true
+                        if (cur) btm?.adapter?.disable() else btm?.adapter?.enable()
+                    }
+                }
+                // Android 13+: can't toggle BT directly — read-only status
+            }
+            7 -> { // Night Light
+                if (!hasSecure) return
+                val cur = Settings.Secure.getInt(cr, "night_display_activated", 0) == 1
+                runCatching { Settings.Secure.putInt(cr, "night_display_activated", if (cur) 0 else 1) }
+            }
+            8 -> { // Battery Saver
+                if (!hasSecure) return
+                val pm2 = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                val cur = pm2?.isPowerSaveMode == true
+                runCatching { Settings.Global.putInt(cr, "low_power", if (cur) 0 else 1) }
+            }
+            9 -> { // Do Not Disturb
+                runCatching {
+                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                    if (nm?.isNotificationPolicyAccessGranted == true) {
+                        val cur = nm.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
+                        nm.setInterruptionFilter(
+                            if (cur) NotificationManager.INTERRUPTION_FILTER_ALL
+                            else NotificationManager.INTERRUPTION_FILTER_PRIORITY,
+                        )
+                    }
+                }
             }
         }
+    }
 
+    private fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, widgetId: Int) {
+        val views = RemoteViews(context.packageName, R.layout.widget_quick_toggles)
+        val statuses = readStatuses(context)
         val pendingFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        } else PendingIntent.FLAG_UPDATE_CURRENT
 
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            action = "com.android.geto.ACTION_OPEN_QUICK_TOGGLES"
+        statuses.forEachIndexed { index, isOn ->
+            val tileId = TILE_IDS[index]
+            val iconId = ICON_IDS[index]
+            val nameId = NAME_IDS[index]
+            val statusId = STATUS_IDS[index]
+
+            views.setImageViewResource(iconId, ICON_RES[index])
+            views.setTextViewText(nameId, LABELS[index])
+            views.setTextViewText(statusId, if (isOn) "ON" else "OFF")
+
+            views.setInt(
+                tileId, "setBackgroundResource",
+                if (isOn) R.drawable.widget_tile_active else R.drawable.widget_tile_inactive,
+            )
+
+            val toggleIntent = Intent(context, AegisQuickTogglesWidgetProvider::class.java).apply {
+                action = ACTION_WIDGET_TOGGLE
+                putExtra(EXTRA_TOGGLE_INDEX, index)
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+            }
+            val pi = PendingIntent.getBroadcast(
+                context,
+                widgetId * 100 + index,
+                toggleIntent,
+                pendingFlags,
+            )
+            views.setOnClickPendingIntent(tileId, pi)
         }
-        val pendingIntent = PendingIntent.getActivity(context, 10, intent, pendingFlags)
-        views.setOnClickPendingIntent(R.id.widget_quick_toggles_root, pendingIntent)
 
         appWidgetManager.updateAppWidget(widgetId, views)
     }
 
-    private fun readTop10Statuses(context: Context): List<Pair<String, Boolean>> {
+    private fun readStatuses(context: Context): List<Boolean> {
         val cr = context.contentResolver
-
-        fun safeInt(key: String, default: Int = 0) = runCatching {
-            Settings.Global.getInt(cr, key, default)
-        }.getOrDefault(default)
-
-        fun safeSecureInt(key: String, default: Int = 0) = runCatching {
-            Settings.Secure.getInt(cr, key, default)
-        }.getOrDefault(default)
-
-        fun safeSystemInt(key: String, default: Int = 0) = runCatching {
-            Settings.System.getInt(cr, key, default)
-        }.getOrDefault(default)
-
-        val devOptions = safeInt(Settings.Global.DEVELOPMENT_SETTINGS_ENABLED) == 1
-        val usbDebug = safeInt(Settings.Global.ADB_ENABLED) == 1
-        val wifiDebug = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            safeInt("adb_wifi_enabled") == 1
-        } else false
-
-        val uiManager = runCatching {
-            context.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
-        }.getOrNull()
-        val darkMode = uiManager?.nightMode == UiModeManager.MODE_NIGHT_YES
-
-        val autoRotate = safeSystemInt(Settings.System.ACCELEROMETER_ROTATION) == 1
-
-        val wifiManager = runCatching {
-            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-        }.getOrNull()
-        val wifi = wifiManager?.isWifiEnabled == true
-
-        val btManager = runCatching {
-            context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-        }.getOrNull()
-        val bluetooth = btManager?.adapter?.isEnabled == true
-
-        val nightLight = safeSecureInt("night_display_activated") == 1
-
-        val powerManager = runCatching {
-            context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-        }.getOrNull()
-        val batterySaver = powerManager?.isPowerSaveMode == true
-
-        val dndEnabled = runCatching {
-            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
-            nm?.currentInterruptionFilter?.let { it != android.app.NotificationManager.INTERRUPTION_FILTER_ALL } == true
-        }.getOrDefault(false)
-
         return listOf(
-            "Dev Options" to devOptions,
-            "USB Debug" to usbDebug,
-            "WiFi Debug" to wifiDebug,
-            "Dark Mode" to darkMode,
-            "Auto-rotate" to autoRotate,
-            "WiFi" to wifi,
-            "Bluetooth" to bluetooth,
-            "Night Light" to nightLight,
-            "Battery Saver" to batterySaver,
-            "Do Not Disturb" to dndEnabled,
+            runCatching { Settings.Global.getInt(cr, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0) == 1 }.getOrDefault(false),
+            runCatching { Settings.Global.getInt(cr, Settings.Global.ADB_ENABLED, 0) == 1 }.getOrDefault(false),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                runCatching { Settings.Global.getInt(cr, "adb_wifi_enabled", 0) == 1 }.getOrDefault(false)
+            else false,
+            runCatching {
+                val uiManager = context.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
+                uiManager?.nightMode == UiModeManager.MODE_NIGHT_YES
+            }.getOrDefault(false),
+            runCatching { Settings.System.getInt(cr, Settings.System.ACCELEROMETER_ROTATION, 0) == 1 }.getOrDefault(false),
+            runCatching {
+                val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                wm?.isWifiEnabled == true
+            }.getOrDefault(false),
+            runCatching {
+                val btm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+                btm?.adapter?.isEnabled == true
+            }.getOrDefault(false),
+            runCatching { Settings.Secure.getInt(cr, "night_display_activated", 0) == 1 }.getOrDefault(false),
+            runCatching {
+                val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                pm?.isPowerSaveMode == true
+            }.getOrDefault(false),
+            runCatching {
+                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                nm?.currentInterruptionFilter?.let { it != NotificationManager.INTERRUPTION_FILTER_ALL } == true
+            }.getOrDefault(false),
         )
     }
 }

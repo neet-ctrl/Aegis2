@@ -18,10 +18,12 @@
 package com.android.geto.tile
 
 import android.content.SharedPreferences
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
+import com.android.geto.R
 
 @RequiresApi(Build.VERSION_CODES.N)
 class AegisAutomationTileService : TileService() {
@@ -50,6 +52,7 @@ class AegisAutomationTileService : TileService() {
 
     private fun refreshTile() {
         qsTile?.apply {
+            icon = Icon.createWithResource(this@AegisAutomationTileService, R.drawable.ic_qs_automation)
             state = if (automationsEnabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
             label = "Automations"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

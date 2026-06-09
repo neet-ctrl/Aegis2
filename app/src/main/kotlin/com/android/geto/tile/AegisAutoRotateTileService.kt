@@ -1,10 +1,12 @@
 package com.android.geto.tile
 
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.provider.Settings
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
+import com.android.geto.R
 
 @RequiresApi(Build.VERSION_CODES.N)
 class AegisAutoRotateTileService : TileService() {
@@ -19,6 +21,7 @@ class AegisAutoRotateTileService : TileService() {
     override fun onStartListening() {
         super.onStartListening()
         qsTile?.apply {
+            icon = Icon.createWithResource(this@AegisAutoRotateTileService, R.drawable.ic_qs_auto_rotate)
             if (!canWrite()) {
                 state = Tile.STATE_UNAVAILABLE
                 label = "Auto-rotate"

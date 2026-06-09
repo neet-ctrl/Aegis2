@@ -149,7 +149,7 @@
         <service
             android:name=".tile.AegisDashboardTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_dashboard"
             android:label="Aegis"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -161,7 +161,7 @@
         <service
             android:name=".tile.AegisAutomationTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_automation"
             android:label="Automations"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -169,11 +169,24 @@
             </intent-filter>
         </service>
 
+        <!-- Quick Settings Tile long-press: opens the relevant Settings page -->
+        <activity
+            android:name=".tile.TilePreferencesActivity"
+            android:exported="true"
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.Geto.Shortcut">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- Quick Settings Tile: Developer Options -->
         <service
             android:name=".tile.AegisDeveloperOptionsTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_developer"
             android:label="Dev Options"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -185,7 +198,7 @@
         <service
             android:name=".tile.AegisUsbDebuggingTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_usb"
             android:label="USB Debug"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -197,7 +210,7 @@
         <service
             android:name=".tile.AegisWifiDebuggingTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_wifi_debug"
             android:label="WiFi Debug"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -209,7 +222,7 @@
         <service
             android:name=".tile.AegisDarkModeTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_dark_mode"
             android:label="Dark Mode"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -221,7 +234,7 @@
         <service
             android:name=".tile.AegisAutoRotateTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_auto_rotate"
             android:label="Auto-rotate"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -289,6 +302,7 @@
             android:label="Aegis Quick Toggles Widget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.android.geto.ACTION_WIDGET_TOGGLE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
