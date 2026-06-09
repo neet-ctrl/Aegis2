@@ -163,6 +163,9 @@ internal fun AutomationBuilderSheet(
     var delaySeconds by remember { mutableStateOf("0") }
     var automationName by remember { mutableStateOf(initialName) }
     var isHidden by remember { mutableStateOf(false) }
+    var scheduleHour by remember { mutableIntStateOf(8) }
+    var scheduleMinute by remember { mutableIntStateOf(0) }
+    val scheduleDays = remember { mutableStateListOf<String>() }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -212,6 +215,15 @@ internal fun AutomationBuilderSheet(
                     onSelect = { selectedTrigger = it },
                 )
                 1 -> ConditionsStep(
+                    triggerLabel = selectedTrigger?.label,
+                    scheduleHour = scheduleHour,
+                    scheduleMinute = scheduleMinute,
+                    scheduleDays = scheduleDays,
+                    onScheduleHourChange = { scheduleHour = it },
+                    onScheduleMinuteChange = { scheduleMinute = it },
+                    onScheduleDayToggle = { day ->
+                        if (day in scheduleDays) scheduleDays.remove(day) else scheduleDays.add(day)
+                    },
                     conditions = conditions,
                     logic = conditionLogic,
                     onLogicChange = { conditionLogic = it },
@@ -276,12 +288,30 @@ internal fun AutomationBuilderSheet(
                                 val actionSummary = selectedActions
                                     .joinToString(", ") { it.first.label }
                                     .ifEmpty { "No actions" }
+                                // For Time/Day Schedule triggers, build the condition from
+                                // the dedicated picker state instead of the generic condition list.
+                                val triggerLabel = selectedTrigger?.label ?: "Unknown"
+                                val finalConditions: List<AutomationCondition> = when (triggerLabel) {
+                                    "Time Schedule" -> listOf(
+                                        AutomationCondition(
+                                            "time", "is",
+                                            "%02d:%02d".format(scheduleHour, scheduleMinute),
+                                        ),
+                                    )
+                                    "Day Schedule" -> if (scheduleDays.isNotEmpty()) listOf(
+                                        AutomationCondition(
+                                            "day", "is",
+                                            scheduleDays.joinToString(","),
+                                        ),
+                                    ) else emptyList()
+                                    else -> conditions.toList()
+                                }
                                 val automationId = System.currentTimeMillis()
                                 val automation = SavedAutomation(
                                     id = automationId,
                                     name = automationName.trim(),
-                                    triggerLabel = selectedTrigger?.label ?: "Unknown",
-                                    conditionCount = conditions.size,
+                                    triggerLabel = triggerLabel,
+                                    conditionCount = finalConditions.size,
                                     actionSummary = actionSummary,
                                     delaySeconds = delaySeconds.toIntOrNull() ?: 0,
                                     isHidden = isHidden,
@@ -305,7 +335,7 @@ internal fun AutomationBuilderSheet(
                                 AegisConditionStore.setConditions(
                                     context,
                                     automationId,
-                                    conditions.map { c ->
+                                    finalConditions.map { c ->
                                         StoredCondition(
                                             field = c.field,
                                             operator = c.operator,
@@ -328,6 +358,10 @@ internal fun AutomationBuilderSheet(
                     modifier = Modifier.weight(if (step == 0) 1f else 1f),
                     enabled = when (step) {
                         0 -> selectedTrigger != null
+                        1 -> when (selectedTrigger?.label) {
+                            "Day Schedule" -> scheduleDays.isNotEmpty()
+                            else -> true
+                        }
                         2 -> selectedActions.isNotEmpty()
                         else -> true
                     },
@@ -410,8 +444,16 @@ private fun TriggerStep(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ConditionsStep(
+    triggerLabel: String?,
+    scheduleHour: Int,
+    scheduleMinute: Int,
+    scheduleDays: List<String>,
+    onScheduleHourChange: (Int) -> Unit,
+    onScheduleMinuteChange: (Int) -> Unit,
+    onScheduleDayToggle: (String) -> Unit,
     conditions: List<AutomationCondition>,
     logic: String,
     onLogicChange: (String) -> Unit,
@@ -419,59 +461,302 @@ private fun ConditionsStep(
     onRemoveCondition: (Int) -> Unit,
     onUpdateCondition: (Int, AutomationCondition) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        StepHeader(
-            icon = GetoIcons.Tune,
-            title = "Add Conditions (optional)",
-            subtitle = "Refine when the automation fires with extra IF conditions",
+    when (triggerLabel) {
+        "Time Schedule" -> TimeSchedulePicker(
+            hour = scheduleHour,
+            minute = scheduleMinute,
+            onHourChange = onScheduleHourChange,
+            onMinuteChange = onScheduleMinuteChange,
         )
+        "Day Schedule" -> DaySchedulePicker(
+            selectedDays = scheduleDays,
+            onDayToggle = onScheduleDayToggle,
+        )
+        else -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            StepHeader(
+                icon = GetoIcons.Tune,
+                title = "Add Conditions (optional)",
+                subtitle = "Refine when the automation fires with extra IF conditions",
+            )
 
-        if (conditions.isNotEmpty()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("AND", "OR").forEach { logic2 ->
-                    FilterChip(
-                        selected = logic == logic2,
-                        onClick = { onLogicChange(logic2) },
-                        label = { Text(logic2) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        ),
+            if (conditions.isNotEmpty()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("AND", "OR").forEach { logic2 ->
+                        FilterChip(
+                            selected = logic == logic2,
+                            onClick = { onLogicChange(logic2) },
+                            label = { Text(logic2) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            ),
+                        )
+                    }
+                }
+                conditions.forEachIndexed { idx, cond ->
+                    ConditionRow(
+                        condition = cond,
+                        index = idx,
+                        logic = if (idx == 0) "IF" else logic,
+                        onRemove = { onRemoveCondition(idx) },
+                        onUpdate = { onUpdateCondition(idx, it) },
                     )
                 }
             }
 
-            conditions.forEachIndexed { idx, cond ->
-                ConditionRow(
-                    condition = cond,
-                    index = idx,
-                    logic = if (idx == 0) "IF" else logic,
-                    onRemove = { onRemoveCondition(idx) },
-                    onUpdate = { onUpdateCondition(idx, it) },
-                )
+            TextButton(
+                onClick = onAddCondition,
+                contentPadding = PaddingValues(horizontal = 0.dp),
+            ) {
+                Icon(GetoIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Add Condition")
+            }
+
+            if (conditions.isEmpty()) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text(
+                        text = "Skip this step — the automation will fire whenever the trigger occurs. Or add conditions to make it more specific (e.g., only when battery < 20%).",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(12.dp),
+                    )
+                }
             }
         }
+    }
+}
 
-        TextButton(
-            onClick = onAddCondition,
-            contentPadding = PaddingValues(horizontal = 0.dp),
+@Composable
+private fun TimeSchedulePicker(
+    hour: Int,
+    minute: Int,
+    onHourChange: (Int) -> Unit,
+    onMinuteChange: (Int) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        StepHeader(
+            icon = GetoIcons.Schedule,
+            title = "Set Time",
+            subtitle = "The automation fires every day at this time",
+        )
+
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Icon(GetoIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Add Condition")
-        }
-
-        if (conditions.isEmpty()) {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                shape = RoundedCornerShape(12.dp),
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TimeSpinner(
+                        value = hour,
+                        label = "HH",
+                        range = 0..23,
+                        onValueChange = onHourChange,
+                    )
+                    Text(
+                        text = ":",
+                        style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                    TimeSpinner(
+                        value = minute,
+                        label = "MM",
+                        range = 0..59,
+                        onValueChange = onMinuteChange,
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = GetoIcons.Schedule,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "Fires every day at %02d:%02d".format(hour, minute),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimeSpinner(
+    value: Int,
+    label: String,
+    range: IntRange,
+    onValueChange: (Int) -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(80.dp),
+            ) {
+                IconButton(
+                    onClick = {
+                        onValueChange(if (value >= range.last) range.first else value + 1)
+                    },
+                ) {
+                    Icon(
+                        imageVector = GetoIcons.ExpandLess,
+                        contentDescription = "Increase",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
                 Text(
-                    text = "Skip this step — the automation will fire whenever the trigger occurs. Or add conditions to make it more specific (e.g., only when battery < 20%).",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(12.dp),
+                    text = "%02d".format(value),
+                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
+                IconButton(
+                    onClick = {
+                        onValueChange(if (value <= range.first) range.last else value - 1)
+                    },
+                ) {
+                    Icon(
+                        imageVector = GetoIcons.ExpandMore,
+                        contentDescription = "Decrease",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private data class DayEntry(val key: String, val label: String)
+
+private val weekDays = listOf(
+    DayEntry("mon", "Mon"),
+    DayEntry("tue", "Tue"),
+    DayEntry("wed", "Wed"),
+    DayEntry("thu", "Thu"),
+    DayEntry("fri", "Fri"),
+    DayEntry("sat", "Sat"),
+    DayEntry("sun", "Sun"),
+)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DaySchedulePicker(
+    selectedDays: List<String>,
+    onDayToggle: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        StepHeader(
+            icon = GetoIcons.Schedule,
+            title = "Pick Days",
+            subtitle = "The automation fires at midnight on each selected day",
+        )
+
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    weekDays.forEach { day ->
+                        val isSelected = day.key in selectedDays
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { onDayToggle(day.key) },
+                            label = {
+                                Text(
+                                    day.label,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    ),
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
+                        )
+                    }
+                }
+
+                if (selectedDays.isNotEmpty()) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Icon(
+                                imageVector = GetoIcons.Schedule,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = buildString {
+                                    append("Fires every ")
+                                    append(
+                                        weekDays
+                                            .filter { it.key in selectedDays }
+                                            .joinToString(", ") { it.label },
+                                    )
+                                },
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "Tap at least one day to continue",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
         }
     }
