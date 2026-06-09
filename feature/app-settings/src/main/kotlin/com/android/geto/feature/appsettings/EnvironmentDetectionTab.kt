@@ -152,6 +152,7 @@ private fun buildDetectionCategories(context: Context, targetPackageName: String
 
     val rooted = isRooted()
     val xposedDetected = isXposedInstalled()
+    val fridaDetected = isFridaRunning()
 
     val targetPackageInfo: PackageInfo? = try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -285,11 +286,12 @@ private fun buildDetectionCategories(context: Context, targetPackageName: String
                 DetectionItem(
                     icon = GetoIcons.Terminal,
                     name = "Frida Instrumentation Server",
-                    description = "Frida dynamic instrumentation framework may be running",
+                    description = if (fridaDetected) "Frida server detected on default port (27042/27043)"
+                    else "Frida server not detected on default ports",
                     method = "Port scan: 27042, 27043 (default Frida server ports)",
                     educationalInfo = "Frida is a dynamic instrumentation toolkit used for hooking app functions at runtime. Apps can check for open Frida ports or look for Frida gadget libraries in memory.",
                     bypassTip = "Run Frida server on a non-default port. Use Frida gadget embedded in the app instead of standalone server.",
-                    state = DetectionState.UNKNOWN,
+                    state = if (fridaDetected) DetectionState.DETECTED else DetectionState.CLEAN,
                 ),
             ),
         ),

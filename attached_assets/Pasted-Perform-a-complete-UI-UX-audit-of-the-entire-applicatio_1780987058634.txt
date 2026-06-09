@@ -1,0 +1,96 @@
+Perform a complete UI/UX audit of the entire application, not just the visible issues in the screenshot.
+
+Requirements:
+
+1. Detect and fix ALL layout problems automatically across every screen.
+   
+   - Text clipping
+   - Character-by-character wrapping
+   - Overflow errors
+   - Cropped buttons
+   - Cropped icons
+   - Misaligned components
+   - Overlapping elements
+   - Uneven spacing
+   - Inconsistent padding
+   - Responsive design failures
+   - Small-screen rendering issues
+   - Large-screen rendering issues
+   - Tablet layout issues
+   - Landscape orientation issues
+
+2. Audit every UI component:
+   
+   - Cards
+   - Chips
+   - Badges
+   - Buttons
+   - Dialogs
+   - Sheets
+   - Navigation bars
+   - App bars
+   - Lists
+   - Forms
+   - Settings pages
+   - Dashboard widgets
+   - Status indicators
+   - Progress components
+
+3. Responsive Layout Rules:
+   
+   - No text should ever wrap vertically character-by-character.
+   - Components must size according to content.
+   - Use adaptive layouts for different screen sizes.
+   - Maintain proper margins and padding.
+   - Prevent overflow in all languages and font scales.
+   - Support accessibility font scaling.
+   - Ensure all touch targets meet Material Design minimum size requirements.
+
+4. Visual Consistency:
+   
+   - Equal spacing throughout the application.
+   - Consistent corner radius system.
+   - Consistent typography hierarchy.
+   - Consistent icon sizing.
+   - Consistent elevation and shadows.
+   - Consistent animations and transitions.
+
+5. Stability Checks:
+   
+   - Remove all RenderFlex overflow errors.
+   - Remove all layout constraint violations.
+   - Remove all clipping warnings.
+   - Remove all pixel overflow issues.
+   - Remove all unsafe area issues.
+   - Remove all navigation bar overlap issues.
+
+6. Dashboard Specific Audit:
+   
+   - Verify every card.
+   - Verify every chip and badge.
+   - Verify status indicators.
+   - Verify counters and statistics.
+   - Verify command panels.
+   - Verify action buttons.
+   - Verify dynamic content loading.
+
+7. Testing Matrix:
+   
+   - 4-inch devices
+   - Small Android phones
+   - Medium Android phones
+   - Large Android phones
+   - Foldables
+   - Tablets
+   - Portrait mode
+   - Landscape mode
+
+8. Deliverables:
+   
+   - Fix every detected issue.
+   - Refactor layouts where necessary.
+   - Improve responsiveness.
+   - Improve visual polish.
+   - Maintain existing functionality.
+   - Follow Material 3 best practices.
+   - Produce a production-ready premium UI with no overflow, clipping, wrapping, or alignment issues anywhere in the application.

@@ -394,15 +394,27 @@ internal fun AppSettingsScreen(
                     )
                 },
                 onShareApp = {
-                    val versionName = packageInfo?.versionName ?: "?"
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(
-                            Intent.EXTRA_TEXT,
-                            "${appSettingsRouteData.activityLabel}\nPackage: $packageName\nVersion: $versionName",
-                        )
+                    val apkPath = packageInfo?.applicationInfo?.let { it.publicSourceDir ?: it.sourceDir }
+                    if (apkPath != null) {
+                        try {
+                            val apkFile = java.io.File(apkPath)
+                            val apkUri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                apkFile,
+                            )
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "application/vnd.android.package-archive"
+                                putExtra(Intent.EXTRA_STREAM, apkUri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "Share APK — ${appSettingsRouteData.activityLabel}"))
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Cannot share APK: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "APK path unavailable", Toast.LENGTH_SHORT).show()
                     }
-                    context.startActivity(Intent.createChooser(shareIntent, "Share App Info"))
                 },
                 onSaveIcon = {
                     saveIconLauncher.launch(

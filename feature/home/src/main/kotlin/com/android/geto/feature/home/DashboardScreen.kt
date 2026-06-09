@@ -360,6 +360,12 @@ private fun StatusCard(
 
 @Composable
 private fun StatisticsSection() {
+    val context = LocalContext.current
+    val triggersToday = AegisActivityLog.getTodayCount(context, "trigger")
+    val settingsToday = AegisActivityLog.getTodayCount(context, "settings")
+    val successRate = AegisActivityLog.getSuccessRate(context)
+    val successPct = (successRate * 100).toInt()
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "Statistics",
@@ -381,16 +387,16 @@ private fun StatisticsSection() {
                 StatRow(
                     icon = GetoIcons.Automations,
                     label = "Automation Triggers Today",
-                    value = "0",
-                    progress = 0f,
-                    progressLabel = "0 / 100",
+                    value = if (triggersToday == 0) "None" else "$triggersToday",
+                    progress = (triggersToday / 100f).coerceIn(0f, 1f),
+                    progressLabel = "$triggersToday / 100",
                 )
                 StatRow(
                     icon = GetoIcons.Analytics,
                     label = "Automation Success Rate",
-                    value = "—",
-                    progress = 0f,
-                    progressLabel = "No data yet",
+                    value = if (successRate == 0f) "—" else "$successPct%",
+                    progress = successRate,
+                    progressLabel = if (successRate == 0f) "No data yet" else "$successPct% success",
                 )
                 StatRow(
                     icon = GetoIcons.BatteryFull,
@@ -402,9 +408,9 @@ private fun StatisticsSection() {
                 StatRow(
                     icon = GetoIcons.Tune,
                     label = "Rules Applied Today",
-                    value = "0",
-                    progress = 0f,
-                    progressLabel = "No rules active",
+                    value = if (settingsToday == 0) "None" else "$settingsToday",
+                    progress = (settingsToday / 50f).coerceIn(0f, 1f),
+                    progressLabel = if (settingsToday == 0) "No rules applied yet" else "$settingsToday applied",
                 )
             }
         }
