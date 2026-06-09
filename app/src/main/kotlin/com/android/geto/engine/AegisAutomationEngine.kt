@@ -71,6 +71,13 @@ object AegisAutomationEngine {
                     "GLOBAL" -> Settings.Global.putString(cr, action.settingKey, action.value)
                     "SECURE" -> Settings.Secure.putString(cr, action.settingKey, action.value)
                 }
+                // Airplane mode needs a broadcast after the setting write to actually take effect
+                if (action.settingKey == "airplane_mode_on") {
+                    val airplaneIntent = Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED).apply {
+                        putExtra("state", action.value == "1")
+                    }
+                    context.sendBroadcast(airplaneIntent)
+                }
                 applied++
             }
         }
