@@ -34,6 +34,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,6 +76,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -92,6 +94,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.android.geto.broadcastreceiver.RevertSettingsBroadcastReceiver
@@ -214,6 +219,20 @@ internal fun AppSettingsScreen(
     var prefillKey by remember { mutableStateOf("") }
     var prefillSettingTypeName by remember { mutableStateOf("SYSTEM") }
     var prefillLabel by remember { mutableStateOf("") }
+
+    var a11yEnabled by remember { mutableStateOf(isA11yServiceEnabled(context)) }
+    var a11yRunning by remember { mutableStateOf(isA11yServiceRunning(context)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                a11yEnabled = isA11yServiceEnabled(context)
+                a11yRunning = isA11yServiceRunning(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val packageName = remember(appSettingsRouteData.componentName) {
         appSettingsRouteData.componentName.substringBefore("/")
@@ -373,7 +392,19 @@ internal fun AppSettingsScreen(
                     },
                     onShortcutIconClick = { showShortcutDialog = true },
                     onSettingsSuggestIconClick = { showTemplateDialog = true },
-                    onFloatingActionButtonClick = onApplyAppSettings,
+                    onFloatingActionButtonClick = {
+                        if (!a11yRunning) {
+                            Toast.makeText(
+                                context,
+                                if (!a11yEnabled)
+                                    "Accessibility service is OFF — rules applied manually but won't auto-apply on launch. Enable it in Settings → Accessibility."
+                                else
+                                    "Accessibility service stopped — rules applied manually but may not auto-apply. Re-enable it in Settings → Accessibility.",
+                                Toast.LENGTH_LONG,
+                            ).show()
+                        }
+                        onApplyAppSettings()
+                    },
                 )
             }
         },
@@ -469,22 +500,32 @@ internal fun AppSettingsScreen(
                     .fillMaxWidth(),
             ) {
                 when (selectedTab) {
-                    0 -> when (appSettingsUiState) {
-                        AppSettingsUiState.Loading -> {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center),
-                                color = MaterialTheme.colorScheme.primary,
+                    0 -> Column(modifier = Modifier.fillMaxSize()) {
+                        if (!a11yRunning) {
+                            AccessibilityServiceBanner(
+                                isEnabled = a11yEnabled,
+                                isRunning = a11yRunning,
                             )
                         }
-                        is AppSettingsUiState.Success -> {
-                            if (appSettingsUiState.appSettings.isNotEmpty()) {
-                                SuccessState(
-                                    appSettingsUiState = appSettingsUiState,
-                                    onCheckAppSetting = onCheckAppSetting,
-                                    onDeleteAppSettingsItem = onDeleteAppSetting,
-                                )
-                            } else {
-                                RulesEmptyGuide()
+                        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                            when (appSettingsUiState) {
+                                AppSettingsUiState.Loading -> {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.align(Alignment.Center),
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                is AppSettingsUiState.Success -> {
+                                    if (appSettingsUiState.appSettings.isNotEmpty()) {
+                                        SuccessState(
+                                            appSettingsUiState = appSettingsUiState,
+                                            onCheckAppSetting = onCheckAppSetting,
+                                            onDeleteAppSettingsItem = onDeleteAppSetting,
+                                        )
+                                    } else {
+                                        RulesEmptyGuide()
+                                    }
+                                }
                             }
                         }
                     }
@@ -1075,6 +1116,87 @@ private fun RulesEmptyGuide(modifier: Modifier = Modifier) {
         }
 
         item { Spacer(modifier = Modifier.height(80.dp)) }
+    }
+}
+
+private fun isA11yServiceEnabled(context: Context): Boolean {
+    val enabled = Settings.Secure.getString(
+        context.contentResolver,
+        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+    ) ?: return false
+    val target = "${context.packageName}/.lock.AppLockService"
+    return enabled.split(":").any { it.equals(target, ignoreCase = true) }
+}
+
+private fun isA11yServiceRunning(context: Context): Boolean {
+    if (!isA11yServiceEnabled(context)) return false
+    val prefs = context.getSharedPreferences("aegis_accessibility_watchdog", Context.MODE_PRIVATE)
+    val heartbeatMs = prefs.getLong("heartbeat_ms", 0L)
+    if (heartbeatMs == 0L) return false
+    return (System.currentTimeMillis() - heartbeatMs) < 5 * 60 * 1_000L
+}
+
+@Composable
+private fun AccessibilityServiceBanner(
+    isEnabled: Boolean,
+    isRunning: Boolean,
+) {
+    val context = LocalContext.current
+    val isOff = !isEnabled
+    val containerColor = if (isOff) MaterialTheme.colorScheme.errorContainer
+    else MaterialTheme.colorScheme.tertiaryContainer
+    val contentColor = if (isOff) MaterialTheme.colorScheme.onErrorContainer
+    else MaterialTheme.colorScheme.onTertiaryContainer
+    val icon = if (isOff) GetoIcons.Error else GetoIcons.Warning
+    val title = if (isOff) "Auto-apply Disabled" else "Auto-apply Paused"
+    val message = if (isOff)
+        "The Aegis accessibility service is OFF. Rules won't apply automatically when this app opens. Tap to fix."
+    else
+        "The accessibility service stopped responding. Rules may not auto-apply on launch. Tap to re-enable."
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clickable {
+                context.startActivity(
+                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    },
+                )
+            },
+        color = containerColor,
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(20.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = contentColor,
+                )
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = contentColor,
+                )
+            }
+            Text(
+                text = "Fix →",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = contentColor,
+            )
+        }
     }
 }
 
