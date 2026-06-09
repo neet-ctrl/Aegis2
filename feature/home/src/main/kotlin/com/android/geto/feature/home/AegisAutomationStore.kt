@@ -12,6 +12,7 @@ data class SavedAutomation(
     val isHidden: Boolean,
     val isEnabled: Boolean,
     val createdAt: Long,
+    val conditionLogic: String = "AND",
 )
 
 object AegisAutomationStore {
@@ -33,6 +34,7 @@ object AegisAutomationStore {
         a.isHidden,
         a.isEnabled,
         a.createdAt,
+        a.conditionLogic.replace(SEP, " "),
     ).joinToString(SEP)
 
     private fun decode(raw: String): SavedAutomation? = runCatching {
@@ -48,6 +50,7 @@ object AegisAutomationStore {
             isHidden = p[6].toBoolean(),
             isEnabled = p[7].toBoolean(),
             createdAt = p[8].toLong(),
+            conditionLogic = if (p.size > 9) p[9] else "AND",
         )
     }.getOrNull()
 
@@ -76,6 +79,7 @@ object AegisAutomationStore {
         toRemove.forEach { existing.remove(it) }
         p.edit().putStringSet(KEY_SET, existing).apply()
         AegisActionStore.deleteActions(context, id)
+        AegisConditionStore.deleteConditions(context, id)
     }
 
     fun toggleEnabled(context: Context, id: Long) {

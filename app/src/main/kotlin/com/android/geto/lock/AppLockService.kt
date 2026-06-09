@@ -70,7 +70,6 @@ class AppLockService : AccessibilityService() {
 
             val packageName = event.packageName?.toString() ?: return
 
-            // Write periodic heartbeat so watchdog knows service is alive
             val now = System.currentTimeMillis()
             if (now - lastHeartbeatWriteMs >= HEARTBEAT_INTERVAL_MS) {
                 lastHeartbeatWriteMs = now
@@ -79,7 +78,6 @@ class AppLockService : AccessibilityService() {
                 } catch (_: Exception) {}
             }
 
-            // Ignore our own UI and system surfaces
             if (packageName == applicationContext.packageName) return
             if (packageName == "com.android.systemui") return
             if (packageName == "android") return
@@ -88,7 +86,14 @@ class AppLockService : AccessibilityService() {
                 val prevPackage = lastLaunchPackage
                 lastLaunchPackage = packageName
 
-                // Auto-revert settings for the app that just left the foreground
+                // ── Fire "App Close" for the app that just left the foreground ──────
+                if (prevPackage.isNotEmpty()) {
+                    try {
+                        AegisAutomationEngine.fireTrigger(this, "App Close", prevPackage)
+                    } catch (_: Exception) {}
+                }
+
+                // ── Auto-revert settings for the app that just left the foreground ──
                 try {
                     val prefs = applicationContext.getSharedPreferences(
                         PENDING_REVERT_PREFS, Context.MODE_PRIVATE
@@ -110,11 +115,9 @@ class AppLockService : AccessibilityService() {
                             }
                         }
                     }
-                } catch (_: Exception) {
-                    // Never let auto-revert errors crash the accessibility service
-                }
+                } catch (_: Exception) {}
 
-                // Auto-apply settings for the app that just entered the foreground
+                // ── Auto-apply settings for the app that just entered the foreground ──
                 try {
                     val entryPoint = EntryPointAccessors.fromApplication(
                         applicationContext,
@@ -144,30 +147,20 @@ class AppLockService : AccessibilityService() {
                                     ).edit()
                                         .putString(packageName, "$componentName|0")
                                         .apply()
-                                } catch (_: Exception) {
-                                    // Never let one component failure abort the rest
-                                }
+                                } catch (_: Exception) {}
                             }
-                        } catch (_: Exception) {
-                            // Never let auto-apply errors crash the service
-                        }
+                        } catch (_: Exception) {}
                     }
-                } catch (_: Exception) {
-                    // Never let auto-apply bootstrap errors crash the service
-                }
+                } catch (_: Exception) {}
 
-                // Fire "App Launch" automation trigger on each new foreground package
+                // ── Fire "App Launch" automation trigger ────────────────────────────
                 try {
                     AegisAutomationEngine.fireTrigger(this, "App Launch", packageName)
-                } catch (_: Exception) {
-                    // Never let automation errors crash the accessibility service
-                }
+                } catch (_: Exception) {}
             }
 
-            // Skip apps already unlocked in this session
             if (packageName in unlockedThisSession) return
 
-            // Show lock screen if this package has an active lock or block
             val locked = try {
                 AppLockManager.isAppLockActive(this, packageName)
             } catch (_: Exception) {
@@ -179,15 +172,9 @@ class AppLockService : AccessibilityService() {
                     val intent = AppLockActivity.createIntent(this, packageName)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                     startActivity(intent)
-                } catch (_: Exception) {
-                    // startActivity can throw on edge cases; swallow to keep the service alive
-                }
+                } catch (_: Exception) {}
             }
-        } catch (_: Exception) {
-            // Top-level guard: no uncaught exception must ever escape onAccessibilityEvent.
-            // An unhandled exception here crashes the service process and Android
-            // immediately marks the accessibility service as "malfunctioning".
-        }
+        } catch (_: Exception) {}
     }
 
     override fun onInterrupt() {}

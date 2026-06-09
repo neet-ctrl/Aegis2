@@ -43,5 +43,11 @@ class BootReceiver : BroadcastReceiver() {
         }
 
         AegisMonitorService.start(context)
+
+        // Re-register AlarmManager alarms for any Time/Day Schedule automations.
+        // AlarmManager alarms are cleared on device reboot.
+        try {
+            com.android.geto.scheduler.AegisTimeScheduler.rescheduleAll(context)
+        } catch (_: Exception) {}
     }
 }

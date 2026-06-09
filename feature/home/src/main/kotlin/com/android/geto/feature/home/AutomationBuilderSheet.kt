@@ -124,11 +124,11 @@ private val allActions = listOf(
     ActionOption(GetoIcons.BatteryAlert, "Battery Saver", "low_power", "GLOBAL", "1=on, 0=off"),
     ActionOption(GetoIcons.Speed, "Screen Timeout", "screen_off_timeout", "SYSTEM", "ms, e.g. 30000"),
     ActionOption(GetoIcons.Tune, "Font Scale", "font_scale", "SYSTEM", "1.0, 1.15, 1.3"),
-    ActionOption(GetoIcons.Wifi, "Wi-Fi State", "wifi_on", "GLOBAL", "1=on, 0=off"),
+    ActionOption(GetoIcons.Block, "Airplane Mode", "airplane_mode_on", "GLOBAL", "1=on, 0=off"),
     ActionOption(GetoIcons.ScreenRotation, "Auto Rotate", "accelerometer_rotation", "SYSTEM", "1=auto, 0=off"),
     ActionOption(GetoIcons.Tune, "Haptic Feedback", "haptic_feedback_enabled", "SYSTEM", "1=on, 0=off"),
     ActionOption(GetoIcons.Speed, "Pointer Speed", "pointer_speed", "SYSTEM", "-7 to 7"),
-    ActionOption(GetoIcons.NetworkCheck, "Mobile Data", "mobile_data", "GLOBAL", "1=on, 0=off"),
+    ActionOption(GetoIcons.Memory, "Stay Awake (Charging)", "stay_on_while_plugged_in", "GLOBAL", "0=off, 1=AC, 2=USB, 3=AC+USB"),
     ActionOption(GetoIcons.Dns, "Private DNS Mode", "private_dns_mode", "GLOBAL", "off / opportunistic / hostname"),
     ActionOption(GetoIcons.BatteryFull, "Adaptive Battery", "adaptive_battery_management_enabled", "GLOBAL", "1=on, 0=off"),
 )

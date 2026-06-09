@@ -15,7 +15,9 @@ import com.android.geto.activity.main.MainActivity
 import com.android.geto.feature.home.AegisActionStore
 import com.android.geto.feature.home.AegisActivityLog
 import com.android.geto.feature.home.AegisAutomationStore
+import com.android.geto.feature.home.AegisConditionStore
 import com.android.geto.feature.home.SavedAutomation
+import com.android.geto.feature.home.StoredCondition
 
 object AegisAutomationEngine {
 
@@ -53,6 +55,12 @@ object AegisAutomationEngine {
         triggerLabel: String,
         detail: String,
     ) {
+        // ── Evaluate conditions before executing any actions ────────────────────
+        val conditions = AegisConditionStore.getConditions(context, automation.id)
+        if (!checkConditions(conditions, automation.conditionLogic, triggerLabel, detail)) {
+            return  // Conditions not met — skip this automation silently
+        }
+
         val actions = AegisActionStore.getActions(context, automation.id)
         var applied = 0
         for (action in actions) {
@@ -77,6 +85,90 @@ object AegisAutomationEngine {
 
         showNotification(context, automation, triggerLabel, detail, applied, actions.size)
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Condition evaluation
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns true if all (AND) or any (OR) conditions pass for the given trigger event.
+     * An empty condition list always passes — the automation fires unconditionally.
+     */
+    private fun checkConditions(
+        conditions: List<StoredCondition>,
+        logic: String,
+        triggerLabel: String,
+        detail: String,
+    ): Boolean {
+        if (conditions.isEmpty()) return true
+        val results = conditions.map { evaluateCondition(it, triggerLabel, detail) }
+        return if (logic.uppercase() == "OR") results.any { it } else results.all { it }
+    }
+
+    private fun evaluateCondition(
+        cond: StoredCondition,
+        triggerLabel: String,
+        detail: String,
+    ): Boolean {
+        val field = cond.field.trim().lowercase()
+        val op = cond.operator.trim()
+        val condValue = cond.value.trim()
+
+        return when (field) {
+            // ── App Launch / App Close: detail = package name ────────────────
+            "app", "package", "app name" -> {
+                val matches = detail.contains(condValue, ignoreCase = true) ||
+                    detail.equals(condValue, ignoreCase = true)
+                if (op == "is not" || op == "!=") !matches else matches
+            }
+
+            // ── Battery %: detail = "45%" ────────────────────────────────────
+            "battery", "battery %" -> {
+                val current = detail.removeSuffix("%").trim().toIntOrNull() ?: return true
+                val threshold = condValue.removeSuffix("%").trim().toIntOrNull() ?: return true
+                compareNumeric(current, op, threshold)
+            }
+
+            // ── Wi-Fi: detail = BSSID or SSID ───────────────────────────────
+            "ssid", "wifi", "wi-fi", "network" -> {
+                val matches = detail.contains(condValue, ignoreCase = true)
+                if (op == "is not" || op == "!=") !matches else matches
+            }
+
+            // ── Bluetooth: detail = device name ─────────────────────────────
+            "device", "bluetooth", "name" -> {
+                val matches = detail.contains(condValue, ignoreCase = true)
+                if (op == "is not" || op == "!=") !matches else matches
+            }
+
+            // ── Volume: detail = "Media=12" ──────────────────────────────────
+            "volume" -> {
+                val current = detail.substringAfter("=").trim().toIntOrNull() ?: return true
+                val threshold = condValue.toIntOrNull() ?: return true
+                compareNumeric(current, op, threshold)
+            }
+
+            // ── Time / Day — used only for scheduling, not runtime evaluation ─
+            "time", "day" -> true
+
+            // ── Unknown field — don't block the automation ───────────────────
+            else -> true
+        }
+    }
+
+    private fun compareNumeric(current: Int, op: String, threshold: Int): Boolean = when (op) {
+        "<" -> current < threshold
+        "<=" -> current <= threshold
+        ">" -> current > threshold
+        ">=" -> current >= threshold
+        "=", "is", "==" -> current == threshold
+        "is not", "!=" -> current != threshold
+        else -> true
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Notification helpers
+    // ─────────────────────────────────────────────────────────────────────────────
 
     private fun showNotification(
         context: Context,

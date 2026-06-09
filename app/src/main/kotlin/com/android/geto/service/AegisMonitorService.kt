@@ -1,5 +1,6 @@
 package com.android.geto.service
 
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -29,6 +30,7 @@ class AegisMonitorService : Service() {
 
     private var lastBatteryPct = -1
     private var wifiConnectedFired = false
+    private val lockCheckHandler = Handler(Looper.getMainLooper())
 
     private val dynamicReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -36,8 +38,19 @@ class AegisMonitorService : Service() {
                 Intent.ACTION_SCREEN_ON ->
                     AegisAutomationEngine.fireTrigger(context, "Screen On")
 
-                Intent.ACTION_SCREEN_OFF ->
+                Intent.ACTION_SCREEN_OFF -> {
                     AegisAutomationEngine.fireTrigger(context, "Screen Off")
+                    // Check if the device is actually locked a moment after screen off.
+                    // Most devices lock immediately; give a 600ms grace period.
+                    lockCheckHandler.postDelayed({
+                        try {
+                            val km = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+                            if (km.isKeyguardLocked) {
+                                AegisAutomationEngine.fireTrigger(context, "Device Lock")
+                            }
+                        } catch (_: Exception) {}
+                    }, 600L)
+                }
 
                 Intent.ACTION_USER_PRESENT ->
                     AegisAutomationEngine.fireTrigger(context, "Device Unlock")
@@ -60,6 +73,22 @@ class AegisMonitorService : Service() {
                     when (state) {
                         1 -> AegisAutomationEngine.fireTrigger(context, "Headphones Connected")
                         0 -> AegisAutomationEngine.fireTrigger(context, "Headphones Disconnected")
+                    }
+                }
+
+                AudioManager.VOLUME_CHANGED_ACTION -> {
+                    val stream = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1)
+                    val volume = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, -1)
+                    if (stream >= 0 && volume >= 0) {
+                        val streamName = when (stream) {
+                            AudioManager.STREAM_MUSIC -> "Media"
+                            AudioManager.STREAM_RING -> "Ring"
+                            AudioManager.STREAM_ALARM -> "Alarm"
+                            AudioManager.STREAM_NOTIFICATION -> "Notification"
+                            AudioManager.STREAM_VOICE_CALL -> "Call"
+                            else -> "Volume"
+                        }
+                        AegisAutomationEngine.fireTrigger(context, "Volume Changed", "$streamName=$volume")
                     }
                 }
 
@@ -106,6 +135,7 @@ class AegisMonitorService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         watchdogHandler.removeCallbacks(watchdogRunnable)
+        lockCheckHandler.removeCallbacksAndMessages(null)
         runCatching { unregisterReceiver(dynamicReceiver) }
     }
 
@@ -176,6 +206,7 @@ class AegisMonitorService : Service() {
             addAction(Intent.ACTION_USER_PRESENT)
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(AudioManager.ACTION_HEADSET_PLUG)
+            addAction(AudioManager.VOLUME_CHANGED_ACTION)
             addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
