@@ -400,7 +400,7 @@ private fun AppOpsCard(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     ) {
                         Text(
-                            text = "Requires MANAGE_APP_OPS_MODES (ADB grant) to toggle. Grant via: adb shell pm grant com.android.geto android.permission.MANAGE_APP_OPS_MODES",
+                            text = "Toggling app ops requires MANAGE_APP_OPS_MODES. This permission cannot be granted via ADB on stock Android — it requires a custom ROM or platform-signed build.",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.padding(8.dp),

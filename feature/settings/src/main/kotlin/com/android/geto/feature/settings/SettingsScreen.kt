@@ -336,17 +336,6 @@ private fun buildPermissions(): List<PermEntry> = listOf(
     ),
 
     PermEntry(
-        icon = GetoIcons.Policy,
-        name = "MANAGE_APP_OPS_MODES",
-        description = "Control per-app operation permissions (camera, mic, location, clipboard)",
-        whyNeeded = "Allows Aegis to read and modify per-app AppOps grants — controlling whether apps can access the camera, microphone, location, clipboard, and other sensors.",
-        grantType = GrantType.ASHELL_U,
-        tier = Tier.OPTIONAL,
-        ashellCommand = "pm grant com.android.geto android.permission.MANAGE_APP_OPS_MODES",
-        checkGranted = { ctx -> ashellGranted(ctx, "android.permission.MANAGE_APP_OPS_MODES") },
-    ),
-
-    PermEntry(
         icon = GetoIcons.NetworkCheck,
         name = "CHANGE_NETWORK_STATE",
         description = "Enable/disable mobile data and network state in automations",
@@ -366,39 +355,6 @@ private fun buildPermissions(): List<PermEntry> = listOf(
         tier = Tier.OPTIONAL,
         ashellCommand = "pm grant com.android.geto android.permission.CHANGE_WIFI_STATE",
         checkGranted = { ctx -> ashellGranted(ctx, Manifest.permission.CHANGE_WIFI_STATE) },
-    ),
-
-    PermEntry(
-        icon = GetoIcons.Widgets,
-        name = "STATUS_BAR",
-        description = "Interact with status bar and Quick Settings tiles",
-        whyNeeded = "Required for Aegis Quick Settings tiles to function correctly, including the ability to collapse the notification shade after a tile is tapped.",
-        grantType = GrantType.ASHELL_U,
-        tier = Tier.OPTIONAL,
-        ashellCommand = "pm grant com.android.geto android.permission.STATUS_BAR",
-        checkGranted = { ctx -> ashellGranted(ctx, "android.permission.STATUS_BAR") },
-    ),
-
-    PermEntry(
-        icon = GetoIcons.DeveloperMode,
-        name = "READ_DEVICE_CONFIG",
-        description = "Read device configuration flags and feature toggles",
-        whyNeeded = "Allows Aegis to read device-level feature flags and configuration values for advanced system control and compatibility checks.",
-        grantType = GrantType.ASHELL_U,
-        tier = Tier.OPTIONAL,
-        ashellCommand = "pm grant com.android.geto android.permission.READ_DEVICE_CONFIG",
-        checkGranted = { ctx -> ashellGranted(ctx, "android.permission.READ_DEVICE_CONFIG") },
-    ),
-
-    PermEntry(
-        icon = GetoIcons.Block,
-        name = "FORCE_STOP_PACKAGES",
-        description = "Force-stop other apps as an automation action",
-        whyNeeded = "Allows Aegis to force-stop a target app as part of an automation (e.g., force-stop a battery drain app after screen off). Use carefully.",
-        grantType = GrantType.ASHELL_U,
-        tier = Tier.OPTIONAL,
-        ashellCommand = "pm grant com.android.geto android.permission.FORCE_STOP_PACKAGES",
-        checkGranted = { ctx -> ashellGranted(ctx, "android.permission.FORCE_STOP_PACKAGES") },
     ),
 
     PermEntry(
@@ -1158,13 +1114,9 @@ private val ashellCommands = listOf(
     AshellCommand("Step 2 — Recommended", "Usage Stats (appops)", "appops set com.android.geto GET_USAGE_STATS allow"),
     AshellCommand("Step 2 — Recommended", "Package Usage Stats", "pm grant com.android.geto android.permission.PACKAGE_USAGE_STATS"),
     AshellCommand("Step 2 — Recommended", "Battery Stats", "pm grant com.android.geto android.permission.BATTERY_STATS"),
-    AshellCommand("Step 3 — Optional", "Manage App Ops", "pm grant com.android.geto android.permission.MANAGE_APP_OPS_MODES"),
     AshellCommand("Step 3 — Optional", "Notification Policy", "pm grant com.android.geto android.permission.ACCESS_NOTIFICATION_POLICY"),
     AshellCommand("Step 3 — Optional", "Change Network State", "pm grant com.android.geto android.permission.CHANGE_NETWORK_STATE"),
     AshellCommand("Step 3 — Optional", "Change WiFi State", "pm grant com.android.geto android.permission.CHANGE_WIFI_STATE"),
-    AshellCommand("Step 3 — Optional", "Status Bar", "pm grant com.android.geto android.permission.STATUS_BAR"),
-    AshellCommand("Step 3 — Optional", "Read Device Config", "pm grant com.android.geto android.permission.READ_DEVICE_CONFIG"),
-    AshellCommand("Step 3 — Optional", "Force Stop Packages", "pm grant com.android.geto android.permission.FORCE_STOP_PACKAGES"),
     AshellCommand("Step 3 — Optional", "Interact Across Users", "pm grant com.android.geto android.permission.INTERACT_ACROSS_USERS"),
 )
 
