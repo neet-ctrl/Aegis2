@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.android.geto.designsystem.icon.GetoIcons
 import com.android.geto.designsystem.theme.GetoTheme
+import com.android.geto.domain.model.Theme
 import com.android.geto.feature.appsettings.security.AppLockManager
 import com.android.geto.feature.appsettings.security.LockType
 import com.android.geto.feature.appsettings.security.LockVerifyResult
@@ -80,7 +81,7 @@ class AppLockActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this) { }
 
         setContent {
-            GetoTheme {
+            GetoTheme(theme = Theme.FOLLOW_SYSTEM, dynamicTheme = false) {
                 if (isBlocked) {
                     BlockedScreen(
                         packageName = packageName,

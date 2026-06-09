@@ -1,0 +1,619 @@
+1m 5s
+Run ./gradlew :app:assembleDebug
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.10/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Configuration on demand is an incubating feature.
+Calculating task graph as no cached configuration is available for tasks: :app:assembleDebug
+Type-safe project accessors is an incubating feature.
+> Task :build-logic:convention:checkKotlinGradlePluginConfigurationErrors
+> Task :build-logic:convention:compileKotlin FROM-CACHE
+> Task :build-logic:convention:compileJava NO-SOURCE
+> Task :build-logic:convention:pluginDescriptors
+> Task :build-logic:convention:processResources
+> Task :build-logic:convention:classes
+> Task :build-logic:convention:jar
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :domain:common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:framework:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:model:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :domain:common:processResources NO-SOURCE
+> Task :domain:model:processResources NO-SOURCE
+> Task :domain:framework:processResources NO-SOURCE
+> Task :domain:repository:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:use-case:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:repository:processResources NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :broadcast-receiver:preBuild UP-TO-DATE
+> Task :broadcast-receiver:preDebugBuild UP-TO-DATE
+> Task :domain:use-case:processResources NO-SOURCE
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :domain:common:compileKotlin FROM-CACHE
+> Task :domain:model:compileKotlin FROM-CACHE
+> Task :domain:common:compileJava NO-SOURCE
+> Task :domain:common:classes UP-TO-DATE
+> Task :domain:model:compileJava NO-SOURCE
+> Task :domain:model:classes UP-TO-DATE
+> Task :domain:common:jar
+> Task :domain:model:jar
+> Task :common:writeDebugAarMetadata
+> Task :design-system:preBuild UP-TO-DATE
+> Task :design-system:preDebugBuild UP-TO-DATE
+> Task :ui:preBuild UP-TO-DATE
+> Task :broadcast-receiver:writeDebugAarMetadata
+> Task :ui:preDebugBuild UP-TO-DATE
+> Task :data:datastore:preBuild UP-TO-DATE
+> Task :data:datastore:preDebugBuild UP-TO-DATE
+> Task :design-system:writeDebugAarMetadata
+> Task :data:datastore:writeDebugAarMetadata
+> Task :data:repository:preBuild UP-TO-DATE
+> Task :data:repository:preDebugBuild UP-TO-DATE
+> Task :data:room:preBuild UP-TO-DATE
+> Task :ui:writeDebugAarMetadata
+> Task :feature:app-settings:preBuild UP-TO-DATE
+> Task :feature:app-settings:preDebugBuild UP-TO-DATE
+> Task :data:room:preDebugBuild UP-TO-DATE
+> Task :data:repository:writeDebugAarMetadata
+> Task :feature:app-settings:writeDebugAarMetadata
+> Task :feature:home:preBuild UP-TO-DATE
+> Task :feature:home:preDebugBuild UP-TO-DATE
+> Task :feature:apps:preBuild UP-TO-DATE
+> Task :feature:apps:preDebugBuild UP-TO-DATE
+> Task :data:room:writeDebugAarMetadata
+> Task :feature:settings:preBuild UP-TO-DATE
+> Task :feature:settings:preDebugBuild UP-TO-DATE
+> Task :domain:framework:compileKotlin FROM-CACHE
+> Task :feature:home:writeDebugAarMetadata
+> Task :framework:asset-manager:preBuild UP-TO-DATE
+> Task :framework:asset-manager:preDebugBuild UP-TO-DATE
+> Task :feature:apps:writeDebugAarMetadata
+> Task :framework:drawable:preBuild UP-TO-DATE
+> Task :framework:drawable:preDebugBuild UP-TO-DATE
+> Task :domain:framework:compileJava NO-SOURCE
+> Task :domain:framework:classes UP-TO-DATE
+> Task :feature:settings:writeDebugAarMetadata
+> Task :framework:launcher-apps:preBuild UP-TO-DATE
+> Task :framework:launcher-apps:preDebugBuild UP-TO-DATE
+> Task :framework:asset-manager:writeDebugAarMetadata
+> Task :framework:notification-manager:preBuild UP-TO-DATE
+> Task :framework:drawable:writeDebugAarMetadata
+> Task :framework:package-manager:preBuild UP-TO-DATE
+> Task :framework:package-manager:preDebugBuild UP-TO-DATE
+> Task :framework:notification-manager:preDebugBuild UP-TO-DATE
+> Task :domain:framework:jar
+> Task :framework:launcher-apps:writeDebugAarMetadata
+> Task :framework:secure-settings:preBuild UP-TO-DATE
+> Task :framework:notification-manager:writeDebugAarMetadata
+> Task :framework:secure-settings:preDebugBuild UP-TO-DATE
+> Task :framework:shortcut-manager:preBuild UP-TO-DATE
+> Task :framework:shortcut-manager:preDebugBuild UP-TO-DATE
+> Task :framework:package-manager:writeDebugAarMetadata
+> Task :app:generateDebugResValues FROM-CACHE
+> Task :framework:secure-settings:writeDebugAarMetadata
+> Task :framework:shortcut-manager:writeDebugAarMetadata
+> Task :broadcast-receiver:generateDebugResValues FROM-CACHE
+> Task :common:generateDebugResValues FROM-CACHE
+> Task :common:generateDebugResources FROM-CACHE
+> Task :broadcast-receiver:generateDebugResources FROM-CACHE
+> Task :domain:repository:compileKotlin FROM-CACHE
+> Task :common:packageDebugResources FROM-CACHE
+> Task :domain:repository:compileJava NO-SOURCE
+> Task :domain:repository:classes UP-TO-DATE
+> Task :design-system:generateDebugResValues FROM-CACHE
+> Task :broadcast-receiver:packageDebugResources FROM-CACHE
+> Task :design-system:generateDebugResources FROM-CACHE
+> Task :ui:generateDebugResValues FROM-CACHE
+> Task :domain:repository:jar
+> Task :ui:generateDebugResources FROM-CACHE
+> Task :design-system:packageDebugResources FROM-CACHE
+> Task :data:datastore:generateDebugResValues FROM-CACHE
+> Task :ui:packageDebugResources FROM-CACHE
+> Task :data:repository:generateDebugResValues FROM-CACHE
+> Task :data:datastore:generateDebugResources FROM-CACHE
+> Task :data:repository:generateDebugResources FROM-CACHE
+> Task :data:datastore:packageDebugResources FROM-CACHE
+> Task :data:room:generateDebugResValues FROM-CACHE
+> Task :data:repository:packageDebugResources FROM-CACHE
+> Task :data:room:generateDebugResources FROM-CACHE
+> Task :feature:app-settings:generateDebugResValues FROM-CACHE
+> Task :data:room:packageDebugResources FROM-CACHE
+> Task :feature:app-settings:generateDebugResources FROM-CACHE
+> Task :feature:apps:generateDebugResValues FROM-CACHE
+> Task :feature:apps:generateDebugResources FROM-CACHE
+> Task :feature:app-settings:packageDebugResources FROM-CACHE
+> Task :feature:home:generateDebugResValues FROM-CACHE
+> Task :feature:apps:packageDebugResources FROM-CACHE
+> Task :feature:home:generateDebugResources FROM-CACHE
+> Task :feature:settings:generateDebugResValues FROM-CACHE
+> Task :feature:settings:generateDebugResources FROM-CACHE
+> Task :feature:home:packageDebugResources FROM-CACHE
+> Task :framework:asset-manager:generateDebugResValues FROM-CACHE
+> Task :framework:asset-manager:generateDebugResources FROM-CACHE
+> Task :feature:settings:packageDebugResources FROM-CACHE
+> Task :framework:asset-manager:packageDebugResources FROM-CACHE
+> Task :framework:drawable:generateDebugResValues FROM-CACHE
+> Task :framework:launcher-apps:generateDebugResValues FROM-CACHE
+> Task :framework:launcher-apps:generateDebugResources FROM-CACHE
+> Task :framework:drawable:generateDebugResources FROM-CACHE
+> Task :framework:launcher-apps:packageDebugResources FROM-CACHE
+> Task :framework:drawable:packageDebugResources FROM-CACHE
+> Task :framework:notification-manager:generateDebugResValues FROM-CACHE
+> Task :framework:package-manager:generateDebugResValues FROM-CACHE
+> Task :framework:notification-manager:generateDebugResources FROM-CACHE
+> Task :framework:package-manager:generateDebugResources FROM-CACHE
+> Task :framework:notification-manager:packageDebugResources FROM-CACHE
+> Task :framework:secure-settings:generateDebugResValues FROM-CACHE
+> Task :framework:package-manager:packageDebugResources FROM-CACHE
+> Task :domain:use-case:compileKotlin FROM-CACHE
+> Task :framework:secure-settings:generateDebugResources FROM-CACHE
+> Task :framework:shortcut-manager:generateDebugResValues FROM-CACHE
+> Task :domain:use-case:compileJava NO-SOURCE
+> Task :domain:use-case:classes UP-TO-DATE
+> Task :framework:shortcut-manager:generateDebugResources FROM-CACHE
+> Task :framework:secure-settings:packageDebugResources FROM-CACHE
+> Task :framework:shortcut-manager:packageDebugResources FROM-CACHE
+> Task :app:checkDebugAarMetadata
+> Task :domain:use-case:jar
+> Task :app:generateDebugResources FROM-CACHE
+> Task :app:extractDeepLinksDebug FROM-CACHE
+> Task :app:createDebugCompatibleScreenManifests
+> Task :broadcast-receiver:extractDeepLinksDebug FROM-CACHE
+> Task :app:packageDebugResources FROM-CACHE
+> Task :broadcast-receiver:processDebugManifest FROM-CACHE
+> Task :common:extractDeepLinksDebug FROM-CACHE
+> Task :app:parseDebugLocalResources FROM-CACHE
+> Task :common:processDebugManifest FROM-CACHE
+> Task :design-system:extractDeepLinksDebug FROM-CACHE
+> Task :ui:extractDeepLinksDebug FROM-CACHE
+> Task :design-system:processDebugManifest FROM-CACHE
+> Task :data:datastore:extractDeepLinksDebug FROM-CACHE
+> Task :ui:processDebugManifest FROM-CACHE
+> Task :data:repository:extractDeepLinksDebug FROM-CACHE
+> Task :data:datastore:processDebugManifest FROM-CACHE
+> Task :data:room:extractDeepLinksDebug FROM-CACHE
+> Task :data:repository:processDebugManifest FROM-CACHE
+> Task :feature:app-settings:extractDeepLinksDebug FROM-CACHE
+> Task :feature:app-settings:processDebugManifest FROM-CACHE
+> Task :app:mapDebugSourceSetPaths
+> Task :data:room:processDebugManifest FROM-CACHE
+> Task :feature:apps:extractDeepLinksDebug FROM-CACHE
+> Task :feature:home:extractDeepLinksDebug FROM-CACHE
+> Task :feature:apps:processDebugManifest FROM-CACHE
+> Task :feature:home:processDebugManifest FROM-CACHE
+> Task :feature:settings:extractDeepLinksDebug FROM-CACHE
+> Task :framework:asset-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:drawable:extractDeepLinksDebug FROM-CACHE
+> Task :feature:settings:processDebugManifest FROM-CACHE
+> Task :framework:asset-manager:processDebugManifest FROM-CACHE
+> Task :framework:launcher-apps:extractDeepLinksDebug FROM-CACHE
+> Task :framework:drawable:processDebugManifest FROM-CACHE
+> Task :framework:notification-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:package-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:launcher-apps:processDebugManifest FROM-CACHE
+> Task :framework:secure-settings:extractDeepLinksDebug FROM-CACHE
+> Task :framework:notification-manager:processDebugManifest FROM-CACHE
+> Task :framework:package-manager:processDebugManifest FROM-CACHE
+> Task :framework:shortcut-manager:extractDeepLinksDebug FROM-CACHE
+> Task :framework:secure-settings:processDebugManifest FROM-CACHE
+> Task :broadcast-receiver:compileDebugLibraryResources FROM-CACHE
+> Task :framework:shortcut-manager:processDebugManifest FROM-CACHE
+> Task :broadcast-receiver:parseDebugLocalResources FROM-CACHE
+> Task :common:compileDebugLibraryResources FROM-CACHE
+> Task :broadcast-receiver:generateDebugRFile FROM-CACHE
+> Task :common:parseDebugLocalResources FROM-CACHE
+> Task :design-system:compileDebugLibraryResources FROM-CACHE
+> Task :design-system:parseDebugLocalResources FROM-CACHE
+> Task :app:mergeDebugResources FROM-CACHE
+> Task :common:generateDebugRFile FROM-CACHE
+> Task :design-system:generateDebugRFile FROM-CACHE
+> Task :ui:compileDebugLibraryResources FROM-CACHE
+> Task :data:datastore:compileDebugLibraryResources FROM-CACHE
+> Task :ui:parseDebugLocalResources FROM-CACHE
+> Task :data:datastore:parseDebugLocalResources FROM-CACHE
+> Task :data:repository:compileDebugLibraryResources FROM-CACHE
+> Task :ui:generateDebugRFile FROM-CACHE
+> Task :data:repository:parseDebugLocalResources FROM-CACHE
+> Task :data:datastore:generateDebugRFile FROM-CACHE
+> Task :data:room:compileDebugLibraryResources FROM-CACHE
+> Task :data:room:parseDebugLocalResources FROM-CACHE
+> Task :data:repository:generateDebugRFile FROM-CACHE
+> Task :feature:app-settings:parseDebugLocalResources FROM-CACHE
+> Task :feature:app-settings:compileDebugLibraryResources FROM-CACHE
+> Task :data:room:generateDebugRFile FROM-CACHE
+> Task :feature:apps:compileDebugLibraryResources FROM-CACHE
+> Task :feature:home:compileDebugLibraryResources FROM-CACHE
+> Task :feature:app-settings:generateDebugRFile FROM-CACHE
+> Task :feature:apps:parseDebugLocalResources FROM-CACHE
+> Task :feature:home:parseDebugLocalResources FROM-CACHE
+> Task :feature:settings:compileDebugLibraryResources FROM-CACHE
+> Task :feature:apps:generateDebugRFile FROM-CACHE
+> Task :feature:home:generateDebugRFile FROM-CACHE
+> Task :feature:settings:parseDebugLocalResources FROM-CACHE
+> Task :framework:asset-manager:compileDebugLibraryResources FROM-CACHE
+> Task :framework:asset-manager:parseDebugLocalResources FROM-CACHE
+> Task :feature:settings:generateDebugRFile FROM-CACHE
+> Task :framework:drawable:compileDebugLibraryResources FROM-CACHE
+> Task :framework:drawable:parseDebugLocalResources FROM-CACHE
+> Task :framework:asset-manager:generateDebugRFile FROM-CACHE
+> Task :framework:launcher-apps:compileDebugLibraryResources FROM-CACHE
+> Task :framework:launcher-apps:parseDebugLocalResources FROM-CACHE
+> Task :framework:drawable:generateDebugRFile FROM-CACHE
+> Task :framework:notification-manager:parseDebugLocalResources FROM-CACHE
+> Task :framework:notification-manager:compileDebugLibraryResources FROM-CACHE
+> Task :framework:launcher-apps:generateDebugRFile FROM-CACHE
+> Task :framework:package-manager:parseDebugLocalResources FROM-CACHE
+> Task :framework:package-manager:compileDebugLibraryResources FROM-CACHE
+> Task :framework:notification-manager:generateDebugRFile FROM-CACHE
+> Task :framework:secure-settings:parseDebugLocalResources FROM-CACHE
+> Task :framework:secure-settings:compileDebugLibraryResources FROM-CACHE
+> Task :framework:secure-settings:generateDebugRFile FROM-CACHE
+> Task :framework:package-manager:generateDebugRFile FROM-CACHE
+> Task :framework:shortcut-manager:compileDebugLibraryResources FROM-CACHE
+> Task :framework:shortcut-manager:parseDebugLocalResources FROM-CACHE
+> Task :broadcast-receiver:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:shortcut-manager:generateDebugRFile FROM-CACHE
+> Task :framework:notification-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:notification-manager:javaPreCompileDebug FROM-CACHE
+> Task :common:javaPreCompileDebug FROM-CACHE
+> Task :design-system:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :broadcast-receiver:javaPreCompileDebug FROM-CACHE
+> Task :design-system:javaPreCompileDebug FROM-CACHE
+> Task :ui:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:drawable:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:processDebugMainManifest FROM-CACHE
+> Task :app:processDebugManifest FROM-CACHE
+> Task :app:processDebugManifestForPackage FROM-CACHE
+> Task :design-system:compileDebugKotlin FROM-CACHE
+> Task :design-system:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:processDebugResources FROM-CACHE
+> Task :framework:drawable:javaPreCompileDebug FROM-CACHE
+> Task :framework:launcher-apps:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:launcher-apps:javaPreCompileDebug FROM-CACHE
+> Task :ui:javaPreCompileDebug FROM-CACHE
+> Task :data:datastore-proto:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :design-system:bundleLibCompileToJarDebug
+> Task :data:datastore-proto:extractProto
+> Task :data:datastore-proto:processResources
+> Task :data:datastore:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:datastore:javaPreCompileDebug FROM-CACHE
+> Task :data:repository:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:room:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:datastore-proto:extractIncludeProto
+> Task :data:datastore-proto:generateProto FROM-CACHE
+> Task :data:datastore-proto:compileKotlin FROM-CACHE
+> Task :data:datastore-proto:compileJava FROM-CACHE
+> Task :data:datastore-proto:classes
+> Task :data:datastore-proto:jar
+> Task :data:room:javaPreCompileDebug FROM-CACHE
+> Task :data:repository:javaPreCompileDebug FROM-CACHE
+> Task :design-system:bundleLibRuntimeToJarDebug
+> Task :feature:app-settings:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:app-settings:javaPreCompileDebug FROM-CACHE
+> Task :feature:apps:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:apps:javaPreCompileDebug FROM-CACHE
+> Task :feature:home:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:home:javaPreCompileDebug FROM-CACHE
+> Task :feature:settings:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:settings:javaPreCompileDebug FROM-CACHE
+> Task :framework:asset-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:drawable:kspDebugKotlin FROM-CACHE
+> Task :framework:drawable:compileDebugKotlin FROM-CACHE
+> Task :common:kspDebugKotlin FROM-CACHE
+> Task :common:compileDebugKotlin FROM-CACHE
+> Task :data:room:kspDebugKotlin FROM-CACHE
+> Task :data:room:compileDebugKotlin FROM-CACHE
+> Task :framework:asset-manager:kspDebugKotlin FROM-CACHE
+> Task :framework:asset-manager:compileDebugKotlin FROM-CACHE
+> Task :framework:asset-manager:javaPreCompileDebug FROM-CACHE
+> Task :common:compileDebugJavaWithJavac FROM-CACHE
+> Task :framework:drawable:compileDebugJavaWithJavac FROM-CACHE
+> Task :common:transformDebugClassesWithAsm FROM-CACHE
+> Task :framework:drawable:transformDebugClassesWithAsm FROM-CACHE
+> Task :common:bundleLibRuntimeToJarDebug
+> Task :common:bundleLibCompileToJarDebug
+> Task :framework:drawable:bundleLibCompileToJarDebug
+> Task :framework:drawable:bundleLibRuntimeToJarDebug
+> Task :framework:notification-manager:kspDebugKotlin FROM-CACHE
+> Task :framework:launcher-apps:kspDebugKotlin FROM-CACHE
+> Task :framework:launcher-apps:compileDebugKotlin FROM-CACHE
+> Task :framework:notification-manager:compileDebugKotlin FROM-CACHE
+> Task :framework:notification-manager:compileDebugJavaWithJavac FROM-CACHE
+> Task :framework:launcher-apps:compileDebugJavaWithJavac FROM-CACHE
+> Task :framework:launcher-apps:transformDebugClassesWithAsm FROM-CACHE
+> Task :framework:launcher-apps:bundleLibCompileToJarDebug
+> Task :framework:notification-manager:transformDebugClassesWithAsm FROM-CACHE
+> Task :framework:notification-manager:bundleLibRuntimeToJarDebug
+> Task :framework:notification-manager:bundleLibCompileToJarDebug
+> Task :framework:asset-manager:compileDebugJavaWithJavac FROM-CACHE
+> Task :data:room:compileDebugJavaWithJavac FROM-CACHE
+> Task :data:room:copyRoomSchemas NO-SOURCE
+> Task :broadcast-receiver:kspDebugKotlin FROM-CACHE
+> Task :data:room:transformDebugClassesWithAsm FROM-CACHE
+> Task :ui:compileDebugKotlin FROM-CACHE
+> Task :ui:compileDebugJavaWithJavac NO-SOURCE
+> Task :data:room:bundleLibCompileToJarDebug
+> Task :ui:bundleLibCompileToJarDebug
+> Task :data:datastore:kspDebugKotlin FROM-CACHE
+> Task :ui:bundleLibRuntimeToJarDebug
+> Task :data:room:bundleLibRuntimeToJarDebug
+> Task :broadcast-receiver:compileDebugKotlin FROM-CACHE
+> Task :framework:launcher-apps:bundleLibRuntimeToJarDebug
+> Task :data:datastore:compileDebugKotlin FROM-CACHE
+> Task :broadcast-receiver:compileDebugJavaWithJavac FROM-CACHE
+> Task :data:datastore:compileDebugJavaWithJavac FROM-CACHE
+> Task :broadcast-receiver:transformDebugClassesWithAsm FROM-CACHE
+> Task :broadcast-receiver:bundleLibCompileToJarDebug
+> Task :data:datastore:transformDebugClassesWithAsm FROM-CACHE
+> Task :broadcast-receiver:bundleLibRuntimeToJarDebug
+> Task :data:datastore:bundleLibRuntimeToJarDebug
+> Task :data:datastore:bundleLibCompileToJarDebug
+> Task :feature:home:kspDebugKotlin FROM-CACHE
+> Task :data:repository:kspDebugKotlin FROM-CACHE
+> Task :feature:apps:kspDebugKotlin FROM-CACHE
+> Task :feature:apps:compileDebugKotlin FROM-CACHE
+> Task :data:repository:compileDebugKotlin FROM-CACHE
+> Task :data:repository:compileDebugJavaWithJavac FROM-CACHE
+> Task :feature:apps:compileDebugJavaWithJavac FROM-CACHE
+> Task :feature:home:compileDebugKotlin FROM-CACHE
+> Task :data:repository:transformDebugClassesWithAsm FROM-CACHE
+> Task :feature:home:compileDebugJavaWithJavac NO-SOURCE
+> Task :data:repository:bundleLibCompileToJarDebug
+> Task :feature:apps:transformDebugClassesWithAsm FROM-CACHE
+> Task :feature:apps:bundleLibCompileToJarDebug
+> Task :feature:settings:kspDebugKotlin FROM-CACHE
+> Task :framework:asset-manager:transformDebugClassesWithAsm FROM-CACHE
+> Task :framework:asset-manager:bundleLibCompileToJarDebug
+> Task :framework:package-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:package-manager:kspDebugKotlin FROM-CACHE
+> Task :feature:settings:compileDebugKotlin FROM-CACHE
+> Task :framework:package-manager:compileDebugKotlin FROM-CACHE
+> Task :framework:package-manager:javaPreCompileDebug FROM-CACHE
+> Task :framework:package-manager:compileDebugJavaWithJavac FROM-CACHE
+> Task :framework:package-manager:transformDebugClassesWithAsm FROM-CACHE
+> Task :framework:package-manager:bundleLibCompileToJarDebug
+> Task :framework:secure-settings:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:secure-settings:kspDebugKotlin FROM-CACHE
+> Task :framework:secure-settings:compileDebugKotlin FROM-CACHE
+> Task :framework:secure-settings:javaPreCompileDebug FROM-CACHE
+> Task :framework:secure-settings:compileDebugJavaWithJavac FROM-CACHE
+> Task :framework:secure-settings:transformDebugClassesWithAsm FROM-CACHE
+> Task :framework:secure-settings:bundleLibCompileToJarDebug
+> Task :framework:shortcut-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :framework:shortcut-manager:kspDebugKotlin FROM-CACHE
+> Task :feature:home:transformDebugClassesWithAsm
+> Task :framework:shortcut-manager:compileDebugKotlin FROM-CACHE
+> Task :framework:shortcut-manager:javaPreCompileDebug FROM-CACHE
+> Task :framework:shortcut-manager:compileDebugJavaWithJavac FROM-CACHE
+> Task :feature:home:bundleLibCompileToJarDebug
+> Task :app:javaPreCompileDebug FROM-CACHE
+> Task :framework:shortcut-manager:transformDebugClassesWithAsm FROM-CACHE
+> Task :framework:shortcut-manager:bundleLibCompileToJarDebug
+> Task :broadcast-receiver:mergeDebugShaders
+> Task :broadcast-receiver:compileDebugShaders NO-SOURCE
+> Task :broadcast-receiver:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :common:mergeDebugShaders
+> Task :common:compileDebugShaders NO-SOURCE
+> Task :common:generateDebugAssets UP-TO-DATE
+> Task :broadcast-receiver:packageDebugAssets
+> Task :common:packageDebugAssets
+> Task :design-system:mergeDebugShaders
+> Task :ui:mergeDebugShaders
+> Task :design-system:compileDebugShaders NO-SOURCE
+> Task :design-system:generateDebugAssets UP-TO-DATE
+> Task :ui:compileDebugShaders NO-SOURCE
+> Task :ui:generateDebugAssets UP-TO-DATE
+> Task :ui:packageDebugAssets
+> Task :design-system:packageDebugAssets
+> Task :data:datastore:mergeDebugShaders
+> Task :data:repository:mergeDebugShaders
+> Task :data:datastore:compileDebugShaders NO-SOURCE
+> Task :data:datastore:generateDebugAssets UP-TO-DATE
+> Task :data:repository:compileDebugShaders NO-SOURCE
+> Task :data:repository:generateDebugAssets UP-TO-DATE
+> Task :data:repository:packageDebugAssets
+> Task :data:datastore:packageDebugAssets
+> Task :data:room:mergeDebugShaders
+> Task :data:room:compileDebugShaders NO-SOURCE
+> Task :data:room:generateDebugAssets UP-TO-DATE
+> Task :feature:app-settings:mergeDebugShaders
+> Task :feature:app-settings:compileDebugShaders NO-SOURCE
+> Task :feature:app-settings:generateDebugAssets UP-TO-DATE
+> Task :data:room:packageDebugAssets
+> Task :feature:app-settings:packageDebugAssets
+> Task :feature:apps:mergeDebugShaders
+> Task :feature:apps:compileDebugShaders NO-SOURCE
+> Task :feature:apps:generateDebugAssets UP-TO-DATE
+> Task :feature:home:mergeDebugShaders
+> Task :feature:home:compileDebugShaders NO-SOURCE
+> Task :feature:home:generateDebugAssets UP-TO-DATE
+> Task :feature:apps:packageDebugAssets
+> Task :feature:home:packageDebugAssets
+> Task :feature:settings:mergeDebugShaders
+> Task :framework:asset-manager:mergeDebugShaders
+> Task :feature:settings:compileDebugShaders NO-SOURCE
+> Task :feature:settings:generateDebugAssets UP-TO-DATE
+> Task :framework:asset-manager:compileDebugShaders NO-SOURCE
+> Task :framework:asset-manager:generateDebugAssets UP-TO-DATE
+> Task :feature:settings:packageDebugAssets
+> Task :framework:drawable:mergeDebugShaders
+> Task :framework:asset-manager:packageDebugAssets
+> Task :framework:drawable:compileDebugShaders NO-SOURCE
+> Task :framework:drawable:generateDebugAssets UP-TO-DATE
+> Task :framework:launcher-apps:mergeDebugShaders
+> Task :framework:drawable:packageDebugAssets
+> Task :framework:launcher-apps:compileDebugShaders NO-SOURCE
+> Task :framework:launcher-apps:generateDebugAssets UP-TO-DATE
+> Task :framework:launcher-apps:packageDebugAssets
+> Task :framework:notification-manager:mergeDebugShaders
+> Task :framework:notification-manager:compileDebugShaders NO-SOURCE
+> Task :framework:notification-manager:generateDebugAssets UP-TO-DATE
+> Task :framework:package-manager:mergeDebugShaders
+> Task :framework:package-manager:compileDebugShaders NO-SOURCE
+> Task :framework:package-manager:generateDebugAssets UP-TO-DATE
+> Task :framework:notification-manager:packageDebugAssets
+> Task :framework:secure-settings:mergeDebugShaders
+> Task :framework:package-manager:packageDebugAssets
+> Task :framework:secure-settings:compileDebugShaders NO-SOURCE
+> Task :framework:secure-settings:generateDebugAssets UP-TO-DATE
+> Task :framework:secure-settings:packageDebugAssets
+> Task :framework:shortcut-manager:mergeDebugShaders
+> Task :framework:shortcut-manager:compileDebugShaders NO-SOURCE
+> Task :framework:shortcut-manager:generateDebugAssets UP-TO-DATE
+> Task :framework:shortcut-manager:packageDebugAssets
+> Task :feature:settings:compileDebugJavaWithJavac
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets FROM-CACHE
+> Task :feature:apps:bundleLibRuntimeToJarDebug
+> Task :app:l8DexDesugarLibDebug FROM-CACHE
+> Task :data:repository:bundleLibRuntimeToJarDebug
+> Task :feature:home:bundleLibRuntimeToJarDebug
+> Task :framework:asset-manager:bundleLibRuntimeToJarDebug
+> Task :framework:package-manager:bundleLibRuntimeToJarDebug
+> Task :framework:secure-settings:bundleLibRuntimeToJarDebug
+> Task :framework:shortcut-manager:bundleLibRuntimeToJarDebug
+> Task :feature:settings:transformDebugClassesWithAsm
+> Task :feature:settings:bundleLibRuntimeToJarDebug
+> Task :feature:settings:bundleLibCompileToJarDebug
+> Task :design-system:processDebugJavaRes
+> Task :broadcast-receiver:processDebugJavaRes
+> Task :common:processDebugJavaRes
+> Task :data:repository:processDebugJavaRes
+> Task :data:datastore:processDebugJavaRes
+> Task :ui:processDebugJavaRes
+> Task :data:room:processDebugJavaRes
+> Task :feature:apps:processDebugJavaRes
+> Task :feature:home:processDebugJavaRes
+> Task :feature:settings:processDebugJavaRes
+> Task :framework:launcher-apps:processDebugJavaRes
+> Task :framework:drawable:processDebugJavaRes
+> Task :framework:asset-manager:processDebugJavaRes
+> Task :framework:notification-manager:processDebugJavaRes
+> Task :framework:package-manager:processDebugJavaRes
+> Task :framework:secure-settings:processDebugJavaRes
+> Task :framework:shortcut-manager:processDebugJavaRes
+> Task :app:desugarDebugFileDependencies FROM-CACHE
+> Task :broadcast-receiver:bundleLibRuntimeToDirDebug
+> Task :feature:apps:bundleLibRuntimeToDirDebug
+> Task :app:checkDebugDuplicateClasses
+> Task :feature:home:bundleLibRuntimeToDirDebug
+> Task :feature:settings:bundleLibRuntimeToDirDebug
+> Task :app:mergeExtDexDebug FROM-CACHE
+> Task :ui:bundleLibRuntimeToDirDebug
+> Task :framework:notification-manager:bundleLibRuntimeToDirDebug
+> Task :data:repository:bundleLibRuntimeToDirDebug
+> Task :data:datastore:bundleLibRuntimeToDirDebug
+> Task :common:bundleLibRuntimeToDirDebug
+> Task :design-system:bundleLibRuntimeToDirDebug
+> Task :framework:asset-manager:bundleLibRuntimeToDirDebug
+> Task :framework:launcher-apps:bundleLibRuntimeToDirDebug
+> Task :framework:package-manager:bundleLibRuntimeToDirDebug
+> Task :framework:drawable:bundleLibRuntimeToDirDebug
+> Task :framework:secure-settings:bundleLibRuntimeToDirDebug
+> Task :framework:shortcut-manager:bundleLibRuntimeToDirDebug
+> Task :data:room:bundleLibRuntimeToDirDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :broadcast-receiver:mergeDebugJniLibFolders
+> Task :broadcast-receiver:mergeDebugNativeLibs NO-SOURCE
+> Task :broadcast-receiver:copyDebugJniLibsProjectOnly
+> Task :common:mergeDebugJniLibFolders
+> Task :common:mergeDebugNativeLibs NO-SOURCE
+> Task :common:copyDebugJniLibsProjectOnly
+> Task :design-system:mergeDebugJniLibFolders
+> Task :design-system:mergeDebugNativeLibs NO-SOURCE
+> Task :design-system:copyDebugJniLibsProjectOnly
+> Task :ui:mergeDebugJniLibFolders
+> Task :ui:mergeDebugNativeLibs NO-SOURCE
+> Task :ui:copyDebugJniLibsProjectOnly
+> Task :data:datastore:mergeDebugJniLibFolders
+> Task :data:datastore:mergeDebugNativeLibs NO-SOURCE
+> Task :data:datastore:copyDebugJniLibsProjectOnly
+> Task :data:repository:mergeDebugJniLibFolders
+> Task :data:repository:mergeDebugNativeLibs NO-SOURCE
+> Task :data:repository:copyDebugJniLibsProjectOnly
+> Task :data:room:mergeDebugJniLibFolders
+> Task :data:room:mergeDebugNativeLibs NO-SOURCE
+> Task :data:room:copyDebugJniLibsProjectOnly
+> Task :feature:app-settings:mergeDebugJniLibFolders
+> Task :feature:app-settings:mergeDebugNativeLibs NO-SOURCE
+> Task :feature:app-settings:copyDebugJniLibsProjectOnly
+> Task :feature:apps:mergeDebugJniLibFolders
+> Task :feature:apps:mergeDebugNativeLibs NO-SOURCE
+> Task :feature:apps:copyDebugJniLibsProjectOnly
+> Task :feature:home:mergeDebugJniLibFolders
+> Task :feature:home:mergeDebugNativeLibs NO-SOURCE
+> Task :feature:home:copyDebugJniLibsProjectOnly
+> Task :feature:settings:mergeDebugJniLibFolders
+> Task :feature:settings:mergeDebugNativeLibs NO-SOURCE
+> Task :feature:settings:copyDebugJniLibsProjectOnly
+> Task :framework:asset-manager:mergeDebugJniLibFolders
+> Task :framework:asset-manager:mergeDebugNativeLibs NO-SOURCE
+> Task :framework:asset-manager:copyDebugJniLibsProjectOnly
+> Task :framework:drawable:mergeDebugJniLibFolders
+> Task :framework:drawable:mergeDebugNativeLibs NO-SOURCE
+> Task :framework:drawable:copyDebugJniLibsProjectOnly
+> Task :framework:launcher-apps:mergeDebugJniLibFolders
+> Task :framework:launcher-apps:mergeDebugNativeLibs NO-SOURCE
+> Task :framework:launcher-apps:copyDebugJniLibsProjectOnly
+> Task :framework:notification-manager:mergeDebugJniLibFolders
+> Task :framework:notification-manager:mergeDebugNativeLibs NO-SOURCE
+> Task :framework:notification-manager:copyDebugJniLibsProjectOnly
+> Task :framework:package-manager:mergeDebugJniLibFolders
+> Task :framework:package-manager:mergeDebugNativeLibs NO-SOURCE
+> Task :framework:package-manager:copyDebugJniLibsProjectOnly
+> Task :framework:secure-settings:mergeDebugJniLibFolders
+> Task :framework:secure-settings:mergeDebugNativeLibs NO-SOURCE
+> Task :framework:secure-settings:copyDebugJniLibsProjectOnly
+> Task :framework:shortcut-manager:mergeDebugJniLibFolders
+> Task :framework:shortcut-manager:mergeDebugNativeLibs NO-SOURCE
+> Task :framework:shortcut-manager:copyDebugJniLibsProjectOnly
+> Task :app:mergeDebugNativeLibs
+> Task :app:stripDebugDebugSymbols
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :feature:app-settings:kspDebugKotlin
+
+> Task :feature:app-settings:compileDebugKotlin
+w: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/AppDetailsTab.kt:214:23 '@Deprecated(...) fun checkOpNoThrow(@NonNull() p0: String, p1: Int, @NonNull() p2: String): Int' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/EnvironmentDetectionTab.kt:86:70 '@Deprecated(...) static field ALLOW_MOCK_LOCATION: String' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Aegis2/Aegis2/feature/app-settings/src/main/kotlin/com/android/geto/feature/appsettings/EnvironmentDetectionTab.kt:89:52 '@Deprecated(...) static field LOCATION_MODE: String' is deprecated. Deprecated in Java.
+
+> Task :feature:app-settings:processDebugJavaRes
+> Task :feature:app-settings:compileDebugJavaWithJavac
+> Task :feature:app-settings:transformDebugClassesWithAsm
+> Task :feature:app-settings:bundleLibRuntimeToJarDebug
+> Task :feature:app-settings:bundleLibCompileToJarDebug
+> Task :feature:app-settings:bundleLibRuntimeToDirDebug
+> Task :app:kspDebugKotlin
+> Task :app:mergeLibDexDebug
+
+e: file:///home/runner/work/Aegis2/Aegis2/app/src/main/kotlin/com/android/geto/lock/AppLockActivity.kt:83:13 No value passed for parameter 'theme'.
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/Aegis2/Aegis2/app/src/main/kotlin/com/android/geto/lock/AppLockActivity.kt:83:13 No value passed for parameter 'dynamicTheme'.
+e: file:///home/runner/work/Aegis2/Aegis2/app/src/main/kotlin/com/android/geto/lock/AppLockActivity.kt:85:21 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/Aegis2/Aegis2/app/src/main/kotlin/com/android/geto/lock/AppLockActivity.kt:90:21 @Composable invocations can only happen from the context of a @Composable function
+
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1780983206775.json
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 3s
+441 actionable tasks: 197 executed, 244 from cache
+Configuration cache entry stored.
+Error: Process completed with exit code 1
