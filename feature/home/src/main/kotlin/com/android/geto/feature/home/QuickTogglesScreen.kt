@@ -81,7 +81,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.android.geto.designsystem.icon.GetoIcons
 
 // ── Data model ───────────────────────────────────────────────────────────────
@@ -331,10 +330,10 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
         priority = 15,
         requiresWriteSecure = true,
         readState = { ctx ->
-            Settings.Global.getInt(ctx.contentResolver, Settings.Global.WIFI_VERBOSE_LOGGING_ENABLED, 0) == 1
+            Settings.Global.getInt(ctx.contentResolver, "wifi_verbose_logging_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.WIFI_VERBOSE_LOGGING_ENABLED, if (on) 1 else 0) } catch (_: Exception) { }
+            try { Settings.Global.putInt(ctx.contentResolver, "wifi_verbose_logging_enabled", if (on) 1 else 0) } catch (_: Exception) { }
             true
         },
     ),
@@ -750,10 +749,10 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
         priority = 39,
         requiresWriteSettings = true,
         readState = { ctx ->
-            Settings.System.getInt(ctx.contentResolver, Settings.System.LOCKSCREEN_SOUNDS_ENABLED, 1) == 1
+            Settings.System.getInt(ctx.contentResolver, "lockscreen_sounds_enabled", 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, Settings.System.LOCKSCREEN_SOUNDS_ENABLED, if (on) 1 else 0) } catch (_: Exception) { }
+            try { Settings.System.putInt(ctx.contentResolver, "lockscreen_sounds_enabled", if (on) 1 else 0) } catch (_: Exception) { }
             true
         },
     ),
@@ -814,10 +813,10 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
         priority = 43,
         requiresWriteSecure = true,
         readState = { ctx ->
-            Settings.Global.getInt(ctx.contentResolver, Settings.Global.APP_STANDBY_ENABLED, 1) == 1
+            Settings.Global.getInt(ctx.contentResolver, "app_standby_enabled", 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.APP_STANDBY_ENABLED, if (on) 1 else 0) } catch (_: Exception) { }
+            try { Settings.Global.putInt(ctx.contentResolver, "app_standby_enabled", if (on) 1 else 0) } catch (_: Exception) { }
             true
         },
     ),
