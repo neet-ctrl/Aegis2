@@ -61,7 +61,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_developer"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_1"
                 android:layout_width="wrap_content"
@@ -98,7 +97,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_usb"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_2"
                 android:layout_width="wrap_content"
@@ -145,7 +143,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_wifi_debug"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_3"
                 android:layout_width="wrap_content"
@@ -182,7 +179,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_dark_mode"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_4"
                 android:layout_width="wrap_content"
@@ -229,7 +225,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_auto_rotate"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_5"
                 android:layout_width="wrap_content"
@@ -266,7 +261,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_wifi"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_6"
                 android:layout_width="wrap_content"
@@ -313,7 +307,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_bluetooth"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_7"
                 android:layout_width="wrap_content"
@@ -350,7 +343,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_night_light"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_8"
                 android:layout_width="wrap_content"
@@ -396,7 +388,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_battery_saver"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_9"
                 android:layout_width="wrap_content"
@@ -433,7 +424,6 @@
                 android:layout_height="18dp"
                 android:src="@drawable/ic_qs_dnd"
                 android:contentDescription="@null"
-                android:colorFilter="#FFFFFFFF" />
             <TextView
                 android:id="@+id/wqt_name_10"
                 android:layout_width="wrap_content"
