@@ -133,7 +133,7 @@ private val controlCategories = listOf(
 @Composable
 internal fun AppControlsTab(
     modifier: Modifier = Modifier,
-    onAddRule: () -> Unit,
+    onAddRule: (key: String, settingTypeName: String, label: String) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -182,7 +182,7 @@ internal fun AppControlsTab(
 @Composable
 private fun ControlCategorySection(
     category: ControlCategory,
-    onAddRule: () -> Unit,
+    onAddRule: (key: String, settingTypeName: String, label: String) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -239,7 +239,7 @@ private fun ControlCategorySection(
 @Composable
 private fun ControlEntryRow(
     entry: ControlEntry,
-    onAddRule: () -> Unit,
+    onAddRule: (key: String, settingTypeName: String, label: String) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -298,7 +298,7 @@ private fun ControlEntryRow(
             }
         }
 
-        TextButton(onClick = onAddRule) {
+        TextButton(onClick = { onAddRule(entry.settingKey, entry.settingType, entry.title) }) {
             Icon(
                 imageVector = GetoIcons.Add,
                 contentDescription = null,

@@ -400,7 +400,7 @@ private fun AppOpsCard(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     ) {
                         Text(
-                            text = "Toggling app ops requires MANAGE_APP_OPS_MODES. This permission cannot be granted via ADB on stock Android — it requires a custom ROM or platform-signed build.",
+                            text = "Toggling app ops requires MANAGE_APP_OPS_MODES, which cannot be granted via pm grant on stock Android. To toggle from ADB directly use:\nadb shell appops set <package> CAMERA allow\nadb shell appops set <package> RECORD_AUDIO deny\nReplace CAMERA with the op name shown below each entry.",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.padding(8.dp),

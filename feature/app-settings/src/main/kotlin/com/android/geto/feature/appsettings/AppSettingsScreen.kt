@@ -37,6 +37,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -45,6 +46,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
@@ -209,6 +211,9 @@ internal fun AppSettingsScreen(
     var showShortcutDialog by remember { mutableStateOf(false) }
     var showTemplateDialog by remember { mutableStateOf(false) }
     var showWriteSecureSettingsDialog by remember { mutableStateOf(false) }
+    var prefillKey by remember { mutableStateOf("") }
+    var prefillSettingTypeName by remember { mutableStateOf("SYSTEM") }
+    var prefillLabel by remember { mutableStateOf("") }
 
     val packageName = remember(appSettingsRouteData.componentName) {
         appSettingsRouteData.componentName.substringBefore("/")
@@ -302,6 +307,9 @@ internal fun AppSettingsScreen(
         showShortcutDialog = showShortcutDialog,
         showTemplateDialog = showTemplateDialog,
         showWriteSecureSettingsDialog = showWriteSecureSettingsDialog,
+        prefillKey = prefillKey,
+        prefillSettingTypeName = prefillSettingTypeName,
+        prefillLabel = prefillLabel,
         onAddAppSetting = onAddAppSetting,
         onDismissAppSettingDialog = { showAppSettingDialog = false },
         onDismissShortcutDialog = { showShortcutDialog = false },
@@ -355,7 +363,12 @@ internal fun AppSettingsScreen(
             if (selectedTab == 0) {
                 AppSettingsBottomAppBar(
                     onRefreshIconClick = onRevertAppSettings,
-                    onSettingsIconClick = { showAppSettingDialog = true },
+                    onSettingsIconClick = {
+                        prefillKey = ""
+                        prefillSettingTypeName = "SYSTEM"
+                        prefillLabel = ""
+                        showAppSettingDialog = true
+                    },
                     onShortcutIconClick = { showShortcutDialog = true },
                     onSettingsSuggestIconClick = { showTemplateDialog = true },
                     onFloatingActionButtonClick = onApplyAppSettings,
@@ -469,10 +482,7 @@ internal fun AppSettingsScreen(
                                     onDeleteAppSettingsItem = onDeleteAppSetting,
                                 )
                             } else {
-                                EmptyState(
-                                    title = stringResource(R.string.no_settings_found),
-                                    subtitle = stringResource(R.string.add_your_first_settings),
-                                )
+                                RulesEmptyGuide()
                             }
                         }
                     }
@@ -481,7 +491,12 @@ internal fun AppSettingsScreen(
                         packageInfo = packageInfo,
                     )
                     2 -> AppControlsTab(
-                        onAddRule = { showAppSettingDialog = true },
+                        onAddRule = { key, typeName, label ->
+                            prefillKey = key
+                            prefillSettingTypeName = typeName
+                            prefillLabel = label
+                            showAppSettingDialog = true
+                        },
                     )
                     3 -> AppSecurityTab(
                         packageName = packageName,
@@ -603,6 +618,9 @@ private fun AppSettingsDialogs(
     showShortcutDialog: Boolean,
     showTemplateDialog: Boolean,
     showWriteSecureSettingsDialog: Boolean,
+    prefillKey: String,
+    prefillSettingTypeName: String,
+    prefillLabel: String,
     onAddAppSetting: (AppSetting) -> Unit,
     onDismissAppSettingDialog: () -> Unit,
     onDismissShortcutDialog: () -> Unit,
@@ -612,9 +630,13 @@ private fun AppSettingsDialogs(
     onRequestPinShortcut: (ByteArray?, String, String) -> Unit,
 ) {
     if (showAppSettingDialog) {
+        val initialTypeIndex = SettingType.entries.indexOfFirst { it.name == prefillSettingTypeName }.coerceAtLeast(0)
         AppSettingDialog(
             componentName = componentName,
             secureSettings = secureSettings,
+            initialLabel = prefillLabel,
+            initialKey = prefillKey,
+            initialSettingTypeIndex = initialTypeIndex,
             onAddAppSetting = onAddAppSetting,
             onDismissRequest = onDismissAppSettingDialog,
             onGetSecureSettingsByName = onGetSecureSettingsByName,
@@ -839,48 +861,202 @@ private fun LazyItemScope.AppSettingItem(
 }
 
 @Composable
-private fun EmptyState(
-    modifier: Modifier = Modifier,
-    title: String,
-    subtitle: String,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+private fun RulesEmptyGuide(modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = GetoIcons.SettingsSuggest,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(40.dp),
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = GetoIcons.SettingsSuggest,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "No Rules Yet",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Tap + in the bottom bar to add your first rule",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        item {
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "What is a Rule?",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "A rule changes a system setting when you launch this app (▶ Apply) and restores it when you revert (↺). For example: set brightness to 50 when you open a reading app, then restore it to 128 when done.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = "FIELDS EXPLAINED",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 4.dp),
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface,
+        val fields = listOf(
+            Triple("Label", "A friendly name you choose — shown in the list.", "e.g.  Low brightness for reading"),
+            Triple("Setting Type", "SYSTEM = general device settings\nSECURE = privacy / accessibility settings\nGLOBAL = device-wide / network settings", "e.g.  SYSTEM for brightness, SECURE for location"),
+            Triple("Key", "The actual Android setting name. Type to search — the dropdown shows matching keys and fills the current value automatically.", "e.g.  screen_brightness"),
+            Triple("Value on Launch", "What the setting changes TO when you tap ▶ Apply.", "e.g.  50  (dim the screen)"),
+            Triple("Value on Revert", "What the setting restores TO when you tap ↺. Auto-filled when you pick a key from the dropdown.", "e.g.  128  (your normal brightness)"),
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        items(fields) { (name, desc, example) ->
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = desc,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(6.dp),
+                    ) {
+                        Text(
+                            text = example,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+            }
+        }
 
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        item {
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "Bottom Bar Buttons",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                    listOf(
+                        "▶  (Play)" to "Apply all enabled rules and launch the app",
+                        "↺  (Refresh)" to "Revert all settings to their original values",
+                        "+  (Add)" to "Open the rule dialog to add a new setting rule",
+                        "⊞  (Shortcut)" to "Pin a launcher shortcut that applies rules on tap",
+                        "✦  (Templates)" to "Pick from pre-built rule templates to add quickly",
+                        "☑  (Checkbox)" to "Enable or disable a rule without deleting it",
+                        "🗑  (Delete)" to "Permanently remove a rule",
+                    ).forEach { (btn, desc) ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = btn,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.width(84.dp),
+                            )
+                            Text(
+                                text = desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Full Example — Dim screen for YouTube",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                    val rows = listOf(
+                        "Label" to "Dim for YouTube",
+                        "Type" to "SYSTEM",
+                        "Key" to "screen_brightness",
+                        "Value on Launch" to "40",
+                        "Value on Revert" to "180",
+                    )
+                    rows.forEach { (field, value) ->
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = field,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.width(120.dp),
+                            )
+                            Text(
+                                text = value,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Result: tapping ▶ dims the screen to 40 and opens YouTube. Tapping ↺ restores brightness to 180.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                    )
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(80.dp)) }
     }
 }
 

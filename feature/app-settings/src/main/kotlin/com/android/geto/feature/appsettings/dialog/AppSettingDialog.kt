@@ -71,6 +71,9 @@ internal fun AppSettingDialog(
     modifier: Modifier = Modifier,
     componentName: String,
     secureSettings: List<SecureSetting>,
+    initialLabel: String = "",
+    initialKey: String = "",
+    initialSettingTypeIndex: Int = 0,
     onAddAppSetting: (AppSetting) -> Unit,
     onDismissRequest: () -> Unit,
     onGetSecureSettingsByName: (
@@ -78,11 +81,11 @@ internal fun AppSettingDialog(
         text: String,
     ) -> Unit,
 ) {
-    var selectedRadioOptionIndex by remember { mutableIntStateOf(0) }
+    var selectedRadioOptionIndex by remember { mutableIntStateOf(initialSettingTypeIndex) }
 
-    var label by remember { mutableStateOf("") }
+    var label by remember { mutableStateOf(initialLabel) }
 
-    var key by remember { mutableStateOf("") }
+    var key by remember { mutableStateOf(initialKey) }
 
     var valueOnLaunch by remember { mutableStateOf("") }
 
@@ -133,6 +136,28 @@ internal fun AppSettingDialog(
                 text = stringResource(R.string.add_app_setting),
                 style = MaterialTheme.typography.titleLarge,
             )
+
+            androidx.compose.material3.Surface(
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            ) {
+                Column(modifier = Modifier.padding(10.dp)) {
+                    Text(
+                        text = "How to fill this form",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "1. Choose Type → SYSTEM / SECURE / GLOBAL\n2. Type a Key (e.g. screen_brightness) and pick from the dropdown — it auto-fills the current value into \"Value on Revert\"\n3. Set Value on Launch = what it changes TO\n4. Set Value on Revert = what it goes back to\n5. Give it a Label (any friendly name)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+            }
 
             AppSettingDialogRadioButtonGroup(
                 selected = selectedRadioOptionIndex,
@@ -287,10 +312,15 @@ private fun AppSettingDialogTextFields(
         label = {
             Text(text = stringResource(R.string.setting_label))
         },
+        placeholder = {
+            Text(text = "e.g. Low brightness", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+        },
         isError = showLabelError,
         supportingText = {
             if (showLabelError) {
                 Text(text = labelIsBlank)
+            } else {
+                Text(text = "Any friendly name shown in the list", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         singleLine = true,
@@ -317,10 +347,15 @@ private fun AppSettingDialogTextFields(
         label = {
             Text(text = stringResource(R.string.setting_value_on_launch))
         },
+        placeholder = {
+            Text(text = "e.g. 50", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+        },
         isError = showValueOnLaunchError,
         supportingText = {
             if (showValueOnLaunchError) {
                 Text(text = valueOnLaunchIsBlank)
+            } else {
+                Text(text = "Value applied when you tap ▶ (launch)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         singleLine = true,
@@ -336,10 +371,15 @@ private fun AppSettingDialogTextFields(
         label = {
             Text(text = stringResource(R.string.setting_value_on_revert))
         },
+        placeholder = {
+            Text(text = "e.g. 128", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+        },
         isError = showValueOnRevertError,
         supportingText = {
             if (showValueOnRevertError) {
                 Text(text = valueOnRevertIsBlank)
+            } else {
+                Text(text = "Value restored when you tap ↺ (auto-filled from key dropdown)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         singleLine = true,
