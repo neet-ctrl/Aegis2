@@ -76,9 +76,9 @@ class AegisMonitorService : Service() {
                     }
                 }
 
-                AudioManager.VOLUME_CHANGED_ACTION -> {
-                    val stream = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1)
-                    val volume = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, -1)
+                "android.media.VOLUME_CHANGED_ACTION" -> {
+                    val stream = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
+                    val volume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", -1)
                     if (stream >= 0 && volume >= 0) {
                         val streamName = when (stream) {
                             AudioManager.STREAM_MUSIC -> "Media"
@@ -206,7 +206,7 @@ class AegisMonitorService : Service() {
             addAction(Intent.ACTION_USER_PRESENT)
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(AudioManager.ACTION_HEADSET_PLUG)
-            addAction(AudioManager.VOLUME_CHANGED_ACTION)
+            addAction("android.media.VOLUME_CHANGED_ACTION")
             addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
