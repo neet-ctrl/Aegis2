@@ -29,7 +29,7 @@ fun NavGraphBuilder.homeScreen(
     topLevelDestinations: List<HomeDestination>,
     startDestination: KClass<*>,
     onClickHomeDestination: (NavHostController, HomeDestination) -> Unit,
-    builder: NavGraphBuilder.() -> Unit,
+    builder: NavGraphBuilder.(NavHostController) -> Unit,
 ) {
     composable<HomeRouteData> {
         HomeRoute(

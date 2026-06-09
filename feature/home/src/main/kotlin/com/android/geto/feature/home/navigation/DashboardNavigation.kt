@@ -33,8 +33,14 @@ fun NavController.navigateToDashboard() {
     }
 }
 
-fun NavGraphBuilder.dashboardScreen() {
+fun NavGraphBuilder.dashboardScreen(
+    onNavigateToActivity: () -> Unit = {},
+    onNavigateToAutomations: () -> Unit = {},
+) {
     composable<DashboardRouteData> {
-        DashboardRoute()
+        DashboardRoute(
+            onNavigateToActivity = onNavigateToActivity,
+            onNavigateToAutomations = onNavigateToAutomations,
+        )
     }
 }

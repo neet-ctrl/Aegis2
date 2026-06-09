@@ -49,9 +49,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -61,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,10 +76,19 @@ internal fun AutomationsRoute(modifier: Modifier = Modifier) {
 
 @Composable
 internal fun AutomationsScreen(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
     var showBuilder by remember { mutableStateOf(false) }
+    var refreshKey by remember { mutableIntStateOf(0) }
+
+    val automations = remember(refreshKey) {
+        AegisAutomationStore.getVisibleAutomations(context)
+    }
 
     if (showBuilder) {
-        AutomationBuilderSheet(onDismiss = { showBuilder = false })
+        AutomationBuilderSheet(onDismiss = {
+            showBuilder = false
+            refreshKey++
+        })
     }
 
     Scaffold(
@@ -145,15 +157,35 @@ internal fun AutomationsScreen(modifier: Modifier = Modifier) {
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface,
                     )
-                    Text(
-                        text = "No automations created yet",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (automations.isEmpty()) {
+                        Text(
+                            text = "No automations created yet",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
-            item { AutomationEmptyHint(onTapCreate = { showBuilder = true }) }
+            if (automations.isEmpty()) {
+                item { AutomationEmptyHint(onTapCreate = { showBuilder = true }) }
+            } else {
+                items(automations) { automation ->
+                    AutomationCard(
+                        automation = automation,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        onDelete = {
+                            AegisAutomationStore.deleteAutomation(context, automation.id)
+                            refreshKey++
+                        },
+                        onToggle = {
+                            AegisAutomationStore.toggleEnabled(context, automation.id)
+                            refreshKey++
+                        },
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(8.dp)) }
+            }
 
             item {
                 HiddenVaultSection()
@@ -537,6 +569,137 @@ private fun AutomationEmptyHint(onTapCreate: () -> Unit) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
+    }
+}
+
+@Composable
+private fun AutomationCard(
+    automation: SavedAutomation,
+    modifier: Modifier = Modifier,
+    onDelete: () -> Unit,
+    onToggle: () -> Unit,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (automation.isEnabled)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            else MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = GetoIcons.FlashOn,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = automation.name,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "IF ${automation.triggerLabel}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Switch(
+                        checked = automation.isEnabled,
+                        onCheckedChange = { onToggle() },
+                    )
+                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = GetoIcons.DeleteSweep,
+                            contentDescription = "Delete automation",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = GetoIcons.Tune,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = "THEN ${automation.actionSummary}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            if (automation.conditionCount > 0 || automation.delaySeconds > 0) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (automation.conditionCount > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(50.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                        ) {
+                            Text(
+                                text = "${automation.conditionCount} condition${if (automation.conditionCount == 1) "" else "s"}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            )
+                        }
+                    }
+                    if (automation.delaySeconds > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(50.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                        ) {
+                            Text(
+                                text = "${automation.delaySeconds}s delay",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

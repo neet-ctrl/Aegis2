@@ -77,12 +77,24 @@ import androidx.compose.ui.unit.sp
 import com.android.geto.designsystem.icon.GetoIcons
 
 @Composable
-internal fun DashboardRoute(modifier: Modifier = Modifier) {
-    DashboardScreen(modifier = modifier)
+internal fun DashboardRoute(
+    modifier: Modifier = Modifier,
+    onNavigateToActivity: () -> Unit = {},
+    onNavigateToAutomations: () -> Unit = {},
+) {
+    DashboardScreen(
+        modifier = modifier,
+        onNavigateToActivity = onNavigateToActivity,
+        onNavigateToAutomations = onNavigateToAutomations,
+    )
 }
 
 @Composable
-internal fun DashboardScreen(modifier: Modifier = Modifier) {
+internal fun DashboardScreen(
+    modifier: Modifier = Modifier,
+    onNavigateToActivity: () -> Unit = {},
+    onNavigateToAutomations: () -> Unit = {},
+) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -92,8 +104,8 @@ internal fun DashboardScreen(modifier: Modifier = Modifier) {
         item { StatusGrid() }
         item { AshellCommandsPanel() }
         item { StatisticsSection() }
-        item { RecentActivitySection() }
-        item { QuickActionsSection() }
+        item { RecentActivitySection(onNavigateToActivity = onNavigateToActivity) }
+        item { QuickActionsSection(onNavigateToAutomations = onNavigateToAutomations) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
     }
 }
@@ -204,6 +216,22 @@ private fun StatusChip(label: String, isActive: Boolean) {
 
 @Composable
 private fun StatusGrid() {
+    val context = LocalContext.current
+
+    val writeSecureGranted = ContextCompat.checkSelfPermission(
+        context, "android.permission.WRITE_SECURE_SETTINGS",
+    ) == PackageManager.PERMISSION_GRANTED
+
+    val dumpGranted = ContextCompat.checkSelfPermission(
+        context, "android.permission.DUMP",
+    ) == PackageManager.PERMISSION_GRANTED
+
+    val permissionsReady = writeSecureGranted && dumpGranted
+    val permissionsValue = if (permissionsReady) "Granted" else "Setup Needed"
+
+    val activeRules = AegisAutomationStore.getEnabledCount(context)
+    val totalAutomations = AegisAutomationStore.getTotalCount(context)
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "System Status",
@@ -217,17 +245,17 @@ private fun StatusGrid() {
         ) {
             StatusCard(
                 modifier = Modifier.weight(1f),
-                title = "Shizuku",
-                value = "Ready",
+                title = "ADB Perms",
+                value = if (writeSecureGranted) "Granted" else "Not Granted",
                 icon = GetoIcons.Shield,
-                isGood = true,
+                isGood = writeSecureGranted,
             )
             StatusCard(
                 modifier = Modifier.weight(1f),
                 title = "Permissions",
-                value = "Setup Needed",
+                value = permissionsValue,
                 icon = GetoIcons.Lock,
-                isGood = false,
+                isGood = permissionsReady,
             )
         }
 
@@ -238,7 +266,7 @@ private fun StatusGrid() {
             StatusCard(
                 modifier = Modifier.weight(1f),
                 title = "Active Rules",
-                value = "0 Rules",
+                value = if (activeRules == 0) "None" else "$activeRules Active",
                 icon = GetoIcons.Tune,
                 isGood = true,
             )
@@ -258,7 +286,7 @@ private fun StatusGrid() {
             StatusCard(
                 modifier = Modifier.weight(1f),
                 title = "Automations",
-                value = "0 Active",
+                value = if (totalAutomations == 0) "None" else "$totalAutomations Total",
                 icon = GetoIcons.Automations,
                 isGood = true,
             )
@@ -443,13 +471,33 @@ private data class RecentActivityEntry(
     val tag: String,
 )
 
-private val recentActivityEntries = listOf(
-    RecentActivityEntry(GetoIcons.Shield, "Aegis Ready", "App started — accessibility service active", "Just now", "system"),
-    RecentActivityEntry(GetoIcons.Info, "No Permissions Yet", "Run AShell U commands to grant full permissions", "Just now", "info"),
-)
+private fun logEntryIcon(tag: String): ImageVector = when (tag) {
+    "trigger" -> GetoIcons.FlashOn
+    "settings" -> GetoIcons.Tune
+    "error" -> GetoIcons.Error
+    "shizuku" -> GetoIcons.Shield
+    "system" -> GetoIcons.Shield
+    else -> GetoIcons.Info
+}
 
 @Composable
-private fun RecentActivitySection() {
+private fun RecentActivitySection(onNavigateToActivity: () -> Unit) {
+    val context = LocalContext.current
+
+    AegisActivityLog.seedIfEmpty(context)
+
+    val liveEntries = AegisActivityLog.getEntries(context)
+        .take(3)
+        .map { entry ->
+            RecentActivityEntry(
+                icon = logEntryIcon(entry.tag),
+                title = entry.title,
+                subtitle = entry.subtitle,
+                time = AegisActivityLog.formatRelativeTime(entry.timestampMs),
+                tag = entry.tag,
+            )
+        }
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -461,7 +509,7 @@ private fun RecentActivitySection() {
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            TextButton(onClick = {}) {
+            TextButton(onClick = onNavigateToActivity) {
                 Text(
                     text = "View All",
                     style = MaterialTheme.typography.labelMedium,
@@ -469,8 +517,16 @@ private fun RecentActivitySection() {
             }
         }
 
-        recentActivityEntries.forEach { entry ->
-            RecentActivityCard(entry = entry)
+        if (liveEntries.isEmpty()) {
+            Text(
+                text = "No activity yet. Run AShell U commands to get started.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            liveEntries.forEach { entry ->
+                RecentActivityCard(entry = entry)
+            }
         }
     }
 }
@@ -989,7 +1045,10 @@ private fun CommandItem(command: AshellCommand, context: Context, isGranted: Boo
 }
 
 @Composable
-private fun QuickActionsSection() {
+private fun QuickActionsSection(onNavigateToAutomations: () -> Unit) {
+    val context = LocalContext.current
+    val activeRules = AegisAutomationStore.getEnabledCount(context)
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "Quick Actions",
@@ -1005,8 +1064,9 @@ private fun QuickActionsSection() {
                 modifier = Modifier.weight(1f),
                 icon = GetoIcons.Automations,
                 label = "Automation Engine",
-                subtitle = "Inactive",
-                isActive = false,
+                subtitle = if (activeRules == 0) "No active rules" else "$activeRules rule${if (activeRules == 1) "" else "s"} active",
+                isActive = activeRules > 0,
+                onClick = onNavigateToAutomations,
             )
             QuickActionButton(
                 modifier = Modifier.weight(1f),
@@ -1014,6 +1074,7 @@ private fun QuickActionsSection() {
                 label = "App Lock",
                 subtitle = "0 apps locked",
                 isActive = false,
+                onClick = {},
             )
         }
     }
@@ -1026,6 +1087,7 @@ private fun QuickActionButton(
     label: String,
     subtitle: String,
     isActive: Boolean,
+    onClick: () -> Unit = {},
 ) {
     Card(
         modifier = modifier,
@@ -1034,7 +1096,7 @@ private fun QuickActionButton(
             containerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer
             else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
-        onClick = {},
+        onClick = onClick,
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

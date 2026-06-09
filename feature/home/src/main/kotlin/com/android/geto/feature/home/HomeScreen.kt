@@ -55,7 +55,7 @@ internal fun HomeRoute(
     topLevelDestinations: List<HomeDestination>,
     startDestination: KClass<*>,
     onClickHomeDestination: (NavHostController, HomeDestination) -> Unit,
-    builder: NavGraphBuilder.() -> Unit,
+    builder: NavGraphBuilder.(NavHostController) -> Unit,
 ) {
     HomeScreen(
         modifier = modifier,
@@ -75,7 +75,7 @@ internal fun HomeScreen(
     topLevelDestinations: List<HomeDestination>,
     startDestination: KClass<*>,
     onClickHomeDestination: (NavHostController, HomeDestination) -> Unit,
-    builder: NavGraphBuilder.() -> Unit,
+    builder: NavGraphBuilder.(NavHostController) -> Unit,
 ) {
     val navController = rememberNavController()
 
@@ -110,7 +110,7 @@ internal fun HomeScreen(
                 .consumeWindowInsets(paddingValues),
             navController = navController,
             startDestination = startDestination,
-            builder = builder,
+            builder = { builder(navController) },
         )
     }
 }

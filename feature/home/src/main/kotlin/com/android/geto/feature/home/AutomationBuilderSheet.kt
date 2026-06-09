@@ -260,12 +260,33 @@ internal fun AutomationBuilderSheet(onDismiss: () -> Unit) {
                         if (step < 4) {
                             step++
                         } else {
-                            Toast.makeText(
-                                context,
-                                if (automationName.isBlank()) "Please enter a name" else "Automation \"$automationName\" saved!",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                            if (automationName.isNotBlank()) onDismiss()
+                            if (automationName.isBlank()) {
+                                Toast.makeText(context, "Please enter a name", Toast.LENGTH_SHORT).show()
+                            } else {
+                                val actionSummary = selectedActions
+                                    .joinToString(", ") { it.first.label }
+                                    .ifEmpty { "No actions" }
+                                val automation = SavedAutomation(
+                                    id = System.currentTimeMillis(),
+                                    name = automationName.trim(),
+                                    triggerLabel = selectedTrigger?.label ?: "Unknown",
+                                    conditionCount = conditions.size,
+                                    actionSummary = actionSummary,
+                                    delaySeconds = delaySeconds.toIntOrNull() ?: 0,
+                                    isHidden = isHidden,
+                                    isEnabled = true,
+                                    createdAt = System.currentTimeMillis(),
+                                )
+                                AegisAutomationStore.addAutomation(context, automation)
+                                AegisActivityLog.addEntry(
+                                    context,
+                                    "Automation Created",
+                                    "\"$automationName\" saved — trigger: ${selectedTrigger?.label ?: "none"}",
+                                    "system",
+                                )
+                                Toast.makeText(context, "Automation \"$automationName\" saved!", Toast.LENGTH_SHORT).show()
+                                onDismiss()
+                            }
                         }
                     },
                     modifier = Modifier.weight(if (step == 0) 1f else 1f),

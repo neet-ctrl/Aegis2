@@ -78,8 +78,11 @@ fun GetoNavHost(navController: NavHostController) {
                     SETTINGS -> homeNavHostController.navigateToSettings()
                 }
             },
-            builder = {
-                dashboardScreen()
+            builder = { homeNavHostController ->
+                dashboardScreen(
+                    onNavigateToActivity = { homeNavHostController.navigateToActivity() },
+                    onNavigateToAutomations = { homeNavHostController.navigateToAutomations() },
+                )
                 appsScreen(onClickApp = navController::navigateToAppSettings)
                 automationsScreen()
                 activityScreen()

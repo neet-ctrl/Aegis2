@@ -17,6 +17,8 @@
  */
 package com.android.geto.feature.home
 
+import android.content.ContentValues
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -91,12 +93,41 @@ private data class ActivityEntry(
 @Composable
 internal fun ActivityScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val errorColor = MaterialTheme.colorScheme.error
+
     var selectedFilter by rememberSaveable { mutableIntStateOf(0) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
-    val sampleEntries = getSampleEntries()
+    AegisActivityLog.seedIfEmpty(context)
 
-    val filteredEntries = sampleEntries
+    val allEntries = AegisActivityLog.getEntries(context).map { logEntry ->
+        ActivityEntry(
+            title = logEntry.title,
+            subtitle = logEntry.subtitle,
+            timestamp = AegisActivityLog.formatRelativeTime(logEntry.timestampMs),
+            tag = logEntry.tag,
+            icon = when (logEntry.tag) {
+                "trigger" -> GetoIcons.FlashOn
+                "settings" -> GetoIcons.Tune
+                "error" -> GetoIcons.Error
+                "shizuku" -> GetoIcons.Shield
+                "system" -> GetoIcons.Shield
+                else -> GetoIcons.Info
+            },
+            iconTint = when (logEntry.tag) {
+                "trigger" -> secondaryColor
+                "settings" -> primaryColor
+                "error" -> errorColor
+                "shizuku" -> tertiaryColor
+                else -> primaryColor
+            },
+        )
+    }
+
+    val filteredEntries = allEntries
         .filter { if (selectedFilter == 0) true else it.tag == activityFilters[selectedFilter].tag }
         .filter {
             if (searchQuery.isBlank()) true
@@ -133,7 +164,41 @@ internal fun ActivityScreen(modifier: Modifier = Modifier) {
 
             IconButton(
                 onClick = {
-                    Toast.makeText(context, "Logs exported to Downloads", Toast.LENGTH_SHORT).show()
+                    val entries = AegisActivityLog.getEntries(context)
+                    if (entries.isEmpty()) {
+                        Toast.makeText(context, "No activity to export", Toast.LENGTH_SHORT).show()
+                        return@IconButton
+                    }
+                    try {
+                        val fileName = "aegis_activity_${System.currentTimeMillis()}.txt"
+                        val contentValues = ContentValues().apply {
+                            put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                            put(MediaStore.Downloads.MIME_TYPE, "text/plain")
+                        }
+                        val uri = context.contentResolver.insert(
+                            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                            contentValues,
+                        )
+                        if (uri != null) {
+                            context.contentResolver.openOutputStream(uri)?.use { stream ->
+                                val writer = stream.bufferedWriter()
+                                writer.write("Aegis Activity Log\n")
+                                writer.write("Exported: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date())}\n")
+                                writer.write("${"=".repeat(60)}\n\n")
+                                entries.forEach { entry ->
+                                    writer.write("[${entry.tag.uppercase()}] ${AegisActivityLog.formatRelativeTime(entry.timestampMs)}\n")
+                                    writer.write("  ${entry.title}\n")
+                                    writer.write("  ${entry.subtitle}\n\n")
+                                }
+                                writer.flush()
+                            }
+                            Toast.makeText(context, "Exported to Downloads/$fileName", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "Export failed — could not create file", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 },
             ) {
                 Icon(
@@ -207,80 +272,6 @@ internal fun ActivityScreen(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun getSampleEntries(): List<ActivityEntry> {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
-    val errorColor = MaterialTheme.colorScheme.error
-
-    return listOf(
-        ActivityEntry(
-            title = "Shizuku Connected",
-            subtitle = "Full permissions active — all features available",
-            timestamp = "Just now",
-            icon = GetoIcons.Shield,
-            tag = "shizuku",
-            iconTint = tertiaryColor,
-        ),
-        ActivityEntry(
-            title = "Permission Granted",
-            subtitle = "WRITE_SECURE_SETTINGS granted via AShell U",
-            timestamp = "5 min ago",
-            icon = GetoIcons.CheckCircle,
-            tag = "settings",
-            iconTint = primaryColor,
-        ),
-        ActivityEntry(
-            title = "Automation Triggered",
-            subtitle = "IF App Launch: YouTube → Brightness 80%",
-            timestamp = "12 min ago",
-            icon = GetoIcons.FlashOn,
-            tag = "trigger",
-            iconTint = secondaryColor,
-        ),
-        ActivityEntry(
-            title = "Setting Applied",
-            subtitle = "YouTube: screen_brightness = 204",
-            timestamp = "12 min ago",
-            icon = GetoIcons.Tune,
-            tag = "settings",
-            iconTint = primaryColor,
-        ),
-        ActivityEntry(
-            title = "Setting Reverted",
-            subtitle = "YouTube: screen_brightness restored to default",
-            timestamp = "45 min ago",
-            icon = GetoIcons.Refresh,
-            tag = "settings",
-            iconTint = secondaryColor,
-        ),
-        ActivityEntry(
-            title = "Automation Triggered",
-            subtitle = "IF Battery < 20% → Enable Battery Saver",
-            timestamp = "1 hr ago",
-            icon = GetoIcons.BatteryAlert,
-            tag = "trigger",
-            iconTint = errorColor,
-        ),
-        ActivityEntry(
-            title = "Shizuku Disconnected",
-            subtitle = "Shizuku was stopped — features limited",
-            timestamp = "2 hr ago",
-            icon = GetoIcons.Warning,
-            tag = "shizuku",
-            iconTint = errorColor,
-        ),
-        ActivityEntry(
-            title = "Permission Denied",
-            subtitle = "BATTERY_STATS not granted — battery monitoring disabled",
-            timestamp = "Today, 10:23",
-            icon = GetoIcons.Error,
-            tag = "error",
-            iconTint = errorColor,
-        ),
-    )
-}
 
 @Composable
 private fun ActivityEntryCard(entry: ActivityEntry) {
