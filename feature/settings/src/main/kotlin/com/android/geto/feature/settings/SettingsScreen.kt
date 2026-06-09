@@ -74,8 +74,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -491,11 +497,71 @@ private fun SuccessState(
         ActivityResultContracts.RequestPermission(),
     ) { permCheckTrigger++ }
 
+    val scope = rememberCoroutineScope()
     val backupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("*/*")) { uri ->
-        if (uri != null) Toast.makeText(context, "Backup location selected — encrypted backup coming in next update", Toast.LENGTH_LONG).show()
+        if (uri != null) {
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val automationsRaw = context.getSharedPreferences("aegis_automations_v1", Context.MODE_PRIVATE)
+                        .getStringSet("automations", null) ?: emptySet()
+                    val logRaw = context.getSharedPreferences("aegis_activity_log_v1", Context.MODE_PRIVATE)
+                        .getStringSet("entries", null) ?: emptySet()
+                    val json = JSONObject().apply {
+                        put("version", 1)
+                        put("timestamp", System.currentTimeMillis())
+                        put("automations", JSONArray(automationsRaw.toList()))
+                        put("activity_log", JSONArray(logRaw.toList()))
+                    }.toString(2)
+                    context.contentResolver.openOutputStream(uri)?.use { out ->
+                        out.write(json.toByteArray(Charsets.UTF_8))
+                    }
+                    val count = automationsRaw.size
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Backup saved — $count automations backed up", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Backup failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
     }
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) Toast.makeText(context, "Restore selected — full restore coming in next update", Toast.LENGTH_LONG).show()
+        if (uri != null) {
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val jsonStr = context.contentResolver.openInputStream(uri)
+                        ?.use { it.readBytes().toString(Charsets.UTF_8) }
+                        ?: throw Exception("Cannot read file")
+                    val json = JSONObject(jsonStr)
+                    val version = json.optInt("version", 0)
+                    if (version != 1) throw Exception("Unknown backup format (version $version)")
+                    val automationsArr = json.optJSONArray("automations")
+                    if (automationsArr != null) {
+                        val set = mutableSetOf<String>()
+                        for (i in 0 until automationsArr.length()) set.add(automationsArr.getString(i))
+                        context.getSharedPreferences("aegis_automations_v1", Context.MODE_PRIVATE)
+                            .edit().putStringSet("automations", set).apply()
+                    }
+                    val logArr = json.optJSONArray("activity_log")
+                    if (logArr != null) {
+                        val set = mutableSetOf<String>()
+                        for (i in 0 until logArr.length()) set.add(logArr.getString(i))
+                        context.getSharedPreferences("aegis_activity_log_v1", Context.MODE_PRIVATE)
+                            .edit().putStringSet("entries", set).apply()
+                    }
+                    val count = automationsArr?.length() ?: 0
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Restored $count automations — restart app to refresh", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Restore failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
     }
 
     Column(
@@ -756,7 +822,7 @@ private fun PermissionGroup(
     context: Context,
     onGrant: (PermEntry) -> Unit,
 ) {
-    var expanded by rememberSaveable { mutableStateOf(true) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     val grantedCount = remember(trigger) { entries.count { it.checkGranted(context) } }
 
