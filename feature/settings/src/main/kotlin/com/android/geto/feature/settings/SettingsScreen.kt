@@ -1340,7 +1340,7 @@ private fun SettingsInfoRow(icon: ImageVector, title: String, subtitle: String) 
     }
 }
 
-private fun Theme.getTitle() = when (this) {
+internal fun Theme.getTitle() = when (this) {
     Theme.FOLLOW_SYSTEM -> "Follow System"
     Theme.LIGHT -> "Light"
     Theme.DARK -> "Dark"
