@@ -1140,7 +1140,7 @@ private fun settingsPageForToggle(id: String): String = when (id) {
     "location" -> Settings.ACTION_LOCATION_SOURCE_SETTINGS
     "camera_toggle", "mic_toggle", "clipboard_access" -> Settings.ACTION_PRIVACY_SETTINGS
     "usage_access" -> Settings.ACTION_USAGE_ACCESS_SETTINGS
-    "notification_history" -> Settings.ACTION_NOTIFICATION_SETTINGS
+    "notification_history" -> Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS
     // Accessibility
     "talkback", "accessibility_shortcut",
     "color_correction", "select_to_speak" -> Settings.ACTION_ACCESSIBILITY_SETTINGS
