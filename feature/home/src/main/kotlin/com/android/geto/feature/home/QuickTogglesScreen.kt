@@ -116,8 +116,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, if (on) 1 else 0) } catch (_: Exception) { false }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -131,8 +130,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, Settings.Global.ADB_ENABLED, 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.ADB_ENABLED, if (on) 1 else 0) } catch (_: Exception) { false }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.ADB_ENABLED, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -150,9 +148,8 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
         },
         writeState = { ctx, on ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                try { Settings.Global.putInt(ctx.contentResolver, "adb_wifi_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            }
-            true
+                try { Settings.Global.putInt(ctx.contentResolver, "adb_wifi_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
+            } else false
         },
     ),
     QuickToggle(
@@ -166,8 +163,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, "show_touches", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, "show_touches", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, "show_touches", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -181,8 +177,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, "pointer_location", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, "pointer_location", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, "pointer_location", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -196,8 +191,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "show_layout_bounds", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "show_layout_bounds", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "show_layout_bounds", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -211,8 +205,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, Settings.Global.ALWAYS_FINISH_ACTIVITIES, 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.ALWAYS_FINISH_ACTIVITIES, if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.ALWAYS_FINISH_ACTIVITIES, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -226,8 +219,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getFloat(ctx.contentResolver, Settings.Global.WINDOW_ANIMATION_SCALE, 1f) == 0f
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putFloat(ctx.contentResolver, Settings.Global.WINDOW_ANIMATION_SCALE, if (on) 0f else 1f) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putFloat(ctx.contentResolver, Settings.Global.WINDOW_ANIMATION_SCALE, if (on) 0f else 1f); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -241,8 +233,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getFloat(ctx.contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f) == 0f
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putFloat(ctx.contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, if (on) 0f else 1f) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putFloat(ctx.contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, if (on) 0f else 1f); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -256,8 +247,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, if (on) 0f else 1f) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, if (on) 0f else 1f); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -271,8 +261,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, 0) != 0
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, if (on) 3 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, if (on) 3 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -286,8 +275,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "bugreport_in_power_menu", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "bugreport_in_power_menu", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "bugreport_in_power_menu", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -301,8 +289,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getString(ctx.contentResolver, "show_gpu_overdraw")?.equals("show") == true
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putString(ctx.contentResolver, "show_gpu_overdraw", if (on) "show" else "false") } catch (_: Exception) { }
-            true
+            try { Settings.Global.putString(ctx.contentResolver, "show_gpu_overdraw", if (on) "show" else "false"); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -318,8 +305,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
                 Settings.Global.getInt(ctx.contentResolver, "enable_console_logging_in_adb", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "enable_console_logging_in_adb", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "enable_console_logging_in_adb", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -333,8 +319,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "wifi_verbose_logging_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "wifi_verbose_logging_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "wifi_verbose_logging_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
 
@@ -380,8 +365,8 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
                 val intent = Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED)
                 intent.putExtra("state", on)
                 ctx.sendBroadcast(intent)
-            } catch (_: Exception) { }
-            true
+                true
+            } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -468,8 +453,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, Settings.Global.DATA_ROAMING, 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.DATA_ROAMING, if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, Settings.Global.DATA_ROAMING, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -483,8 +467,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "network_traffic_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "network_traffic_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "network_traffic_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
 
@@ -501,8 +484,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, Settings.System.ACCELEROMETER_ROTATION, 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, Settings.System.ACCELEROMETER_ROTATION, if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, Settings.System.ACCELEROMETER_ROTATION, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -522,8 +504,8 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
                     Settings.System.SCREEN_BRIGHTNESS_MODE,
                     if (on) Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC else Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL,
                 )
-            } catch (_: Exception) { }
-            true
+                true
+            } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -540,8 +522,8 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             try {
                 val uiManager = ctx.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
                 uiManager?.nightMode = if (on) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO
-            } catch (_: Exception) { }
-            true
+                true
+            } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -555,8 +537,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "night_display_activated", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "night_display_activated", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "night_display_activated", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -570,8 +551,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "high_text_contrast_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "high_text_contrast_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "high_text_contrast_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -585,8 +565,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "accessibility_display_inversion_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_display_inversion_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_display_inversion_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -600,8 +579,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "screensaver_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "screensaver_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "screensaver_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -616,8 +594,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
                 Settings.Global.getString(ctx.contentResolver, "debug.force.rtl") == "1"
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putString(ctx.contentResolver, "debug.force.rtl", if (on) "1" else "0") } catch (_: Exception) { }
-            true
+            try { Settings.Global.putString(ctx.contentResolver, "debug.force.rtl", if (on) "1" else "0"); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -631,8 +608,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getFloat(ctx.contentResolver, Settings.System.FONT_SCALE, 1f) >= 1.3f
         },
         writeState = { ctx, on ->
-            try { Settings.System.putFloat(ctx.contentResolver, Settings.System.FONT_SCALE, if (on) 1.3f else 1.0f) } catch (_: Exception) { }
-            true
+            try { Settings.System.putFloat(ctx.contentResolver, Settings.System.FONT_SCALE, if (on) 1.3f else 1.0f); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -646,8 +622,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "accessibility_display_magnification_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_display_magnification_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_display_magnification_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
 
@@ -692,8 +667,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, Settings.System.VIBRATE_ON, 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, Settings.System.VIBRATE_ON, if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, Settings.System.VIBRATE_ON, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -707,8 +681,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, Settings.System.SOUND_EFFECTS_ENABLED, 1) == 0
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, Settings.System.SOUND_EFFECTS_ENABLED, if (on) 0 else 1) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, Settings.System.SOUND_EFFECTS_ENABLED, if (on) 0 else 1); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -722,8 +695,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, Settings.System.SOUND_EFFECTS_ENABLED, 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, Settings.System.SOUND_EFFECTS_ENABLED, if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, Settings.System.SOUND_EFFECTS_ENABLED, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -737,8 +709,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, Settings.System.HAPTIC_FEEDBACK_ENABLED, if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, Settings.System.HAPTIC_FEEDBACK_ENABLED, if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -752,8 +723,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.System.getInt(ctx.contentResolver, "lockscreen_sounds_enabled", 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.System.putInt(ctx.contentResolver, "lockscreen_sounds_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.System.putInt(ctx.contentResolver, "lockscreen_sounds_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
 
@@ -771,8 +741,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             pm?.isPowerSaveMode == true
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "low_power", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "low_power", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -786,8 +755,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "adaptive_battery_management_enabled", 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "adaptive_battery_management_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "adaptive_battery_management_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -801,8 +769,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "restricted_device_performance", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "restricted_device_performance", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "restricted_device_performance", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -816,8 +783,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "app_standby_enabled", 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "app_standby_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "app_standby_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -862,8 +828,8 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
                         Settings.Secure.LOCATION_MODE,
                         if (on) Settings.Secure.LOCATION_MODE_HIGH_ACCURACY else Settings.Secure.LOCATION_MODE_OFF,
                     )
-                } catch (_: Exception) { }
-                true
+                    true
+                } catch (_: Exception) { false }
             } else {
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -940,8 +906,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "notification_history_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "notification_history_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "notification_history_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -955,8 +920,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "clipboard_show_access_notifications", 1) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "clipboard_show_access_notifications", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "clipboard_show_access_notifications", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
 
@@ -991,8 +955,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "accessibility_shortcut_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_shortcut_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_shortcut_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -1006,8 +969,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Secure.getInt(ctx.contentResolver, "accessibility_display_daltonizer_enabled", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_display_daltonizer_enabled", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Secure.putInt(ctx.contentResolver, "accessibility_display_daltonizer_enabled", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -1086,8 +1048,8 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
                     @Suppress("DEPRECATION")
                     Settings.Secure.putInt(ctx.contentResolver, Settings.Secure.ALLOW_MOCK_LOCATION, if (on) 1 else 0)
                 }
-            } catch (_: Exception) { }
-            true
+                true
+            } catch (_: Exception) { false }
         },
     ),
     QuickToggle(
@@ -1139,8 +1101,7 @@ private fun buildAllToggles(): List<QuickToggle> = listOf(
             Settings.Global.getInt(ctx.contentResolver, "enable_freeform_support", 0) == 1
         },
         writeState = { ctx, on ->
-            try { Settings.Global.putInt(ctx.contentResolver, "enable_freeform_support", if (on) 1 else 0) } catch (_: Exception) { }
-            true
+            try { Settings.Global.putInt(ctx.contentResolver, "enable_freeform_support", if (on) 1 else 0); true } catch (_: Exception) { false }
         },
     ),
 )
@@ -1170,8 +1131,8 @@ internal fun QuickTogglesRoute(
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
         onToggle = { toggle, newState ->
-            val hasWriteSecure = ContextCompat.checkSelfPermission(
-                context, "android.permission.WRITE_SECURE_SETTINGS",
+            val hasWriteSecure = context.packageManager.checkPermission(
+                "android.permission.WRITE_SECURE_SETTINGS", context.packageName,
             ) == PackageManager.PERMISSION_GRANTED
             val hasWriteSettings = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 Settings.System.canWrite(context)
@@ -1191,9 +1152,11 @@ internal fun QuickTogglesRoute(
                 else -> true
             }
             if (canProceed) {
-                runCatching {
-                    val success = toggle.writeState(context, newState)
-                    if (success) toggleStates[toggle.id] = newState
+                val writeOk = runCatching { toggle.writeState(context, newState) }.getOrDefault(false)
+                val actualState = runCatching { toggle.readState(context) }.getOrDefault(if (writeOk) newState else !newState)
+                toggleStates[toggle.id] = actualState
+                if (writeOk && actualState != newState) {
+                    Toast.makeText(context, "${toggle.label}: blocked by system — check permissions", Toast.LENGTH_SHORT).show()
                 }
             }
         },
